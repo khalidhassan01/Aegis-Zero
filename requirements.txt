@@ -1,0 +1,22 @@
+# AEGIS ZERO - Production Requirements
+# ================================
+# Core AI Engine Dependencies
+ollama>=0.3.0
+
+# Vector Database
+qdrant-client>=1.8.0
+
+# HTTP Client for external APIs
+httpx>=0.26.0
+
+# Testing
+unittest2>=1.1.0
+
+# Optional: For Telegram integration
+# python-telegram-bot>=21.0
+
+# Optional: For advanced monitoring
+# prometheus-client>=0.19.0
+
+# Optional: For structured logging
+# structlog>=23.0.0
