@@ -1,3 +1,10 @@
+# AEGIS ZERO - Git Ignore
+# ========================
+# Created by: Mistral Vibe (GitHub Manager)
+# Repository: https://github.com/khalidhassan01/Aegis-Zero
+# Last Updated: July 8, 2026
+
+# Python
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -73,3 +80,52 @@ Thumbs.db
 # Project specific
 .codex
 *.pyc
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Local configuration
+.env.local
+.env.*.local
+
+# Cache files
+*.cache
+.cache/
+
+# Node (if used for documentation)
+node_modules/
+
+# Docker
+.docker/
+
+# Build artifacts
+*.exe
+*.dll
+
+# Security and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.keystore
+
+# Data files
+*.csv
+*.json
+*.xml
+
+# Temporary files
+*.tmp
+*.temp
+
+# Documentation build
+_docs/
+.docs/
+
+# Test results
+.test_results/
+.pytest_cache/
+.coverage
