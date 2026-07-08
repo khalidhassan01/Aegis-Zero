@@ -1,0 +1,402 @@
+# ============================================================
+# AEGIS ZERO — DECLARATIVE MANIFEST v7.0
+# aegis.conf.yaml — Single source of truth for the entire stack
+#
+# Philosophy: Declare desired state, not steps.
+# hermes doctor reads this file nightly and converges reality to it.
+# If it's not in this file, it shouldn't exist on the server.
+# ============================================================
+
+meta:
+  version: "7.0"
+  architecture: "aegis-zero"
+  author: "Khalid Hassan"
+  region: "eu-frankfurt-1"          # GDPR by default
+  instance_type: "VM.Standard.A1.Flex"
+  ocpus: 4
+  ram_gb: 24
+  monthly_cost_eur: 0.00
+
+# ============================================================
+# SECTION 1 — SECURITY LAYERS
+# Every entry here is validated by hermes doctor on boot + nightly
+# ============================================================
+security:
+
+  layer_0_tailscale:
+    enabled: true
+    mode: "mesh"
+    public_ports_open: 0            # INVARIANT — must always be 0
+    auth_key_env: "TAILSCALE_AUTH_KEY"
+    advertise_routes: false
+    exit_node: false
+    health_check: "tailscale status | grep -q 'logged in'"
+
+  layer_1_vcn_firewall:
+    ingress: "DENY_ALL"
+    egress:
+      - protocol: "TCP"
+        port: 443
+        direction: "outbound"
+        description: "HTTPS only — all external API calls"
+    static_ip: true                 # Reserved — survives reboot
+    health_check: "iptables -L INPUT | grep -q 'DROP'"
+
+  layer_2_os_hardening:
+    iptables_default_policy: "DROP"
+    fail2ban:
+      enabled: true
+      max_retry: 5
+      ban_time_seconds: 3600
+    metadata_endpoint_blocked: true
+    metadata_ip: "169.254.169.254"  # Oracle credential exfiltration vector
+    unattended_upgrades: true
+    health_check: "fail2ban-client status | grep -q 'Number of jail'"
+
+  layer_3_nginx:
+    bind: "localhost"               # NEVER 0.0.0.0
+    external_binding: false
+    ssl_termination: "internal_mesh_only"
+    services:
+      - name: "open-webui"
+        upstream: "127.0.0.1:3000"
+        path: "/webui"
+      - name: "qdrant"
+        upstream: "127.0.0.1:6333"
+        path: "/qdrant"
+      - name: "hermes-gateway"
+        upstream: "127.0.0.1:8000"
+        path: "/api"
+    health_check: "nginx -t 2>&1 | grep -q 'successful'"
+
+  layer_4_application:
+    command_approval_required: true
+    pii_redaction_on_external_calls: true
+    secret_scanner_on_outputs: true
+    diff_preview_before_file_changes: true
+    stealth_browser: true
+
+  layer_5_session:
+    reverse_access_to_clients: false  # INVARIANT — must always be false
+    session_continuity_ids: true
+    credential_pool_isolation: true
+
+# ============================================================
+# SECTION 2 — AI ENGINE
+# ============================================================
+ai_engine:
+
+  runtime: "ollama"
+  runtime_version_min: "0.3.0"
+
+  models:
+    - id: "aegis-deep"
+      base: "gemma4:26b"
+      modelfile: "~/.aegis/Modelfile.gemma4-deep"
+      quantization: "Q4_K_M"
+      ram_gb: 16.0
+      params:
+        num_thread: 4
+        num_batch: 256
+        num_ctx: 65536              # 64K — ARM RAM sweet spot
+        num_gpu: 0                  # CPU-only on ARM
+        temperature: 0.7
+      use_for: ["deep_research", "coding", "planning", "complex_reasoning"]
+      speed_tok_per_sec: "4-8"
+      context_tokens: 256000
+      tier: 1
+      loaded_at_boot: true         # Keeps RAM at 67% — defeats Oracle reclamation
+
+    - id: "aegis-fast"
+      base: "gemma4:e4b"
+      modelfile: "~/.aegis/Modelfile.gemma4-fast"
+      ram_gb: 4.5
+      params:
+        num_thread: 4
+        num_batch: 512
+        num_ctx: 32768
+        num_gpu: 0
+        temperature: 0.7
+      use_for: ["chat", "reminders", "qa", "quick_tasks"]
+      speed_tok_per_sec: "15-25"
+      context_tokens: 128000
+      tier: 2
+      loaded_at_boot: false        # On-demand — loaded when needed
+
+    - id: "nomic-embed"
+      base: "nomic-embed-text"
+      ram_gb: 0.4
+      use_for: ["rag_embedding", "semantic_search", "qdrant_indexing"]
+      loaded_at_boot: true
+
+  routing:
+    default_model: "aegis-fast"
+    escalation_triggers:
+      - keyword: "research"
+        route_to: "aegis-deep"
+      - keyword: "code"
+        route_to: "aegis-deep"
+      - keyword: "plan"
+        route_to: "aegis-deep"
+      - token_estimate_gt: 2000
+        route_to: "aegis-deep"
+    local_first: true               # Never call external API if local can handle it
+
+# ============================================================
+# SECTION 3 — RAM BUDGET
+# hermes doctor alerts if any component exceeds its allocation
+# ============================================================
+ram_budget:
+  total_gb: 24.0
+  oracle_reclamation_threshold_pct: 10   # Below this = reclamation risk
+  target_usage_pct: 67                   # Safe zone
+  allocations:
+    - component: "gemma4-26b"
+      gb: 16.0
+      always_loaded: true
+    - component: "gemma4-e4b"
+      gb: 4.5
+      always_loaded: false
+    - component: "hermes-agent-gateway"
+      gb: 1.5
+      always_loaded: true
+    - component: "ubuntu-nginx"
+      gb: 2.0
+      always_loaded: true
+    - component: "qdrant-nomic-embed"
+      gb: 0.8
+      always_loaded: true
+    - component: "open-webui-workspace"
+      gb: 0.8
+      always_loaded: true
+    - component: "tailscale-whisper-stt"
+      gb: 0.6
+      always_loaded: true
+  headroom_gb: 0.3
+
+# ============================================================
+# SECTION 4 — KNOWLEDGE SYSTEM
+# ============================================================
+knowledge:
+  vector_db: "qdrant"
+  qdrant_host: "127.0.0.1"
+  qdrant_port: 6333
+  embedding_model: "nomic-embed-text"
+  embedding_dimensions: 768
+
+  collections:
+    - name: "conversations"
+      description: "Full chat history with semantic search"
+      retention_days: 365
+    - name: "skills"
+      description: "Agent learned capabilities and procedures"
+      retention_days: null          # Permanent
+    - name: "documents"
+      description: "User-uploaded files and processed docs"
+      retention_days: null
+    - name: "web_cache"
+      description: "Stealth browser research results"
+      retention_days: 30
+    - name: "improvements"
+      description: "Logged system improvements from overnight agents"
+      retention_days: null
+    - name: "personas"
+      description: "Specialist agent profiles and context"
+      retention_days: null
+    - name: "semantic_cache"
+      description: "Cached LLM responses for repeated queries"
+      retention_days: 7
+
+  semantic_cache:
+    enabled: true
+    similarity_threshold: 0.92      # 92%+ match = serve from cache
+    ttl_hours: 168                  # 7 days
+
+# ============================================================
+# SECTION 5 — AGENT CORE
+# ============================================================
+agent:
+  runtime: "hermes"
+  config_dir: "~/.aegis/"
+  workspace_dir: "~/.aegis/workspace/"
+
+  interfaces:
+    telegram:
+      enabled: true
+      token_env: "TELEGRAM_BOT_TOKEN"
+      allowed_users_env: "TELEGRAM_ALLOWED_USER_IDS"
+      command_approval: true
+    open_webui:
+      enabled: true
+      port: 3000
+      bind: "localhost"
+    voice:
+      enabled: true
+      stt_engine: "faster-whisper"
+      model: "base"
+
+  token_optimization:
+    caveman_compression: true       # Improvement #21 — 58% savings
+    sidecar_selective_context: true # Improvement #28 — 60-80% savings
+    execute_code_rpc: true          # Improvement #3  — 95% reduction
+
+  specialist_profiles:
+    enabled: true
+    profiles_dir: "~/.aegis/profiles/"
+    active_profiles:
+      - "developer"
+      - "researcher"
+      - "writer"
+      - "analyst"
+
+  soul:
+    enabled: true
+    personality_file: "~/.aegis/SOUL.md"
+    agents_md: "~/.aegis/AGENTS.md"
+    karpathy_guidelines: true
+
+# ============================================================
+# SECTION 6 — API FALLBACK POOL
+# Local-first. External only when local cannot handle.
+# ============================================================
+api_pool:
+  local_first: true
+  providers_count: 9
+  config_dir: "~/.aegis/api_providers/"
+  cooldown_on_rate_limit_seconds: 60
+  pii_redact_before_external: true  # Law 2 enforcement
+  providers:
+    - name: "groq"
+      priority: 1
+      env_key: "GROQ_API_KEY"
+    - name: "together"
+      priority: 2
+      env_key: "TOGETHER_API_KEY"
+    - name: "mistral-eu"
+      priority: 3
+      env_key: "MISTRAL_API_KEY"
+      gdpr_compliant: true
+    - name: "cohere"
+      priority: 4
+      env_key: "COHERE_API_KEY"
+    - name: "huggingface"
+      priority: 5
+      env_key: "HF_API_KEY"
+    - name: "openrouter"
+      priority: 6
+      env_key: "OPENROUTER_API_KEY"
+    - name: "deepinfra"
+      priority: 7
+      env_key: "DEEPINFRA_API_KEY"
+    - name: "fireworks"
+      priority: 8
+      env_key: "FIREWORKS_API_KEY"
+    - name: "cerebras"
+      priority: 9
+      env_key: "CEREBRAS_API_KEY"
+
+# ============================================================
+# SECTION 7 — RESILIENCE & SELF-HEALING
+# ============================================================
+resilience:
+
+  insurance_cron:                   # Improvement #39
+    enabled: true
+    schedule: "*/5 * * * *"         # Every 5 minutes
+    checks:
+      - service: "ollama"
+        action: "restart_if_down"
+      - service: "qdrant"
+        action: "restart_if_down"
+      - service: "hermes"
+        action: "restart_if_down"
+      - service: "nginx"
+        action: "restart_if_down"
+      - service: "tailscale"
+        action: "restart_if_down"
+      - check: "ram_usage_pct"
+        threshold_min: 40           # If RAM drops below 40%, reload aegis-deep
+        action: "reload_model_aegis_deep"
+
+  backup:                           # Improvement #25
+    enabled: true
+    schedule: "0 3 * * 0"          # Weekly — Sunday 3am
+    encrypt: true
+    encryption_key_env: "AEGIS_BACKUP_KEY"
+    include:
+      - "~/.aegis/"
+      - "/etc/nginx/conf.d/"
+      - "~/.aegis/qdrant_snapshots/"
+    destination: "oracle_object_storage"
+    retention_copies: 3
+
+  rollback:
+    config_snapshots_kept: 3        # Last 3 working aegis.conf.yaml versions
+    staging_config: "~/.aegis/aegis.conf.staging.yaml"
+    promote_after_health_check: true
+
+# ============================================================
+# SECTION 8 — SELF-IMPROVEMENT ENGINE
+# ============================================================
+self_improvement:
+  enabled: true
+  schedule: "0 2 * * *"            # Nightly at 2am
+  staging_only: true               # Improvements go to staging first
+  auto_promote_if_health_pass: true
+  log_collection: "improvements"   # Qdrant collection
+  improvements_documented: 41
+
+# ============================================================
+# SECTION 9 — HERMES DOCTOR (Health Validator)
+# Reads this file. Compares desired state to reality.
+# Alerts via Telegram if drift detected.
+# ============================================================
+health:
+  doctor_schedule: "0 * * * *"     # Hourly
+  alert_channel: "telegram"
+  checks:
+    - id: "zero_public_ports"
+      critical: true
+      command: "ss -tlnp | grep -v '127\\|tailscale' | grep LISTEN"
+      expected_output: ""           # Empty = good. Any output = ALERT.
+
+    - id: "ram_above_reclamation"
+      critical: true
+      command: "free | awk '/Mem:/ {printf \"%.0f\", $3/$2*100}'"
+      expected_min: 40
+      expected_max: 95
+
+    - id: "tailscale_connected"
+      critical: true
+      command: "tailscale status | grep -c 'logged in'"
+      expected_output: "1"
+
+    - id: "ollama_aegis_deep_loaded"
+      critical: true
+      command: "ollama list | grep -c 'aegis-deep'"
+      expected_output: "1"
+
+    - id: "qdrant_collections"
+      critical: false
+      command: "curl -s http://127.0.0.1:6333/collections | python3 -c \"import sys,json; d=json.load(sys.stdin); print(len(d['result']['collections']))\""
+      expected_output: "7"
+
+    - id: "metadata_endpoint_blocked"
+      critical: true
+      command: "curl -s --max-time 2 http://169.254.169.254/ > /dev/null 2>&1; echo $?"
+      expected_output: "28"         # Timeout = blocked = good
+
+    - id: "nginx_internal_only"
+      critical: true
+      command: "ss -tlnp | grep nginx | grep -c '0.0.0.0'"
+      expected_output: "0"          # Zero external bindings = good
+
+    - id: "fail2ban_active"
+      critical: false
+      command: "systemctl is-active fail2ban"
+      expected_output: "active"
+
+    - id: "hermes_agent_alive"
+      critical: true
+      command: "curl -s http://127.0.0.1:8000/health | grep -c 'ok'"
+      expected_output: "1"

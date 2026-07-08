@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — 12-Factor Agent</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Neue+Haas+Unica:wght@300;400;500;700&family=Roboto+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:wght@300;400;500;700;800;900&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+:root {
+  --white: #ffffff;
+  --off:   #f7f7f5;
+  --light: #ebebeb;
+  --mid:   #c8c8c8;
+  --muted: #888888;
+  --dark:  #333333;
+  --ink:   #111111;
+
+  --f1:  #0066ff;
+  --f2:  #00aa44;
+  --f3:  #cc3300;
+  --f4:  #8800cc;
+  --f5:  #dd6600;
+  --f6:  #0099aa;
+  --f7:  #aa0055;
+  --f8:  #006644;
+  --f9:  #3300cc;
+  --f10: #aa6600;
+  --f11: #004488;
+  --f12: #553300;
+
+  --mono: 'Roboto Mono', monospace;
+  --sans: 'Epilogue', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* HEADER */
+.header {
+  padding: 52px 0 40px;
+  border-bottom: 3px solid var(--ink);
+  margin-bottom: 52px;
+}
+
+.h-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.h-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: end;
+}
+
+@media (max-width: 700px) { .h-grid { grid-template-columns: 1fr; } }
+
+h1 {
+  font-weight: 900;
+  font-size: clamp(40px, 6vw, 72px);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--ink);
+}
+
+h1 sup {
+  font-size: 0.35em;
+  font-weight: 400;
+  color: var(--muted);
+  vertical-align: super;
+  letter-spacing: 0;
+}
+
+.h-desc {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 420px;
+}
+
+.h-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 4px;
+}
+
+.h-stat {
+  border-top: 1px solid var(--light);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.hs-num {
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.hs-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: right;
+}
+
+/* FACTOR GRID */
+.factor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--light);
+  border: 1px solid var(--light);
+  margin-bottom: 52px;
+}
+
+@media (max-width: 900px) { .factor-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .factor-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.factor-cell {
+  background: var(--white);
+  padding: 20px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  border-top: 3px solid transparent;
+}
+
+.factor-cell:hover { background: var(--off); }
+.factor-cell.active { background: var(--off); }
+
+.fc-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.fc-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.fc-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fc-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  transition: height 0.2s;
+}
+
+.factor-cell.active .fc-indicator { height: 4px; }
+
+/* DETAIL PANEL */
+.factor-detail {
+  border: 1px solid var(--light);
+  border-top: 4px solid;
+  background: var(--off);
+  padding: 40px;
+  margin-bottom: 52px;
+  display: none;
+  animation: expandIn 0.2s ease;
+}
+
+.factor-detail.show { display: block; }
+
+@keyframes expandIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fd-grid { display: grid; grid-template-columns: 2fr 3fr; gap: 40px; }
+@media (max-width: 800px) { .fd-grid { grid-template-columns: 1fr; } }
+
+.fd-left { }
+.fd-num  { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.fd-title { font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin-bottom: 16px; }
+.fd-what { font-size: 13.5px; color: var(--dark); line-height: 1.7; margin-bottom: 20px; }
+
+.fd-problem {
+  background: var(--white);
+  border-left: 3px solid var(--mid);
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.fd-innovation {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  background: var(--white);
+  border: 1px solid var(--light);
+  padding: 8px 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.fd-right { }
+
+.fd-section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--light);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.fd-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.75;
+  background: var(--white);
+  border: 1px solid var(--light);
+  padding: 16px 18px;
+  overflow-x: auto;
+  color: var(--dark);
+  margin-bottom: 20px;
+}
+
+.fk  { color: var(--f1); font-weight: 500; }
+.fc_ { color: var(--muted); font-style: italic; }
+.fs_ { color: var(--f8); }
+.fn_ { color: var(--f3); }
+.fd_ { color: var(--f4); }
+
+.fd-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.fd-check {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 12.5px;
+}
+
+.check-icon { font-size: 11px; flex-shrink: 0; }
+.check-text { color: var(--dark); line-height: 1.5; }
+
+/* INTEGRATION DIAGRAM */
+.integration {
+  border: 1px solid var(--light);
+  margin-bottom: 52px;
+  overflow: hidden;
+}
+
+.int-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--light);
+}
+
+.int-col {
+  padding: 16px 20px;
+  border-right: 1px solid var(--light);
+}
+
+.int-col:last-child { border-right: none; }
+
+.int-col-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.int-col-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.int-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.int-row {
+  padding: 14px 20px;
+  border-right: 1px solid var(--light);
+  border-bottom: 1px solid var(--light);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.int-row:nth-child(even) { border-right: none; }
+.int-row:nth-last-child(-n+2) { border-bottom: none; }
+
+.int-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+.int-factor-num {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.int-factor-name {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.int-factor-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* DIFF */
+.code-diff {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.75;
+  background: var(--off);
+  border: 1px solid var(--light);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin-bottom: 52px;
+}
+
+.diff-del { color: #cc3300; }
+.diff-add { color: #006600; }
+.diff-ctx { color: var(--muted); }
+.diff-cm  { color: var(--mid); font-style: italic; }
+.diff-hi  { color: var(--ink); font-weight: 500; }
+
+/* DEGRADATION TABLE */
+.deg-table {
+  border: 1px solid var(--light);
+  margin-bottom: 52px;
+}
+
+.deg-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 1.5fr;
+  border-bottom: 1px solid var(--light);
+  transition: background 0.12s;
+}
+
+.deg-row:last-child { border-bottom: none; }
+.deg-row.header { background: var(--off); }
+.deg-row:not(.header):hover { background: var(--off); }
+
+.deg-cell {
+  padding: 12px 16px;
+  border-right: 1px solid var(--light);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.deg-cell:last-child { border-right: none; }
+
+.deg-row.header .deg-cell {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.deg-mode {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 8px;
+  background: var(--off);
+  border: 1px solid var(--light);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* FOOTER */
+.footer {
+  border-top: 3px solid var(--ink);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer-l { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-meta">
+    <span>Aegis Zero</span>
+    <span>Innovation #6</span>
+    <span>v7.0</span>
+    <span>April 2026</span>
+    <span>kubiya.ai/blog/context-engineering-ai-agents</span>
+  </div>
+  <div class="h-grid">
+    <div>
+      <h1>12-Factor<br>Agent<sup>design</sup></h1>
+      <div class="h-desc" style="margin-top:20px;">Production hardening layer. Wraps Innovations #1–3 with checkpointing, resilience, observability, and graceful degradation. One line change to Hermes.</div>
+    </div>
+    <div class="h-stats">
+      <div class="h-stat">
+        <div class="hs-num">12</div>
+        <div class="hs-label">Production<br>factors applied</div>
+      </div>
+      <div class="h-stat">
+        <div class="hs-num">7</div>
+        <div class="hs-label">Failure modes<br>handled gracefully</div>
+      </div>
+      <div class="h-stat">
+        <div class="hs-num">1</div>
+        <div class="hs-label">Line change<br>to Hermes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FACTOR GRID -->
+<div id="factorGrid" class="factor-grid"></div>
+
+<!-- DETAIL PANEL -->
+<div class="factor-detail" id="factorDetail"></div>
+
+<!-- INTEGRATION DIAGRAM -->
+<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Innovations #1–3 — What Each Factor Hardens</div>
+<div class="integration" style="margin-bottom:52px;">
+  <div class="int-header">
+    <div class="int-col"><div class="int-col-label">Base Layer</div><div class="int-col-title">Innovations #1 + #2 + #3</div></div>
+    <div class="int-col"><div class="int-col-label">Hardening Layer</div><div class="int-col-title">Innovation #6 — 12-Factor Agent</div></div>
+  </div>
+  <div class="int-body">
+    <div class="int-row"><div class="int-icon">🔌</div><div><div class="int-factor-num">Innovation #1</div><div class="int-factor-name">MCP Server Layer</div><div class="int-factor-desc">Tool calls via stdio. No error recovery.</div></div></div>
+    <div class="int-row"><div class="int-icon">🔧</div><div><div class="int-factor-num">Factor 4 + 7 + 12</div><div class="int-factor-name">Structured + Resilient Tools</div><div class="int-factor-desc">call_tool_safe() validates JSON, retries, degrades if MCP server crashes.</div></div></div>
+    <div class="int-row"><div class="int-icon">🧠</div><div><div class="int-factor-num">Innovation #2</div><div class="int-factor-name">Context Engine</div><div class="int-factor-desc">4-layer memory. No fallback if Qdrant down.</div></div></div>
+    <div class="int-row"><div class="int-icon">🔧</div><div><div class="int-factor-num">Factor 12 + 2</div><div class="int-factor-name">Memory Degradation</div><div class="int-factor-desc">Qdrant down → proceed memoryless. Context window owned end-to-end.</div></div></div>
+    <div class="int-row"><div class="int-icon">🎭</div><div><div class="int-factor-num">Innovation #3</div><div class="int-factor-name">Puppeteer Orchestration</div><div class="int-factor-desc">Dynamic sequences. No checkpointing.</div></div></div>
+    <div class="int-row"><div class="int-icon">🔧</div><div><div class="int-factor-num">Factor 1 + 5 + 11</div><div class="int-factor-name">Stateless + Checkpointed</div><div class="int-factor-desc">Every step checkpointed. Crash at step 4 of 7 → resume at step 4.</div></div></div>
+    <div class="int-row"><div class="int-icon">🤖</div><div><div class="int-factor-num">Existing</div><div class="int-factor-name">Hermes Handler</div><div class="int-factor-desc">Single ollama.generate() call. No retry.</div></div></div>
+    <div class="int-row"><div class="int-icon">🔧</div><div><div class="int-factor-num">Factor 7 + 9 + 6</div><div class="int-factor-name">Resilient + Observable + Gated</div><div class="int-factor-desc">Fallback chain, inference records, approval for irreversible actions.</div></div></div>
+  </div>
+</div>
+
+<!-- ONE LINE DIFF -->
+<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">The Migration — Hermes Handler Change</div>
+<div class="code-diff">
+<span class="diff-cm"># ~/.aegis/hermes/handler.py</span>
+<span class="diff-cm"># Three innovations, one line at a time:</span>
+
+<span class="diff-cm"># After Innovation #3 (Puppeteer):</span>
+<span class="diff-del">- from orchestration.puppeteer import handle_message</span>
+<span class="diff-del">- return handle_message(message, interface=interface)</span>
+
+<span class="diff-cm"># After Innovation #6 (12-Factor hardening):</span>
+<span class="diff-add">+ from core.agent_harness import handle_message_v2</span>
+<span class="diff-add">+ return handle_message_v2(message, interface=interface, config=config)</span>
+
+<span class="diff-cm"># What's now active on every single message:</span>
+<span class="diff-hi">  Factor  1 — stateless steps (state in Qdrant, not memory)</span>
+<span class="diff-hi">  Factor  2 — context window owned by ContextEngine</span>
+<span class="diff-hi">  Factor  3 — control flow owned by Python, not LLM</span>
+<span class="diff-hi">  Factor  4 — structured tool outputs via call_tool_safe()</span>
+<span class="diff-hi">  Factor  5 — checkpointed: resumable after crash at any step</span>
+<span class="diff-hi">  Factor  6 — approval gate for irreversible/low-confidence</span>
+<span class="diff-hi">  Factor  7 — retry with backoff + model fallback chain</span>
+<span class="diff-hi">  Factor  8 — LLM reasons, Python executes</span>
+<span class="diff-hi">  Factor  9 — inference record written per call to Qdrant</span>
+<span class="diff-hi">  Factor 10 — all deps injected (testable in isolation)</span>
+<span class="diff-hi">  Factor 11 — task_id idempotency (safe to retry any task)</span>
+<span class="diff-hi">  Factor 12 — 7 failure modes handled, agent never fully stops</span>
+
+<span class="diff-cm"># All existing token optimizations still apply:</span>
+<span class="diff-ctx">  Caveman #21 ✓  Sidecar #28 ✓  execute_code RPC #3 ✓</span></div>
+
+<!-- DEGRADATION TABLE -->
+<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Factor 12 — Graceful Degradation Map</div>
+<div class="deg-table">
+  <div class="deg-row header">
+    <div class="deg-cell">Failure Mode</div>
+    <div class="deg-cell">Action</div>
+    <div class="deg-cell">Agent State</div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">Qdrant unavailable</div>
+    <div class="deg-cell">Proceed without memory. Log warning. Retry in 60s.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — stateless</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">aegis-deep unavailable</div>
+    <div class="deg-cell">Fall back to aegis-fast for all tasks automatically.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — fast-only</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">All Ollama models down</div>
+    <div class="deg-cell">Try API fallback pool (9 providers). Return error only if all fail.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — api-fallback</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">Telegram unavailable</div>
+    <div class="deg-cell">Log to pending_alerts.json. Retry on reconnect.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — silent</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">MCP server crash</div>
+    <div class="deg-cell">insurance_cron restarts within 5 min. Affected requests queued.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — limited tools</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">Context engine error</div>
+    <div class="deg-cell">Fall back to raw message — no memory injection. Still answers.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — memoryless</span></div>
+  </div>
+  <div class="deg-row">
+    <div class="deg-cell" style="font-weight:600;">Disk full</div>
+    <div class="deg-cell">Purge web_cache collection (30-day TTL data). Alert via Telegram.</div>
+    <div class="deg-cell"><span class="deg-mode">degraded — no persistence</span></div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-l">AEGIS ZERO · 12-FACTOR AGENT · v7.0 · APRIL 2026</div>
+  <div class="footer-l">12 factors · 7 failure modes · 1 line change · €0 added cost</div>
+</div>
+</div>
+
+<script>
+const factors = [
+  { n:1,  color:"var(--f1)",  title:"Stateless Steps",       tag:"Factor 1",  problem:"Hermes crashes at step 4 of 7. Entire task restarts from step 1.", what:"Every puppet call is stateless. All inter-step state lives in Qdrant checkpoints, never in Python memory. A crash at step 4 means Puppeteer reads the checkpoint and resumes at step 4 — not step 1.", innovation:"CheckpointStore + step() context manager", code:`<span class="fc_"># Every step wrapped — state in Qdrant, not memory</span>
+<span class="fk">with</span> step(task_id, step_num=<span class="fn_">2</span>, step_name=<span class="fs_">"forge"</span>, checkpoints) <span class="fk">as</span> ctx:
+    <span class="fc_"># If step 2 already done → skip (idempotent)</span>
+    <span class="fc_"># On crash → resume here next time, not step 1</span>
+    ctx[<span class="fs_">"result"</span>] = forge.run(message, scout_briefing)
+    <span class="fc_"># Written to Qdrant BEFORE step 3 starts</span>`, checks:["Crash at any point = resume from exact step","No state in Python memory — only Qdrant","Qdrant write before next step starts"] },
+
+  { n:2,  color:"var(--f2)",  title:"Own Your Context Window",tag:"Factor 2",  problem:"Context constructed ad-hoc in multiple places. Token budget violated. Inconsistent retrieval.", what:"ContextEngine (Innovation #2) is the single authority for every token budget decision. No prompt is ever constructed outside ContextEngine. Every call gets exactly the right 4-layer context — no more, no less.", innovation:"ContextEngine.build() + to_prompt() — mandatory path", code:`<span class="fc_"># Only one way to build a prompt in Aegis Zero</span>
+<span class="fk">def</span> <span class="fs_">build_prompt</span>(message, tier):
+    ctx = context_engine.build(message, tier=tier)
+    <span class="fc_"># Budget enforced: 10% system, 15% facts,</span>
+    <span class="fc_"># 25% episodic, 25% docs, 25% current msg</span>
+    <span class="fk">return</span> context_engine.to_prompt(ctx)
+    
+<span class="fc_"># NEVER do this anywhere else in the codebase:</span>
+<span class="fn_"># prompt = f"{system}\n\n{message}"  # ← banned</span>`, checks:["One path to build prompts — ContextEngine","Token budget enforced structurally","No ad-hoc prompt construction anywhere"] },
+
+  { n:3,  color:"var(--f3)",  title:"Own Your Control Flow",  tag:"Factor 3",  problem:"LLM decides what happens next. Non-deterministic. Loops. Unexpected branching.", what:"Puppeteer owns sequencing. The LLM only reasons — it never decides what step runs next. Python's _select_sequence() maps TaskClassification to an ordered list of steps. The list never changes mid-task based on LLM output.", innovation:"Puppeteer._select_sequence() — Python-owned sequencer", code:`<span class="fc_"># Python decides the sequence — not the LLM</span>
+<span class="fk">def</span> <span class="fs_">_select_sequence</span>(classification):
+    <span class="fk">if</span> complexity == SIMPLE:
+        <span class="fk">return</span> [<span class="fs_">"forge"</span>]          <span class="fc_"># deterministic</span>
+    <span class="fk">if</span> complexity == COMPLEX:
+        <span class="fk">return</span> [<span class="fs_">"scout"</span>, <span class="fs_">"forge"</span>, <span class="fs_">"auditor"</span>]
+    <span class="fk">if</span> complexity == RESEARCH:
+        <span class="fk">return</span> [<span class="fs_">"scout"</span>,<span class="fs_">"forge_parallel"</span>,<span class="fs_">"synthesize"</span>,<span class="fs_">"auditor"</span>]
+        
+<span class="fc_"># LLM never calls: "now run the auditor"</span>
+<span class="fc_"># LLM only produces content. Python orchestrates.</span>`, checks:["No implicit LLM-driven branching","Sequence determined before any LLM call","Predictable, testable, auditable"] },
+
+  { n:4,  color:"var(--f4)",  title:"Structured Tool Outputs",tag:"Factor 4",  problem:"MCP tool returns raw text. Parsing fails silently. Agent proceeds on garbage data.", what:"Every tool call goes through call_tool_safe(). Returns a typed ToolResult with ok, data, error, duration. JSON parsed and validated. Failures logged as ToolResult(ok=False) — never raised as exceptions that crash the agent.", innovation:"call_tool_safe() — wraps all MCP tool calls", code:`<span class="fc_"># Never call MCP tools directly</span>
+result = call_tool_safe(
+    mcp_tools[<span class="fs_">"knowledge_search"</span>],
+    tool_name=<span class="fs_">"knowledge_search"</span>,
+    query=message, collection=<span class="fs_">"conversations"</span>
+)
+<span class="fk">if</span> result.ok:
+    episodes = result.data  <span class="fc_"># validated, typed</span>
+<span class="fk">else</span>:
+    episodes = []           <span class="fc_"># degrade gracefully</span>
+    log.warning(result.error)
+    
+<span class="fc_"># result.duration_sec tracked for observability</span>`, checks:["All tool outputs validated before use","Parsing failures never crash the agent","Duration tracked per tool call"] },
+
+  { n:5,  color:"var(--f5)",  title:"Checkpointing",          tag:"Factor 5",  problem:"Hermes crashes mid-task. User gets no response. Task cannot be resumed.", what:"CheckpointStore writes every completed step result to Qdrant before the next step starts. On restart, HardenedPuppeteer reads the checkpoint, finds the last completed step, and resumes from there. Task IDs are passed through Telegram so users can reference interrupted tasks.", innovation:"CheckpointStore + step() context manager", code:`<span class="fc_"># Checkpoint written BEFORE next step starts</span>
+checkpoints.write(
+    task_id=task_id,
+    step=<span class="fn_">2</span>,
+    step_name=<span class="fs_">"forge"</span>,
+    result={<span class="fs_">"output"</span>: forge_result},
+    status=<span class="fs_">"done"</span>
+)
+<span class="fc_"># step 3 only starts after this write</span>
+
+<span class="fc_"># On resume:</span>
+last = checkpoints.last_completed_step(task_id)
+<span class="fc_"># last=2 → skip steps 0,1,2 → start at step 3</span>`, checks:["Resumable from exact failure point","Step 3 never runs until step 2 is written","Task ID returned to user for reference"] },
+
+  { n:6,  color:"var(--f6)",  title:"Human-in-the-Loop",      tag:"Factor 6",  problem:"Agent deletes a file, sends an email, or purges Qdrant data without asking.", what:"ApprovalGate intercepts any action marked irreversible, or where Auditor confidence < 65%. Sends a Telegram message with action description and preview. Agent blocks — not cancels — waiting up to 5 minutes for /approve or /reject. Timeout defaults to reject.", innovation:"ApprovalGate + Layer 4 security (existing command_approval)", code:`<span class="fc_"># Triggered by irreversible actions or low confidence</span>
+approved = approval_gate.request(
+    task_id=task_id,
+    action_desc=<span class="fs_">"Delete ~/.aegis/workspace/report.md"</span>,
+    content_preview=<span class="fs_">"File: report.md (2.4KB)\nCreated: 2025-04-10"</span>,
+    confidence=<span class="fn_">0.92</span>,
+    irreversible=<span class="fk">True</span>   <span class="fc_"># ← always gates</span>
+)
+<span class="fk">if</span> approved:
+    fs_delete(<span class="fs_">"report.md"</span>)
+<span class="fk">else</span>:
+    <span class="fk">return</span> <span class="fs_">"Action cancelled."</span>`, checks:["All irreversible actions require /approve","Low-confidence responses flagged before send","5-min timeout → auto-reject"] },
+
+  { n:7,  color:"var(--f7)",  title:"Error Recovery",         tag:"Factor 7",  problem:"aegis-deep OOM crash. Agent returns error. User has to retry manually.", what:"ModelFallbackChain wraps every model call. On failure: retry 3× with exponential backoff (1s, 2s, 4s). If aegis-deep fails, fall back to aegis-fast. If all Ollama models fail, try the API fallback pool (9 providers). FALLBACK_RESPONSE only if everything fails.", innovation:"ModelFallbackChain — wraps every ollama.generate() call", code:`<span class="fc_"># Every model call goes through the chain</span>
+result = model_chain.generate(
+    prompt=prompt,
+    model=<span class="fs_">"aegis-deep"</span>,
+    retry=RetryConfig(max_attempts=<span class="fn_">3</span>, base_delay_sec=<span class="fn_">1.0</span>)
+)
+<span class="fc_"># Automatic fallback sequence:</span>
+<span class="fc_"># aegis-deep → aegis-deep (retry 1) → aegis-deep (retry 2)</span>
+<span class="fc_"># → aegis-fast (fallback) → aegis-fast (retry 1)</span>
+<span class="fc_"># → API pool → FALLBACK_RESPONSE</span>
+<span class="fc_"># result.ok always set. Never raises.</span>`, checks:["3 retries with 1s/2s/4s backoff","aegis-deep → aegis-fast automatic fallback","Never raises an unhandled exception"] },
+
+  { n:8,  color:"var(--f8)",  title:"Separation of Concerns", tag:"Factor 8",  problem:"LLM output contains embedded action triggers. Hard to test. Hard to audit.", what:"LLM reasoning is completely separated from Python execution. The LLM produces structured JSON output (classification, plan, audit result). Python parses it and decides what to execute. Tool calls are never embedded in prose — they come from TaskClassifier and Puppeteer logic.", innovation:"TaskClassifier structured output + Puppeteer execution separation", code:`<span class="fc_"># LLM produces structured reasoning</span>
+classify_result = ollama.generate(
+    prompt=classify_prompt,
+    options={<span class="fs_">"temperature"</span>: <span class="fn_">0.1</span>}
+)
+classification = json.loads(classify_result)
+
+<span class="fc_"># Python decides what to execute</span>
+sequence = _select_sequence(classification)
+<span class="fk">for</span> step_name <span class="fk">in</span> sequence:
+    execute_step(step_name)  <span class="fc_"># ← Python owns this</span>
+    
+<span class="fc_"># LLM never calls: run_tool(), delete_file(), etc.</span>
+<span class="fc_"># LLM only outputs JSON. Python acts on it.</span>`, checks:["LLM only outputs JSON — never triggers actions","Python owns all control flow","Every execution path is testable without LLM"] },
+
+  { n:9,  color:"var(--f9)",  title:"Observability",          tag:"Factor 9",  problem:"Agent is a black box. Can't tell which model is slowest, which steps fail most.", what:"ObservabilityStore records every inference call: input hash (not content — privacy preserved), output hash, duration, token counts, model used, success/failure. Stored in improvements Qdrant collection. The nightly self-improvement pipeline queries this data to find patterns.", innovation:"ObservabilityStore + InferenceRecord — per-call telemetry", code:`<span class="fc_"># After every model call:</span>
+obs.record_inference(
+    task_id=task_id,
+    step_name=<span class="fs_">"forge"</span>,
+    model=<span class="fs_">"aegis-deep"</span>,
+    prompt=prompt,          <span class="fc_"># hashed — never stored raw</span>
+    response=response,      <span class="fc_"># hashed — privacy preserved</span>
+    duration_sec=<span class="fn_">8.4</span>,
+    tokens_out=<span class="fn_">487</span>
+)
+
+<span class="fc_"># Nightly: which steps are slow? which models fail?</span>
+stats = obs.get_stats(hours_back=<span class="fn_">24</span>)
+<span class="fc_"># → {total: 142, success_rate: 0.97, avg_dur: 3.2s}</span>`, checks:["Input/output hashed — prompt content never stored","Duration and tokens tracked per call","Stats queryable by nightly self-improvement"] },
+
+  { n:10, color:"var(--f10)", title:"Dependency Injection",   tag:"Factor 10", problem:"Everything hardcoded. Can't test without running Ollama, Qdrant, and Telegram.", what:"AgentDependencies holds every external component. HardenedPuppeteer accepts deps at init — nothing imported globally. For tests, inject MockQdrant, MockOllama, MockTelegram. Every component testable in complete isolation, without any infrastructure running.", innovation:"AgentDependencies dataclass + build_production_deps()", code:`<span class="fc_"># Production deps</span>
+deps = build_production_deps(config, mcp_tools)
+puppeteer = HardenedPuppeteer(deps)
+
+<span class="fc_"># Test deps — no infrastructure needed</span>
+test_deps = AgentDependencies(
+    model_chain=MockModelChain(responses=[<span class="fs_">"test response"</span>]),
+    checkpoints=InMemoryCheckpointStore(),
+    observability=NullObservabilityStore(),
+    approval_gate=AutoApproveGate(),
+    mcp_tools={<span class="fs_">"knowledge_search"</span>: mock_search},
+    config={}
+)
+puppeteer_under_test = HardenedPuppeteer(test_deps)`, checks:["Zero hardcoded paths or singletons","Every component swappable for testing","Production and test differ only in deps"] },
+
+  { n:11, color:"var(--f11)", title:"Idempotency",            tag:"Factor 11", problem:"Network glitch causes duplicate message delivery. Agent runs the same task twice.", what:"Task IDs are deterministic (passed from Telegram message ID). CheckpointStore uses sha256(task_id+step) as point ID — upsert, never insert. Re-running a task with the same ID skips already-completed steps. Qdrant semantic_cache_check prevents duplicate LLM calls.", innovation:"Deterministic task IDs + sha256 checkpoint point IDs", code:`<span class="fc_"># Checkpoint point ID is deterministic</span>
+point_id = hashlib.sha256(
+    <span class="fs_">f"{task_id}:step:{step_num}"</span>.encode()
+).hexdigest()[:<span class="fn_">32</span>]
+
+<span class="fc_"># Upsert — not insert. Safe to call N times.</span>
+qdrant.upsert(collection_name=<span class="fs_">"improvements"</span>,
+              points=[PointStruct(id=point_id, ...)])
+
+<span class="fc_"># On re-run: step already exists → skip</span>
+last = checkpoints.last_completed_step(task_id)
+<span class="fk">if</span> last >= step_num:
+    <span class="fk">yield</span> {<span class="fs_">"skipped"</span>: <span class="fk">True</span>}
+    <span class="fk">return</span>`, checks:["Same task_id = skip completed steps","Qdrant upserts are idempotent by design","Duplicate Telegram messages handled safely"] },
+
+  { n:12, color:"var(--f12)", title:"Graceful Degradation",   tag:"Factor 12", problem:"Qdrant is down. Agent crashes. User gets no response.", what:"Every dependency has a defined failure mode that keeps the agent running in a degraded state. Qdrant down → memoryless mode. Deep model down → fast-only mode. Telegram down → silent mode. The 7-row degradation map is the contract: the agent always returns a response.", innovation:"DEGRADATION_MAP + try/except wrapping every external call", code:`<span class="fc_"># Qdrant failure: proceed without memory</span>
+<span class="fk">try</span>:
+    episodes = qdrant.search(...)
+<span class="fk">except</span> Exception:
+    episodes = []  <span class="fc_"># ← memoryless mode</span>
+    log.warning(<span class="fs_">"qdrant_unavailable_proceeding_memoryless"</span>)
+
+<span class="fc_"># Deep model failure: fall back to fast</span>
+<span class="fk">try</span>:
+    resp = ollama.generate(model=<span class="fs_">"aegis-deep"</span>, ...)
+<span class="fk">except</span> Exception:
+    resp = ollama.generate(model=<span class="fs_">"aegis-fast"</span>, ...)
+    
+<span class="fc_"># Agent always returns a response.</span>
+<span class="fc_"># Never raises to the user layer.</span>`, checks:["7 failure modes handled — all defined","Agent always returns a response","Insurance cron restarts services in background"] }
+];
+
+const factorColors = factors.map(f => f.color);
+
+// Render grid
+const grid = document.getElementById("factorGrid");
+factors.forEach(f => {
+  const cell = document.createElement("div");
+  cell.className = "factor-cell";
+  cell.dataset.n = f.n;
+  cell.onclick = () => toggleFactor(f.n);
+  cell.innerHTML = `
+    <div class="fc-indicator" style="background:${f.color};"></div>
+    <div class="fc-num" style="color:${f.color};">Factor ${String(f.n).padStart(2,'0')}</div>
+    <div class="fc-title">${f.title}</div>
+    <div class="fc-tag">${f.innovation.split('+')[0].trim()}</div>
+  `;
+  grid.appendChild(cell);
+});
+
+let activeFactor = null;
+
+function toggleFactor(n) {
+  const detail = document.getElementById("factorDetail");
+  document.querySelectorAll(".factor-cell").forEach(c => c.classList.remove("active"));
+
+  if (activeFactor === n) {
+    detail.classList.remove("show");
+    activeFactor = null;
+    return;
+  }
+
+  activeFactor = n;
+  const f = factors.find(x => x.n === n);
+  const cell = document.querySelector(`[data-n="${n}"]`);
+  cell.classList.add("active");
+
+  detail.style.borderTopColor = f.color;
+
+  const checksHTML = f.checks.map(c =>
+    `<div class="fd-check"><span class="check-icon" style="color:${f.color};">✓</span><span class="check-text">${c}</span></div>`
+  ).join("");
+
+  detail.innerHTML = `
+    <div class="fd-grid">
+      <div class="fd-left">
+        <div class="fd-num" style="color:${f.color};">Factor ${String(f.n).padStart(2,'0')} — ${f.tag}</div>
+        <div class="fd-title" style="color:${f.color};">${f.title}</div>
+        <div class="fd-what">${f.what}</div>
+        <div class="fd-problem">"${f.problem}"</div>
+        <div class="fd-innovation">Implementation: ${f.innovation}</div>
+      </div>
+      <div class="fd-right">
+        <div class="fd-section-label">Aegis Zero Implementation</div>
+        <div class="fd-code">${f.code}</div>
+        <div class="fd-section-label">Guarantees</div>
+        <div class="fd-checks">${checksHTML}</div>
+      </div>
+    </div>
+  `;
+
+  detail.classList.add("show");
+  setTimeout(() => detail.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+}
+
+// Auto-open Factor 5 as a demo
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.querySelector('[data-n="5"]').click();
+  }, 300);
+});
+</script>
+</body>
+</html>

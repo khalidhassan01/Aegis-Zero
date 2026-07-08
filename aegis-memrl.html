@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — MemRL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --bg:    #fafaf7;
+  --ink:   #1a1a18;
+  --mid:   #6b6b60;
+  --light: #d8d8cc;
+  --rule:  #e8e8e0;
+  --paper: #f4f4ef;
+
+  --q-high:   #1a6b2a;
+  --q-good:   #2d5a8e;
+  --q-neutral:#7a6b45;
+  --q-poor:   #8e3a1a;
+  --q-low:    #5a1a2a;
+
+  --phase-a: #2d5a8e;
+  --phase-b: #1a6b2a;
+  --reward:  #6b3a8e;
+
+  --mono: 'Courier Prime', monospace;
+  --sans: 'Archivo', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* HEADER */
+.header {
+  padding: 52px 0 40px;
+  border-bottom: 3px solid var(--ink);
+  margin-bottom: 52px;
+}
+
+.h-kicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mid);
+  margin-bottom: 14px;
+  display: flex; gap: 24px; flex-wrap: wrap;
+}
+
+.h-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+}
+
+@media (max-width: 700px) { .h-main { grid-template-columns: 1fr; } }
+
+h1 {
+  font-weight: 900;
+  font-size: clamp(40px, 7vw, 80px);
+  letter-spacing: -0.04em;
+  line-height: 0.88;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.h-sub {
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.65;
+  max-width: 380px;
+  margin-top: 14px;
+}
+
+.h-cite {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--light);
+  border: 1px solid var(--light);
+  padding: 8px 14px;
+  text-align: right;
+  line-height: 1.6;
+  max-width: 240px;
+}
+
+/* SECTION */
+.section { margin-bottom: 52px; }
+
+.sec-rule {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--mid);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* THE TWO-PHASE DIAGRAM */
+.phase-diagram {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 0;
+  border: 1px solid var(--light);
+  margin-bottom: 32px;
+}
+
+@media (max-width: 650px) {
+  .phase-diagram { grid-template-columns: 1fr; }
+  .phase-arrow { display: none; }
+}
+
+.phase-panel {
+  padding: 24px;
+  border-right: 1px solid var(--rule);
+}
+
+.phase-panel:last-child { border-right: none; }
+
+.phase-letter {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.phase-title {
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+
+.phase-desc {
+  font-size: 12px;
+  color: var(--mid);
+  line-height: 1.65;
+}
+
+.phase-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--light);
+  border-right: 1px solid var(--rule);
+}
+
+.phase-formula {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--paper);
+  padding: 8px 12px;
+  margin-top: 12px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* Q-VALUE SIMULATION */
+.sim-box {
+  border: 1px solid var(--ink);
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.sim-header {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sim-title { font-weight: 700; font-size: 13px; letter-spacing: 0.04em; }
+
+.sim-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sim-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 5px 14px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+}
+
+.sim-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: white; }
+.sim-btn.primary { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.5); }
+
+.sim-body {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 24px;
+}
+
+@media (max-width: 700px) { .sim-body { grid-template-columns: 1fr; } }
+
+/* Memory rows */
+.memory-table { width: 100%; }
+
+.mt-header {
+  display: grid;
+  grid-template-columns: 2fr 80px 80px 80px 70px;
+  gap: 0;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.mt-header span {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--mid);
+}
+
+.memory-row {
+  display: grid;
+  grid-template-columns: 2fr 80px 80px 80px 70px;
+  gap: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: center;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.memory-row:hover { background: var(--paper); }
+
+.mr-summary {
+  font-size: 11.5px;
+  padding-right: 12px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.mr-sim {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--phase-a);
+  text-align: center;
+}
+
+.mr-q {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mr-bar {
+  padding: 0 6px;
+}
+
+.q-bar {
+  height: 8px;
+  border-radius: 1px;
+  transition: width 0.5s ease, background 0.5s ease;
+}
+
+.mr-rank {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mid);
+  text-align: center;
+}
+
+.rank-selected {
+  color: var(--phase-b);
+  font-weight: 700;
+}
+
+/* Feedback panel */
+.feedback-panel { }
+
+.fp-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.feedback-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  text-align: left;
+  cursor: pointer;
+  font-size: 11.5px;
+  transition: all 0.15s;
+  font-family: var(--sans);
+}
+
+.feedback-btn:hover { border-color: var(--ink); background: var(--bg); }
+.feedback-btn .fb-icon { font-size: 12px; margin-right: 6px; }
+.feedback-btn .fb-reward { font-family: var(--mono); font-size: 10px; float: right; }
+.feedback-btn.positive .fb-reward { color: var(--q-high); }
+.feedback-btn.negative .fb-reward { color: var(--q-poor); }
+
+.sim-log {
+  margin-top: 12px;
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+  min-height: 80px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--mid);
+}
+
+/* DATA STRUCTURES */
+.struct-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--light);
+  border: 1px solid var(--light);
+  margin-bottom: 32px;
+}
+
+@media (max-width: 700px) { .struct-grid { grid-template-columns: 1fr; } }
+
+.struct-cell {
+  background: var(--bg);
+  padding: 20px;
+}
+
+.sc-sym {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--light);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.sc-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+
+.sc-desc {
+  font-size: 12px;
+  color: var(--mid);
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+.sc-example {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--paper);
+  padding: 7px 10px;
+  color: var(--ink);
+  line-height: 1.6;
+  border-left: 2px solid var(--light);
+}
+
+/* Wiring summary */
+.wiring {
+  border: 1px solid var(--light);
+  margin-bottom: 32px;
+}
+
+.w-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+
+.w-row:last-child { border-bottom: none; }
+
+.w-file {
+  padding: 12px 16px;
+  border-right: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--mid);
+  background: var(--paper);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 14px;
+}
+
+.w-change {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.w-change code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  background: var(--paper);
+  padding: 1px 5px;
+  border: 1px solid var(--rule);
+}
+
+/* Footer */
+.footer {
+  border-top: 3px solid var(--ink);
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--mid);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-kicker">
+    <span>Aegis Zero · Innovation #8</span>
+    <span>arXiv:2601.03192 · Jan 2026</span>
+    <span>MemTensor / Shanghai Jiao Tong University</span>
+  </div>
+  <div class="h-main">
+    <div>
+      <h1>Mem<i>RL</i></h1>
+      <div class="h-sub">Self-evolving agent via runtime reinforcement learning on episodic memory. The LLM never changes. Only the Q-values evolve.</div>
+    </div>
+    <div class="h-cite">
+      arXiv:2601.03192<br>
+      "The hallmark of human<br>
+      intelligence is the ability to<br>
+      master new skills through<br>
+      Constructive Episodic<br>
+      Simulation."
+    </div>
+  </div>
+</div>
+
+<!-- TWO-PHASE RETRIEVAL -->
+<div class="section">
+  <div class="sec-rule">
+    <span>The Core Mechanism — Two-Phase Retrieval</span>
+    <span>Replaces passive semantic search in Innovation #2</span>
+  </div>
+
+  <div class="phase-diagram">
+    <div class="phase-panel">
+      <div class="phase-letter" style="color:var(--phase-a);">Phase A</div>
+      <div class="phase-title" style="color:var(--phase-a);">Similarity<br>Recall</div>
+      <div class="phase-desc">Retrieve the top-K₁=20 episodes by cosine similarity. This is identical to the existing Qdrant search in Innovation #2 — but casts a wider net (20 candidates instead of 4).</div>
+      <div class="phase-formula">cosine(query_vector, z_i)
+→ top K₁ = 20 candidates
+→ semantic filter only</div>
+    </div>
+    <div class="phase-arrow">→</div>
+    <div class="phase-panel" style="border-right:none;">
+      <div class="phase-letter" style="color:var(--phase-b);">Phase B</div>
+      <div class="phase-title" style="color:var(--phase-b);">Value-Aware<br>Selection</div>
+      <div class="phase-desc">From the 20 Phase A candidates, select the top-K₂=4 by Q-value. High-utility experiences are promoted. Similar-but-low-quality noise is suppressed. This is what passive RAG cannot do.</div>
+      <div class="phase-formula">score_i = 0.4·sim_i + 0.6·Q_i
+→ top K₂ = 4 selected
+→ quality-filtered context</div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE Q-VALUE SIMULATOR -->
+<div class="section">
+  <div class="sec-rule">
+    <span>Live Simulator — Watch Q-Values Evolve</span>
+    <span>Click a memory, then send a feedback signal</span>
+  </div>
+
+  <div class="sim-box">
+    <div class="sim-header">
+      <div class="sim-title">Query: "debug Python KeyError in my script"</div>
+      <div class="sim-controls">
+        <button class="sim-btn" onclick="runPhaseA()">▷ Phase A (semantic)</button>
+        <button class="sim-btn primary" onclick="runPhaseB()">▷ Phase B (Q-rank)</button>
+        <button class="sim-btn" onclick="resetSim()">↺ Reset</button>
+      </div>
+    </div>
+    <div class="sim-body">
+      <div>
+        <div class="memory-table">
+          <div class="mt-header">
+            <span>Episode Summary</span>
+            <span style="text-align:center;">Sim</span>
+            <span style="text-align:center;">Q-value</span>
+            <span>Quality</span>
+            <span style="text-align:center;">Rank</span>
+          </div>
+          <div id="memoryRows"></div>
+        </div>
+        <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--mid);">
+          <span id="phaseInfo">Click "Phase A" to begin retrieval simulation.</span>
+        </div>
+      </div>
+      <div class="feedback-panel">
+        <div class="fp-title">Feedback Signals</div>
+        <div id="selectedInfo" style="font-family:var(--mono);font-size:10px;color:var(--mid);margin-bottom:10px;min-height:28px;">
+          Select a memory first
+        </div>
+        <button class="feedback-btn positive" onclick="sendFeedback('auditor_approved_high')">
+          <span class="fb-icon">✓</span>Auditor approved<span class="fb-reward">+0.90</span>
+        </button>
+        <button class="feedback-btn positive" onclick="sendFeedback('conversation_continued')">
+          <span class="fb-icon">→</span>User continued<span class="fb-reward">+0.70</span>
+        </button>
+        <button class="feedback-btn positive" onclick="sendFeedback('task_resolved')">
+          <span class="fb-icon">✓</span>Task resolved<span class="fb-reward">+0.65</span>
+        </button>
+        <button class="feedback-btn negative" onclick="sendFeedback('auditor_revised')">
+          <span class="fb-icon">✎</span>Auditor revised<span class="fb-reward">-0.30</span>
+        </button>
+        <button class="feedback-btn negative" onclick="sendFeedback('user_correction')">
+          <span class="fb-icon">✗</span>User corrected<span class="fb-reward">-0.15</span>
+        </button>
+        <button class="feedback-btn negative" onclick="sendFeedback('task_abandoned')">
+          <span class="fb-icon">↩</span>Task abandoned<span class="fb-reward">-0.10</span>
+        </button>
+        <div class="sim-log" id="simLog">Waiting for interaction...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA STRUCTURES -->
+<div class="section">
+  <div class="sec-rule"><span>The Intent-Experience-Utility Triplet</span></div>
+  <div class="struct-grid">
+    <div class="struct-cell">
+      <div class="sc-sym">z<sub style="font-size:16px">i</sub></div>
+      <div class="sc-name">Intent Embedding</div>
+      <div class="sc-desc">nomic-embed-text vector of the original user query. Used in Phase A cosine similarity search. Already computed by Innovation #2.</div>
+      <div class="sc-example">embed("debug Python KeyError")
+→ [0.023, -0.181, 0.447, ...]
+→ 768-dimensional vector</div>
+    </div>
+    <div class="struct-cell">
+      <div class="sc-sym">e<sub style="font-size:16px">i</sub></div>
+      <div class="sc-name">Experience</div>
+      <div class="sc-desc">The compressed episode summary written by MemoryWriter after each turn. Contains what happened, the approach taken, and the outcome. Already stored in Qdrant.</div>
+      <div class="sc-example">"Debugged KeyError in data pipeline.
+Root cause: off-by-one in dict
+comprehension. Fixed with .get().
+Outcome: resolved in 2 turns."</div>
+    </div>
+    <div class="struct-cell">
+      <div class="sc-sym">Q<sub style="font-size:16px">i</sub></div>
+      <div class="sc-name">Learned Utility</div>
+      <div class="sc-desc">The Q-value. Starts at 0.50 (neutral). Updated by implicit feedback via EMA. The only new field added to the existing Qdrant schema.</div>
+      <div class="sc-example">Q_new = 0.30 × reward
+        + 0.70 × Q_old
+Initial: 0.50
+After approved: 0.62
+After 5 uses: 0.81</div>
+    </div>
+  </div>
+</div>
+
+<!-- WIRING SUMMARY -->
+<div class="section">
+  <div class="sec-rule"><span>4 Wiring Changes to Existing Files</span></div>
+  <div class="wiring">
+    <div class="w-row">
+      <div class="w-file">context_engine.py</div>
+      <div class="w-change">Replace <code>get_recent_episodes()</code> with <code>MemRLContextRetriever.get_episodes()</code>. Two-Phase Retrieval activates automatically for every inference. The calling code in <code>ContextEngine.build()</code> doesn't change — only the retrieval method.</div>
+    </div>
+    <div class="w-row">
+      <div class="w-file">context_engine.py<br>MemoryWriter</div>
+      <div class="w-change">After <code>write_turn()</code> stores an episode, call <code>MemRLFeedbackCollector.on_episode_written(episode_id, outcome)</code>. The outcome field already exists — this just routes it to the Q-value updater.</div>
+    </div>
+    <div class="w-row">
+      <div class="w-file">puppeteer.py<br>AuditorPuppet</div>
+      <div class="w-change">After the Auditor runs, call <code>MemRLFeedbackCollector.on_auditor_complete(episode_id, auditor_output)</code>. The Auditor's JSON (approved, confidence, issues) provides the strongest quality signal without any human input.</div>
+    </div>
+    <div class="w-row">
+      <div class="w-file">agent_harness.py<br>HardenedPuppeteer</div>
+      <div class="w-change">At the <em>start</em> of each new message, call <code>MemRLFeedbackCollector.on_user_message(message)</code>. A user's follow-up = the previous response was good enough to continue (+0.70). A correction keyword = it wasn't (+0.15).</div>
+    </div>
+    <div class="w-row">
+      <div class="w-file">nightly.sh</div>
+      <div class="w-change">Add one line after the context engine consolidation step: <code>python3 ~/.aegis/memrl/memrl_engine.py nightly</code>. Initialises Q-values for new episodes, marks pruning candidates, sends silent Telegram health report.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>Aegis Zero · MemRL · Innovation #8 · v7.0 · April 2026</span>
+  <span>arXiv:2601.03192 · Non-parametric RL · No weight updates · €0 added cost</span>
+</div>
+</div>
+
+<script>
+const ALPHA = 0.30;
+const REWARDS = {
+  auditor_approved_high:   0.90,
+  conversation_continued:  0.70,
+  task_resolved:           0.65,
+  auditor_revised:         0.30,
+  user_correction:         0.15,
+  task_abandoned:          0.10,
+};
+
+const memories = [
+  { id: 0, summary: "Debugged Python KeyError — off-by-one in dict comprehension. Fixed with .get().",       sim: 0.94, q: 0.78, outcome: "resolved" },
+  { id: 1, summary: "Debugged Python KeyError — wrong API response structure. Logged full response.",       sim: 0.91, q: 0.45, outcome: "resolved" },
+  { id: 2, summary: "Debugged Python KeyError — took 7 turns. Wrong approach. User frustrated.",            sim: 0.89, q: 0.14, outcome: "resolved" },
+  { id: 3, summary: "Wrote Python data pipeline with error handling. User said 'that's not right'.",       sim: 0.83, q: 0.22, outcome: "abandoned" },
+  { id: 4, summary: "Debugged Bash script exit code — unrelated to Python but similar problem pattern.",   sim: 0.76, q: 0.61, outcome: "resolved" },
+  { id: 5, summary: "Explained Python dict operations. User continued with more questions.",                sim: 0.72, q: 0.83, outcome: "ongoing" },
+  { id: 6, summary: "Wrote REST API client in Python. Resolved cleanly in 2 turns.",                      sim: 0.68, q: 0.71, outcome: "resolved" },
+  { id: 7, summary: "Research on distributed systems — unrelated domain.",                                 sim: 0.31, q: 0.55, outcome: "resolved" },
+];
+
+let state = JSON.parse(JSON.stringify(memories)); // deep copy
+let selectedId = null;
+let phaseADone = false;
+let logLines = [];
+
+function getQColor(q) {
+  if (q >= 0.80) return "#1a6b2a";
+  if (q >= 0.60) return "#2d5a8e";
+  if (q >= 0.40) return "#7a6b45";
+  if (q >= 0.20) return "#8e3a1a";
+  return "#5a1a2a";
+}
+
+function renderRows(highlightPhaseA=false, highlightPhaseB=false) {
+  const container = document.getElementById("memoryRows");
+  container.innerHTML = "";
+
+  // Sort by combined score for display
+  const sorted = [...state].sort((a, b) => {
+    const sa = 0.4 * a.sim + 0.6 * a.q;
+    const sb = 0.4 * b.sim + 0.6 * b.q;
+    return sb - sa;
+  });
+
+  const phaseAIds = state
+    .filter(m => m.sim >= 0.65)
+    .sort((a, b) => b.sim - a.sim)
+    .slice(0, 20)
+    .map(m => m.id);
+
+  const phaseBIds = state
+    .filter(m => phaseAIds.includes(m.id))
+    .sort((a, b) => (0.4*b.sim + 0.6*b.q) - (0.4*a.sim + 0.6*a.q))
+    .slice(0, 4)
+    .map(m => m.id);
+
+  sorted.forEach((m, rank) => {
+    const inPhaseA = phaseAIds.includes(m.id);
+    const inPhaseB = phaseBIds.includes(m.id);
+    const phaseBRank = phaseBIds.indexOf(m.id) + 1;
+
+    const row = document.createElement("div");
+    row.className = "memory-row";
+    row.style.opacity = highlightPhaseA && !inPhaseA ? "0.3" : "1";
+    if (m.id === selectedId) row.style.background = "#f0f0e8";
+
+    const qColor = getQColor(m.q);
+    const barWidth = Math.round(m.q * 100);
+
+    let rankDisplay = "";
+    if (highlightPhaseB && inPhaseB) {
+      rankDisplay = `<span class="rank-selected">#${phaseBRank} ✓</span>`;
+    } else if (highlightPhaseA && inPhaseA) {
+      rankDisplay = `<span style="color:#2d5a8e;">A:${phaseAIds.indexOf(m.id)+1}</span>`;
+    } else {
+      rankDisplay = `<span>—</span>`;
+    }
+
+    row.innerHTML = `
+      <div class="mr-summary">${m.summary}</div>
+      <div class="mr-sim" style="color:${inPhaseA && highlightPhaseA ? '#2d5a8e' : '#ccc'}">${m.sim.toFixed(2)}</div>
+      <div class="mr-q" style="color:${qColor}">${m.q.toFixed(2)}</div>
+      <div class="mr-bar">
+        <div class="q-bar" style="width:${barWidth}%;background:${qColor};"></div>
+      </div>
+      <div class="mr-rank">${rankDisplay}</div>
+    `;
+    row.onclick = () => selectMemory(m.id);
+    container.appendChild(row);
+  });
+}
+
+function selectMemory(id) {
+  selectedId = id;
+  const m = state.find(x => x.id === id);
+  document.getElementById("selectedInfo").textContent = `Selected: "${m.summary.slice(0,40)}..." Q=${m.q.toFixed(3)}`;
+  renderRows(phaseADone, phaseADone);
+}
+
+function runPhaseA() {
+  phaseADone = true;
+  const count = state.filter(m => m.sim >= 0.65).length;
+  document.getElementById("phaseInfo").textContent =
+    `Phase A complete: ${count} candidates retrieved by cosine similarity ≥ 0.65. High and low Q-values are all included.`;
+  addLog(`Phase A: ${count} candidates retrieved by semantic similarity`);
+  renderRows(true, false);
+}
+
+function runPhaseB() {
+  phaseADone = true;
+  const phaseBIds = state
+    .filter(m => m.sim >= 0.65)
+    .sort((a, b) => (0.4*b.sim + 0.6*b.q) - (0.4*a.sim + 0.6*a.q))
+    .slice(0, 4)
+    .map(m => m.id);
+
+  const highQ = phaseBIds.map(id => state.find(x => x.id === id));
+  const bypassed = state.find(x => x.sim >= 0.89 && !phaseBIds.includes(x.id));
+
+  document.getElementById("phaseInfo").textContent =
+    `Phase B selected top-4 by combined score (0.4·sim + 0.6·Q). ${bypassed ? `Memory with sim=${bypassed.sim.toFixed(2)} bypassed due to Q=${bypassed.q.toFixed(2)}.` : ""}`;
+
+  addLog(`Phase B: selected IDs [${phaseBIds.join(",")}] by Q-value re-ranking`);
+  if (bypassed) {
+    addLog(`→ Memory "${bypassed.summary.slice(0,40)}..." (sim=${bypassed.sim.toFixed(2)}) bypassed — Q=${bypassed.q.toFixed(2)} too low`);
+  }
+  renderRows(true, true);
+}
+
+function sendFeedback(rewardType) {
+  if (selectedId === null) {
+    addLog("Select a memory first");
+    return;
+  }
+  const reward = REWARDS[rewardType];
+  const m = state.find(x => x.id === selectedId);
+  const qOld = m.q;
+  const qNew = Math.max(0.01, Math.min(0.99, ALPHA * reward + (1 - ALPHA) * qOld));
+
+  m.q = Math.round(qNew * 1000) / 1000;
+
+  const direction = qNew > qOld ? "↑" : "↓";
+  addLog(`${direction} Q updated: ${qOld.toFixed(3)} → ${qNew.toFixed(3)} (reward=${reward}, type=${rewardType})`);
+  document.getElementById("selectedInfo").textContent = `Updated: Q ${qOld.toFixed(3)} → ${qNew.toFixed(3)} ${direction}`;
+
+  renderRows(phaseADone, phaseADone);
+}
+
+function resetSim() {
+  state = JSON.parse(JSON.stringify(memories));
+  selectedId = null;
+  phaseADone = false;
+  logLines = [];
+  document.getElementById("phaseInfo").textContent = 'Click "Phase A" to begin retrieval simulation.';
+  document.getElementById("selectedInfo").textContent = "Select a memory first";
+  document.getElementById("simLog").textContent = "Reset. Waiting for interaction...";
+  renderRows(false, false);
+}
+
+function addLog(text) {
+  logLines.push(text);
+  if (logLines.length > 20) logLines = logLines.slice(-20);
+  const el = document.getElementById("simLog");
+  el.textContent = logLines.join("\n");
+  el.scrollTop = el.scrollHeight;
+}
+
+// Initial render
+renderRows(false, false);
+</script>
+</body>
+</html>

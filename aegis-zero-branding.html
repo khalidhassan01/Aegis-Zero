@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — Agent Identity</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --aegis-teal: #00ffcc;
+    --aegis-teal-glow: rgba(0, 255, 204, 0.4);
+    --zero-gold: #ffd700;
+    --bg-dark: #000;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    color: #fff;
+    min-height: 100vh;
+  }
+
+  .label {
+    color: var(--aegis-teal-glow);
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    margin-top: 40px;
+  }
+
+  /* ─── HEADER BANNER ─── */
+  .header {
+    width: 100%;
+    max-width: 800px;
+    background: #050505;
+    border: 1px solid var(--aegis-teal-glow);
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.1);
+  }
+
+  .header svg {
+    width: 80px;
+    height: 90px;
+    filter: drop-shadow(0 0 10px var(--aegis-teal-glow));
+  }
+
+  .header-info h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    letter-spacing: 8px;
+    margin-bottom: 5px;
+  }
+
+  .header-info p {
+    font-size: 10px;
+    color: var(--aegis-teal);
+    letter-spacing: 3px;
+    opacity: 0.8;
+  }
+
+  /* ─── BADGE SYSTEM ─── */
+  .badge-grid {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .badge {
+    border: 1px solid var(--aegis-teal-glow);
+    border-radius: 4px;
+    display: flex;
+    font-size: 11px;
+  }
+
+  .badge-label { background: #111; padding: 5px 10px; color: var(--aegis-teal); }
+  .badge-val { background: #000; padding: 5px 10px; }
+
+  /* ─── AVATAR ─── */
+  .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 1px solid var(--aegis-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+    box-shadow: 0 0 20px var(--aegis-teal-glow);
+    position: relative;
+  }
+
+  .avatar-text {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 30px;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--zero-gold);
+    top: 55%;
+    transform: translateY(-50%);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="label">Identity Header</div>
+<div class="header">
+  <svg viewBox="0 0 180 200" fill="none">
+    <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z" fill="#00ffcc05" stroke="#00ffcc" stroke-width="3"/>
+    <line x1="40" y1="32" x2="140" y2="32" stroke="#ffd700" stroke-width="3"/>
+    <text x="90" y="120" text-anchor="middle" font-family="Cinzel" font-size="60" fill="none" stroke="#00ffcc" stroke-width="2">0</text>
+  </svg>
+  <div class="header-info">
+    <h1>AEGIS ZERO</h1>
+    <p>ZERO PORTS · ZERO COST</p>
+  </div>
+</div>
+
+<div class="label">Live Status Badges</div>
+<div class="badge-grid">
+  <div class="badge"><div class="badge-label">SYS</div><div class="badge-val">ONLINE</div></div>
+  <div class="badge"><div class="badge-label">VER</div><div class="badge-val">7.0</div></div>
+  <div class="badge"><div class="badge-label">COST</div><div class="badge-val">€0.00</div></div>
+</div>
+
+<div class="label">Profile Icon</div>
+<div class="avatar">
+  <svg width="70" height="80" viewBox="0 0 180 200" fill="none">
+    <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z" stroke="#00ffcc" stroke-width="4"/>
+  </svg>
+  <div class="avatar-text">0</div>
+</div>
+
+</body>
+</html>

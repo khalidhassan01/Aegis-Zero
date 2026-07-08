@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — Integration Guide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:      #0a1628;
+  --bg2:     #0d1e35;
+  --grid:    rgba(30,80,160,0.12);
+  --line:    rgba(40,100,200,0.25);
+  --line2:   rgba(40,100,200,0.12);
+  --text:    #a8c4e0;
+  --text2:   #5a7a9a;
+  --white:   #e8f0f8;
+  --accent:  #4a9eff;
+  --green:   #3dd68c;
+  --orange:  #ff8c42;
+  --red:     #ff4f4f;
+  --yellow:  #ffd166;
+
+  --mono: 'Space Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* Blueprint grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    linear-gradient(var(--line2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line2) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 20px 20px, 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* ── HEADER ── */
+.header {
+  padding: 44px 0 36px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 44px;
+  position: relative;
+}
+
+/* Corner marks */
+.header::before, .header::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.5;
+}
+.header::before { top: 20px; left: -8px; border-width: 2px 0 0 2px; }
+.header::after  { bottom: -2px; right: -8px; border-width: 0 2px 2px 0; }
+
+.h-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.h-stamp {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 12px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 52px);
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+  color: var(--white);
+}
+
+h1 span { color: var(--accent); }
+
+.h-tagline {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 10px;
+  letter-spacing: 0.04em;
+}
+
+.h-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  padding-top: 8px;
+}
+
+.h-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 5px 14px;
+  border: 1px solid var(--line);
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.h-badge.accent { border-color: rgba(74,158,255,0.4); color: var(--accent); }
+
+/* Progress row */
+.progress-row {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  margin-bottom: 44px;
+}
+
+.prog-phase {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.prog-phase:last-child { border-right: none; }
+.prog-phase:hover { background: rgba(74,158,255,0.06); }
+.prog-phase.active { background: rgba(74,158,255,0.1); }
+.prog-phase.done { background: rgba(61,214,140,0.06); }
+
+.pp-letter {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text2);
+  margin-bottom: 3px;
+  transition: color 0.15s;
+}
+
+.prog-phase.active .pp-letter { color: var(--accent); }
+.prog-phase.done .pp-letter { color: var(--green); }
+
+.pp-label {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+  line-height: 1.2;
+}
+
+.pp-time {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text2);
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
+.pp-check {
+  position: absolute;
+  top: 6px; right: 6px;
+  font-size: 10px;
+  color: var(--green);
+  display: none;
+}
+
+.prog-phase.done .pp-check { display: block; }
+
+/* Section */
+.sec {
+  margin-bottom: 40px;
+  display: none;
+}
+.sec.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sec-letter {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  width: 36px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sec-title {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.sec-meta {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.sec-time {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+/* Step block */
+.step {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.step-header:hover { background: rgba(74,158,255,0.05); }
+
+.step-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(74,158,255,0.1);
+  padding: 2px 8px;
+  border: 1px solid rgba(74,158,255,0.2);
+  flex-shrink: 0;
+  letter-spacing: 0.06em;
+}
+
+.step-title {
+  font-weight: 600;
+  color: var(--white);
+  font-size: 13px;
+}
+
+.step-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-left: auto;
+}
+
+.step-toggle {
+  color: var(--text2);
+  font-size: 10px;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.step.open .step-toggle { transform: rotate(90deg); }
+
+.step-body {
+  padding: 0 16px 16px;
+  display: none;
+  border-top: 1px solid var(--line2);
+}
+
+.step.open .step-body { display: block; }
+
+/* Code block */
+.code {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.75;
+  color: var(--text);
+  overflow-x: auto;
+  margin: 10px 0;
+  white-space: pre;
+}
+
+.code::-webkit-scrollbar { height: 4px; }
+.code::-webkit-scrollbar-track { background: transparent; }
+.code::-webkit-scrollbar-thumb { background: var(--line); }
+
+.ck { color: var(--accent); }
+.cs { color: #7ec8a0; }
+.cc { color: var(--text2); font-style: italic; }
+.cn { color: var(--yellow); }
+.cd { color: #c792ea; }
+.cx { color: var(--orange); }
+
+/* Callout */
+.callout {
+  border: 1px solid;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.callout.info   { border-color: rgba(74,158,255,0.3); color: #7ab8ff; background: rgba(74,158,255,0.05); }
+.callout.warn   { border-color: rgba(255,209,102,0.3); color: var(--yellow); background: rgba(255,209,102,0.05); }
+.callout.ok     { border-color: rgba(61,214,140,0.3); color: var(--green); background: rgba(61,214,140,0.05); }
+
+.callout-icon { flex-shrink: 0; font-size: 13px; }
+
+/* Inline text */
+.step-body p { font-size: 12.5px; color: var(--text); line-height: 1.65; margin: 8px 0; }
+.step-body code { font-family: var(--mono); font-size: 11px; background: rgba(74,158,255,0.08); padding: 1px 6px; border: 1px solid rgba(74,158,255,0.15); color: var(--accent); }
+
+/* Validation grid */
+.val-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+@media (max-width: 600px) { .val-grid { grid-template-columns: 1fr; } }
+
+.val-item {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.val-item:hover { border-color: var(--accent); }
+.val-item.passing { border-color: rgba(61,214,140,0.5); }
+.val-item.failing { border-color: rgba(255,79,79,0.5); }
+
+.vi-num { font-family: var(--mono); font-size: 10px; color: var(--text2); margin-bottom: 5px; }
+.vi-title { font-weight: 600; color: var(--white); font-size: 12.5px; margin-bottom: 4px; }
+.vi-cmd { font-family: var(--mono); font-size: 10px; color: var(--text2); line-height: 1.4; }
+.vi-status {
+  position: absolute;
+  top: 8px; right: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.vi-status.pass { color: var(--green); }
+.vi-status.fail { color: var(--red); }
+.vi-status.wait { color: var(--text2); }
+
+/* Architecture summary */
+.arch-summary {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  padding: 24px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.arch-summary::before {
+  content: 'ACTIVE STACK';
+  position: absolute;
+  top: -9px; left: 16px;
+  background: var(--bg2);
+  padding: 0 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text2);
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+}
+
+.arch-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line2);
+}
+
+.arch-row:last-child { border-bottom: none; }
+
+.ar-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.ar-label { font-family: var(--mono); font-size: 10px; color: var(--text2); width: 180px; flex-shrink: 0; }
+.ar-desc { font-size: 12px; color: var(--text); }
+.ar-tag { margin-left: auto; font-family: var(--mono); font-size: 9px; padding: 2px 8px; border: 1px solid var(--line); color: var(--text2); white-space: nowrap; }
+
+/* Nav buttons */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.nav-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 8px 18px;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.06em;
+}
+
+.nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.nav-btn.primary { border-color: var(--accent); color: var(--accent); background: rgba(74,158,255,0.08); }
+
+.nav-progress { font-family: var(--mono); font-size: 10px; color: var(--text2); }
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-top">
+    <div>
+      <div class="h-stamp">
+        <span>Aegis Zero</span>
+        <span>Integration Guide v1.0</span>
+        <span>Innovations #1–6</span>
+        <span>April 2026</span>
+      </div>
+      <h1>INTEGRATION<br><span>GUIDE</span></h1>
+      <div class="h-tagline">~45 min · zero new ports · €0 added cost · 8 validation tests</div>
+    </div>
+    <div class="h-right">
+      <div class="h-badge accent">9 phases</div>
+      <div class="h-badge">Pre-flight → Deploy → Validate</div>
+      <div class="h-badge">All commands copy-paste exact</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-row" id="progressRow">
+  <div class="prog-phase active" data-phase="0" onclick="goPhase(0)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">P</div>
+    <div class="pp-label">Pre-flight</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="1" onclick="goPhase(1)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">A</div>
+    <div class="pp-label">Directory</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="2" onclick="goPhase(2)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">B</div>
+    <div class="pp-label">MCP Layer</div>
+    <div class="pp-time">10 min</div>
+  </div>
+  <div class="prog-phase" data-phase="3" onclick="goPhase(3)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">C</div>
+    <div class="pp-label">Context Eng</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="4" onclick="goPhase(4)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">D</div>
+    <div class="pp-label">Puppeteer</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="5" onclick="goPhase(5)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">E</div>
+    <div class="pp-label">12-Factor</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="6" onclick="goPhase(6)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">F</div>
+    <div class="pp-label">Cron Jobs</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="7" onclick="goPhase(7)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">G+H</div>
+    <div class="pp-label">Wire+Test</div>
+    <div class="pp-time">5 min</div>
+  </div>
+  <div class="prog-phase" data-phase="8" onclick="goPhase(8)">
+    <div class="pp-check">✓</div>
+    <div class="pp-letter">I</div>
+    <div class="pp-label">Manifest</div>
+    <div class="pp-time">2 min</div>
+  </div>
+</div>
+
+<!-- PHASE CONTENT AREAS -->
+
+<!-- PRE-FLIGHT -->
+<div class="sec active" id="phase0">
+  <div class="sec-head">
+    <div class="sec-letter">P</div>
+    <div>
+      <div class="sec-title">Pre-flight Checks</div>
+      <div class="sec-meta">Verify base Aegis Zero stack · All checks must pass before Phase A</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="callout warn"><span class="callout-icon">⚠</span> Run all pre-flight checks before touching any file. Fix every red before continuing.</div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">P.1</span>
+      <span class="step-title">Run the full pre-flight script</span>
+      <span class="step-tag">copy + run</span>
+      <span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="cc"># Run on your Oracle ARM instance</span>
+<span class="cc"># Expected: 7 green checkmarks</span>
+
+<span class="ck">tailscale</span> status | grep -q <span class="cs">"logged in"</span> && echo <span class="cs">"✓ Tailscale"</span> || echo <span class="cx">"✗ Tailscale"</span>
+
+<span class="ck">curl</span> -s http://127.0.0.1:6333/healthz | grep -q <span class="cs">"ok"</span> && echo <span class="cs">"✓ Qdrant"</span> || echo <span class="cx">"✗ Qdrant down"</span>
+
+<span class="ck">curl</span> -s http://127.0.0.1:6333/collections | python3 -c <span class="cs">"
+import sys,json; d=json.load(sys.stdin)
+n=len(d['result']['collections'])
+print(f'✓ {n}/7 collections' if n==7 else f'✗ Expected 7, got {n}')
+"</span>
+
+<span class="ck">ollama</span> list | grep -q <span class="cs">"aegis-deep"</span> && echo <span class="cs">"✓ aegis-deep"</span> || echo <span class="cx">"✗ aegis-deep missing"</span>
+<span class="ck">ollama</span> list | grep -q <span class="cs">"aegis-fast"</span> && echo <span class="cs">"✓ aegis-fast"</span> || echo <span class="cx">"✗ aegis-fast missing"</span>
+<span class="ck">ollama</span> list | grep -q <span class="cs">"nomic-embed"</span> && echo <span class="cs">"✓ nomic-embed-text"</span> || echo <span class="cx">"✗ nomic-embed missing"</span>
+
+PORTS=$(<span class="ck">ss</span> -tlnp | grep LISTEN | grep -v <span class="cs">"127\|100\."</span> | wc -l)
+[ <span class="cs">"$PORTS"</span> -eq 0 ] && echo <span class="cs">"✓ Zero public ports"</span> || echo <span class="cx">"✗ $PORTS port(s) open"</span>
+
+<span class="ck">curl</span> -s http://127.0.0.1:8000/health | grep -q <span class="cs">"ok"</span> && echo <span class="cs">"✓ Hermes"</span> || echo <span class="cx">"✗ Hermes down"</span></div>
+      <div class="callout ok"><span class="callout-icon">✓</span> 7/7 green = ready to proceed. Any red = fix first.</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" disabled>← Previous</button>
+    <span class="nav-progress">Phase 1 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase A: Directory →</button>
+  </div>
+</div>
+
+<!-- PHASE A -->
+<div class="sec" id="phase1">
+  <div class="sec-head">
+    <div class="sec-letter">A</div>
+    <div>
+      <div class="sec-title">Directory Structure & Python Environment</div>
+      <div class="sec-meta">Create all directories · Install all dependencies in one shot</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">A.1</span>
+      <span class="step-title">Create directory tree</span>
+      <span class="step-tag">one command</span>
+      <span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="ck">mkdir</span> -p ~/.aegis/mcp \
+         ~/.aegis/context \
+         ~/.aegis/orchestration \
+         ~/.aegis/core \
+         ~/.aegis/workspace \
+         ~/.aegis/scripts \
+         ~/.aegis/logs \
+         ~/.aegis/approval_callbacks \
+         ~/.aegis/profiles</div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">A.2</span>
+      <span class="step-title">Install Python dependencies</span>
+      <span class="step-tag">one command</span>
+      <span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="ck">pip</span> install mcp qdrant-client ollama psutil httpx --break-system-packages
+
+<span class="cc"># Verify</span>
+python3 -c <span class="cs">"import mcp, qdrant_client, ollama, psutil, httpx; print('✓ All dependencies installed')"</span></div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Pre-flight</button>
+    <span class="nav-progress">Phase 2 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase B: MCP Layer →</button>
+  </div>
+</div>
+
+<!-- PHASE B -->
+<div class="sec" id="phase2">
+  <div class="sec-head">
+    <div class="sec-letter">B</div>
+    <div>
+      <div class="sec-title">Innovation #1 — MCP Server Layer</div>
+      <div class="sec-meta">5 stdio servers · 19 tools · zero new ports</div>
+    </div>
+    <div class="sec-time">⏱ ~10 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">B.1</span><span class="step-title">Copy server files to ~/.aegis/mcp/</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <p>Copy the 5 server files from the aegis-mcp-layer spec into <code>~/.aegis/mcp/</code>. Each file begins with a <code># FILE: ~/.aegis/mcp/X_server.py</code> comment confirming its path.</p>
+      <div class="code">cp ~/aegis-innovations/qdrant_server.py ~/.aegis/mcp/
+cp ~/aegis-innovations/ollama_server.py ~/.aegis/mcp/
+cp ~/aegis-innovations/fs_server.py     ~/.aegis/mcp/
+cp ~/aegis-innovations/system_server.py ~/.aegis/mcp/
+cp ~/aegis-innovations/telegram_server.py ~/.aegis/mcp/
+<span class="ck">chmod</span> +x ~/.aegis/mcp/*.py</div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">B.2</span><span class="step-title">Create mcp_config.json (update $HOME path)</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="callout warn"><span class="callout-icon">⚠</span> Replace <code>/home/ubuntu</code> with your actual home directory. Check with: <code>echo $HOME</code></div>
+      <div class="code"><span class="ck">cat</span> > ~/.aegis/mcp_config.json << <span class="cs">'EOF'</span>
+{
+  <span class="cs">"mcpServers"</span>: {
+    <span class="cs">"aegis-qdrant"</span>:   { <span class="cs">"command"</span>: <span class="cs">"python3"</span>, <span class="cs">"args"</span>: [<span class="cs">"/home/ubuntu/.aegis/mcp/qdrant_server.py"</span>],   <span class="cs">"transport"</span>: <span class="cs">"stdio"</span> },
+    <span class="cs">"aegis-ollama"</span>:   { <span class="cs">"command"</span>: <span class="cs">"python3"</span>, <span class="cs">"args"</span>: [<span class="cs">"/home/ubuntu/.aegis/mcp/ollama_server.py"</span>],   <span class="cs">"transport"</span>: <span class="cs">"stdio"</span> },
+    <span class="cs">"aegis-fs"</span>:       { <span class="cs">"command"</span>: <span class="cs">"python3"</span>, <span class="cs">"args"</span>: [<span class="cs">"/home/ubuntu/.aegis/mcp/fs_server.py"</span>],       <span class="cs">"transport"</span>: <span class="cs">"stdio"</span> },
+    <span class="cs">"aegis-system"</span>:   { <span class="cs">"command"</span>: <span class="cs">"python3"</span>, <span class="cs">"args"</span>: [<span class="cs">"/home/ubuntu/.aegis/mcp/system_server.py"</span>],   <span class="cs">"transport"</span>: <span class="cs">"stdio"</span> },
+    <span class="cs">"aegis-telegram"</span>: { <span class="cs">"command"</span>: <span class="cs">"python3"</span>, <span class="cs">"args"</span>: [<span class="cs">"/home/ubuntu/.aegis/mcp/telegram_server.py"</span>], <span class="cs">"transport"</span>: <span class="cs">"stdio"</span> }
+  }
+}
+<span class="cs">EOF</span></div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">B.3</span><span class="step-title">Validate all 5 servers respond</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="ck">for</span> server <span class="ck">in</span> qdrant_server ollama_server fs_server system_server telegram_server; <span class="ck">do</span>
+  result=$(echo <span class="cs">'{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</span> | \
+    python3 ~/.aegis/mcp/${server}.py 2>/dev/null | head -1)
+  echo <span class="cs">"$result"</span> | grep -q <span class="cs">'"tools"'</span> && echo <span class="cs">"✓ $server"</span> || echo <span class="cx">"✗ $server"</span>
+<span class="ck">done</span></div>
+      <div class="callout ok"><span class="callout-icon">✓</span> Expected: 5 green checkmarks.</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase A</button>
+    <span class="nav-progress">Phase 3 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase C: Context Eng →</button>
+  </div>
+</div>
+
+<!-- PHASE C -->
+<div class="sec" id="phase3">
+  <div class="sec-head">
+    <div class="sec-letter">C</div>
+    <div>
+      <div class="sec-title">Innovation #2 — Context Engineering</div>
+      <div class="sec-meta">4-layer memory · episodic write after every turn · nightly consolidation</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">C.1</span><span class="step-title">Copy context_engine.py</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code">cp ~/aegis-innovations/context_engine.py ~/.aegis/context/
+
+<span class="cc"># Validate it runs</span>
+python3 ~/.aegis/context/context_engine.py</div>
+      <div class="callout info"><span class="callout-icon">ℹ</span> Output shows layers built. Episodic/semantic may be empty on first run — that's correct.</div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">C.2</span><span class="step-title">Wire MemoryWriter into Hermes (mandatory)</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <p>Add this at the end of your existing Hermes response handler. This is the only mandatory code change for Innovation #2.</p>
+      <div class="code"><span class="cc"># In ~/.aegis/hermes/handler.py — ADD these lines:</span>
+
+<span class="ck">import</span> sys
+sys.path.insert(<span class="cn">0</span>, <span class="cs">'/home/ubuntu/.aegis/context'</span>)
+<span class="ck">from</span> context_engine <span class="ck">import</span> MemoryWriter
+
+_memory_writer = MemoryWriter()
+
+<span class="cc"># At the end of your message handler, after generating response:</span>
+<span class="ck">try</span>:
+    _memory_writer.write_turn(
+        user_msg=message,
+        agent_response=response,
+        interface=interface
+    )
+<span class="ck">except</span> Exception:
+    <span class="ck">pass</span>  <span class="cc"># Never blocks response delivery</span></div>
+      <div class="callout warn"><span class="callout-icon">⚠</span> If you complete Phase D (Puppeteer), remove this — puppeteer handles memory writes internally. Don't double-write.</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase B</button>
+    <span class="nav-progress">Phase 4 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase D: Puppeteer →</button>
+  </div>
+</div>
+
+<!-- PHASE D -->
+<div class="sec" id="phase4">
+  <div class="sec-head">
+    <div class="sec-letter">D</div>
+    <div>
+      <div class="sec-title">Innovation #3 — Puppeteer Orchestration</div>
+      <div class="sec-meta">Scout → Forge → Auditor · dynamic routing · cache-first</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">D.1</span><span class="step-title">Copy and validate puppeteer.py</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code">cp ~/aegis-innovations/puppeteer.py ~/.aegis/orchestration/
+
+<span class="cc"># Validate — runs 4 test messages</span>
+python3 ~/.aegis/orchestration/puppeteer.py</div>
+      <div class="callout ok"><span class="callout-icon">✓</span> Expected: 4 blocks showing message → classification → sequence → response preview.</div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">D.2</span><span class="step-title">Wire Puppeteer into Hermes</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="cc"># In ~/.aegis/hermes/handler.py — REPLACE existing handler:</span>
+
+<span class="ck">import</span> sys
+sys.path.insert(<span class="cn">0</span>, <span class="cs">'/home/ubuntu/.aegis/orchestration'</span>)
+<span class="ck">from</span> puppeteer <span class="ck">import</span> handle_message <span class="ck">as</span> puppeteer_handle
+
+<span class="ck">def</span> handle_message(message: str, interface: str = <span class="cs">"telegram"</span>) -> str:
+    <span class="ck">return</span> puppeteer_handle(message, interface=interface)</div>
+      <div class="callout info"><span class="callout-icon">ℹ</span> Remove the MemoryWriter from Phase C.2 — puppeteer calls it internally.</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase C</button>
+    <span class="nav-progress">Phase 5 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase E: 12-Factor →</button>
+  </div>
+</div>
+
+<!-- PHASE E -->
+<div class="sec" id="phase5">
+  <div class="sec-head">
+    <div class="sec-letter">E</div>
+    <div>
+      <div class="sec-title">Innovation #6 — 12-Factor Hardening</div>
+      <div class="sec-meta">Checkpoints · fallback chain · observability · approval gates</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">E.1</span><span class="step-title">Copy agent_harness.py and set env vars</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code">cp ~/aegis-innovations/agent_harness.py ~/.aegis/core/
+
+<span class="cc"># Env vars already exist from base Aegis Zero — just alias them</span>
+<span class="ck">cat</span> >> ~/.aegis/.env << <span class="cs">'EOF'</span>
+export AEGIS_TELEGRAM_BOT_TOKEN=<span class="cs">"${TELEGRAM_BOT_TOKEN}"</span>
+export AEGIS_TELEGRAM_CHAT_ID=<span class="cs">"${TELEGRAM_CHAT_ID}"</span>
+<span class="cs">EOF</span></div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">E.2</span><span class="step-title">Final Hermes handler — replaces Phase D</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="cc"># ~/.aegis/hermes/handler.py — FINAL VERSION</span>
+<span class="ck">import</span> sys, os
+sys.path.insert(<span class="cn">0</span>, <span class="cs">f"{os.path.expanduser('~')}/.aegis/core"</span>)
+sys.path.insert(<span class="cn">0</span>, <span class="cs">f"{os.path.expanduser('~')}/.aegis/orchestration"</span>)
+sys.path.insert(<span class="cn">0</span>, <span class="cs">f"{os.path.expanduser('~')}/.aegis/context"</span>)
+<span class="ck">from</span> agent_harness <span class="ck">import</span> handle_message_v2
+
+_config = {
+    <span class="cs">"telegram_bot_token"</span>: os.environ.get(<span class="cs">"TELEGRAM_BOT_TOKEN"</span>, <span class="cs">""</span>),
+    <span class="cs">"telegram_chat_id"</span>:   os.environ.get(<span class="cs">"TELEGRAM_CHAT_ID"</span>, <span class="cs">""</span>),
+}
+
+<span class="ck">def</span> handle_message(message: str, interface: str = <span class="cs">"telegram"</span>,
+                   task_id: str = <span class="ck">None</span>) -> str:
+    <span class="ck">return</span> handle_message_v2(message=message, interface=interface,
+                              task_id=task_id, config=_config)
+
+<span class="cc"># Add to Telegram command router:</span>
+<span class="ck">def</span> handle_approval_callback(command: str, approval_id: str) -> <span class="ck">None</span>:
+    cb = os.path.expanduser(<span class="cs">f"~/.aegis/approval_callbacks/{approval_id}.response"</span>)
+    <span class="ck">if</span> command <span class="ck">in</span> (<span class="cs">"approve"</span>, <span class="cs">"reject"</span>):
+        open(cb, <span class="cs">"w"</span>).write(command)</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase D</button>
+    <span class="nav-progress">Phase 6 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase F: Cron →</button>
+  </div>
+</div>
+
+<!-- PHASE F -->
+<div class="sec" id="phase6">
+  <div class="sec-head">
+    <div class="sec-letter">F</div>
+    <div>
+      <div class="sec-title">Cron Jobs</div>
+      <div class="sec-meta">Nightly pipeline · insurance cron · hermes doctor · weekly backup</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">F.1</span><span class="step-title">Create nightly pipeline script</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code"><span class="ck">cat</span> > ~/.aegis/scripts/nightly.sh << <span class="cs">'EOF'</span>
+#!/bin/bash
+source ~/.aegis/.env
+LOG="$HOME/.aegis/logs/nightly_$(date +%Y%m%d).log"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Nightly pipeline start" | tee -a "$LOG"
+python3 ~/.aegis/context/context_engine.py consolidate 2>&1 | tee -a "$LOG"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Complete" | tee -a "$LOG"
+find ~/.aegis/logs/ -name <span class="cs">"nightly_*.log"</span> -mtime +30 -delete
+<span class="cs">EOF</span>
+<span class="ck">chmod</span> +x ~/.aegis/scripts/nightly.sh</div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">F.2</span><span class="step-title">Install all cron jobs</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code">(crontab -l 2>/dev/null; cat << <span class="cs">'CRON'</span>
+<span class="cc"># AEGIS ZERO ─────────────────────────────────</span>
+*/5 * * * * /bin/bash ~/.aegis/scripts/insurance.sh >> ~/.aegis/logs/insurance.log 2>&1
+0 2 * * * /bin/bash ~/.aegis/scripts/nightly.sh >> ~/.aegis/logs/nightly_cron.log 2>&1
+0 3 * * 0 /bin/bash ~/.aegis/scripts/backup.sh >> ~/.aegis/logs/backup.log 2>&1
+0 * * * * python3 ~/.aegis/mcp/system_server.py health_check >> ~/.aegis/logs/doctor.log 2>&1
+<span class="cc"># END AEGIS ZERO ──────────────────────────────</span>
+<span class="cs">CRON</span>
+) | crontab -
+
+crontab -l | grep -c <span class="cs">"AEGIS ZERO"</span> && echo <span class="cs">"✓ Cron installed"</span></div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase E</button>
+    <span class="nav-progress">Phase 7 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase G+H: Wire & Test →</button>
+  </div>
+</div>
+
+<!-- PHASE G+H -->
+<div class="sec" id="phase7">
+  <div class="sec-head">
+    <div class="sec-letter">G+H</div>
+    <div>
+      <div class="sec-title">Final Wiring + 8 Validation Tests</div>
+      <div class="sec-meta">Restart Hermes · run the validation suite · all 8 must pass</div>
+    </div>
+    <div class="sec-time">⏱ ~5 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">G.1</span><span class="step-title">Restart Hermes with new handler</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="code">systemctl restart hermes
+sleep 3
+<span class="ck">curl</span> -s http://127.0.0.1:8000/health | grep -q <span class="cs">"ok"</span> && echo <span class="cs">"✓ Hermes running"</span> || echo <span class="cx">"✗ Hermes failed to start — check: journalctl -u hermes -n 50"</span></div>
+    </div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">H.1</span><span class="step-title">Run all 8 validation tests</span><span class="step-tag">interactive</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <div class="val-grid" id="valGrid">
+        <div class="val-item" id="v1" onclick="runTest(1)">
+          <div class="vi-status wait" id="vs1">○</div>
+          <div class="vi-num">TEST 1</div>
+          <div class="vi-title">MCP Servers (all 5 respond)</div>
+          <div class="vi-cmd">tools/list → 5 servers reply</div>
+        </div>
+        <div class="val-item" id="v2" onclick="runTest(2)">
+          <div class="vi-status wait" id="vs2">○</div>
+          <div class="vi-num">TEST 2</div>
+          <div class="vi-title">Context Engine builds</div>
+          <div class="vi-cmd">ContextEngine().build() → layers ≥ 1</div>
+        </div>
+        <div class="val-item" id="v3" onclick="runTest(3)">
+          <div class="vi-status wait" id="vs3">○</div>
+          <div class="vi-num">TEST 3</div>
+          <div class="vi-title">Episodic Memory Write</div>
+          <div class="vi-cmd">MemoryWriter().write_turn() → episode id</div>
+        </div>
+        <div class="val-item" id="v4" onclick="runTest(4)">
+          <div class="vi-status wait" id="vs4">○</div>
+          <div class="vi-num">TEST 4</div>
+          <div class="vi-title">Task Classifier</div>
+          <div class="vi-cmd">"hi" → simple · "debug…" → complex/deep</div>
+        </div>
+        <div class="val-item" id="v5" onclick="runTest(5)">
+          <div class="vi-status wait" id="vs5">○</div>
+          <div class="vi-num">TEST 5</div>
+          <div class="vi-title">Checkpoint Store (Factor 5)</div>
+          <div class="vi-cmd">write step 1 → read → last_step == 1</div>
+        </div>
+        <div class="val-item" id="v6" onclick="runTest(6)">
+          <div class="vi-status wait" id="vs6">○</div>
+          <div class="vi-num">TEST 6</div>
+          <div class="vi-title">Model Fallback Chain (Factor 7)</div>
+          <div class="vi-cmd">aegis-fast.generate("Say: ok") → ok=True</div>
+        </div>
+        <div class="val-item" id="v7" onclick="runTest(7)">
+          <div class="vi-status wait" id="vs7">○</div>
+          <div class="vi-num">TEST 7</div>
+          <div class="vi-title">Observability Store (Factor 9)</div>
+          <div class="vi-cmd">record_inference() → stats.total > 0</div>
+        </div>
+        <div class="val-item" id="v8" onclick="runTest(8)">
+          <div class="vi-status wait" id="vs8">○</div>
+          <div class="vi-num">TEST 8</div>
+          <div class="vi-title">End-to-End Message Flow</div>
+          <div class="vi-cmd">handle_message_v2("2+2") → non-empty response</div>
+        </div>
+      </div>
+      <div class="callout info"><span class="callout-icon">ℹ</span> Run the validation script from <code>AEGIS_INTEGRATION_GUIDE.md</code> Phase H. Click each card above to track results. All 8 must show ✓ PASS.</div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase F</button>
+    <span class="nav-progress">Phase 8 of 9</span>
+    <button class="nav-btn primary" onclick="nextPhase()">Phase I: Manifest →</button>
+  </div>
+</div>
+
+<!-- PHASE I -->
+<div class="sec" id="phase8">
+  <div class="sec-head">
+    <div class="sec-letter">I</div>
+    <div>
+      <div class="sec-title">Manifest Update + Active Stack Summary</div>
+      <div class="sec-meta">aegis.conf.yaml additions · what's active on every message</div>
+    </div>
+    <div class="sec-time">⏱ ~2 min</div>
+  </div>
+
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <span class="step-num">I.1</span><span class="step-title">Validate manifest YAML after editing</span><span class="step-toggle">▶</span>
+    </div>
+    <div class="step-body">
+      <p>Add the Section 10 block from <code>AEGIS_INTEGRATION_GUIDE.md</code> Phase I to <code>~/.aegis/aegis.conf.yaml</code>, then validate:</p>
+      <div class="code">python3 -c <span class="cs">"import yaml; yaml.safe_load(open('$HOME/.aegis/aegis.conf.yaml')); print('✓ Valid YAML')"</span></div>
+    </div>
+  </div>
+
+  <div class="arch-summary">
+    <div class="arch-row">
+      <div class="ar-icon">🔌</div>
+      <div class="ar-label">mcp layer #1</div>
+      <div class="ar-desc">19 tools via 5 stdio servers. semantic_cache_check runs before every inference. knowledge_search, system_health, plan_then_execute all available.</div>
+      <div class="ar-tag">~/.aegis/mcp/</div>
+    </div>
+    <div class="arch-row">
+      <div class="ar-icon">🧠</div>
+      <div class="ar-label">context eng #2</div>
+      <div class="ar-desc">Every inference assembled from 4 layers: procedural (SOUL+rules), semantic (user facts), episodic (recent history), in-context (current message + RAG).</div>
+      <div class="ar-tag">~/.aegis/context/</div>
+    </div>
+    <div class="arch-row">
+      <div class="ar-icon">🎭</div>
+      <div class="ar-label">puppeteer #3</div>
+      <div class="ar-desc">Every message classified → Scout/Forge/Auditor sequence selected dynamically. Simple = 1 fast call. Complex = scout+deep+audit. Research = parallel forges.</div>
+      <div class="ar-tag">~/.aegis/orchestration/</div>
+    </div>
+    <div class="arch-row">
+      <div class="ar-icon">⚙</div>
+      <div class="ar-label">12-factor #6</div>
+      <div class="ar-desc">Every call checkpointed. Model fallback chain active. Inference records written. Approval gate for irreversible actions. 7 failure modes handled.</div>
+      <div class="ar-tag">~/.aegis/core/</div>
+    </div>
+    <div class="arch-row">
+      <div class="ar-icon">🌙</div>
+      <div class="ar-label">nightly (02:00)</div>
+      <div class="ar-desc">Episodes → semantic facts → procedural rules → AGENTS.md regenerated. Hermes wakes up smarter. Silent Telegram report. Zero manual effort.</div>
+      <div class="ar-tag">~/.aegis/scripts/nightly.sh</div>
+    </div>
+    <div class="arch-row">
+      <div class="ar-icon">✓</div>
+      <div class="ar-label">existing stack</div>
+      <div class="ar-desc">Caveman #21, Sidecar #28, execute_code RPC #3, two-tier routing, 9-provider API fallback, 6-layer security, Oracle reclamation defeat — all still active.</div>
+      <div class="ar-tag">unchanged</div>
+    </div>
+  </div>
+
+  <div class="callout ok"><span class="callout-icon">✓</span> <strong>Integration complete.</strong> All 6 innovations active. 8/8 tests passing. Agent improves every night. Built with obsession. Runs on nothing. Improves forever.</div>
+
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prevPhase()">← Phase G+H</button>
+    <span class="nav-progress">Phase 9 of 9 — Complete</span>
+    <button class="nav-btn" disabled>Done ✓</button>
+  </div>
+</div>
+
+<div class="footer">
+  <span>Aegis Zero · Integration Guide v1.0 · April 2026 · Khaled Hassan</span>
+  <span>~45 min · zero new ports · €0 added cost</span>
+</div>
+</div>
+
+<script>
+let currentPhase = 0;
+const totalPhases = 9;
+const completedPhases = new Set();
+
+function goPhase(n) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.prog-phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase${n}`).classList.add('active');
+  document.querySelector(`[data-phase="${n}"]`).classList.add('active');
+  currentPhase = n;
+}
+
+function nextPhase() {
+  completedPhases.add(currentPhase);
+  document.querySelector(`[data-phase="${currentPhase}"]`).classList.add('done');
+  if (currentPhase < totalPhases - 1) goPhase(currentPhase + 1);
+}
+
+function prevPhase() {
+  if (currentPhase > 0) goPhase(currentPhase - 1);
+}
+
+function toggleStep(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+// Validation test tracker
+const testResults = {};
+
+function runTest(n) {
+  const el = document.getElementById(`v${n}`);
+  const status = document.getElementById(`vs${n}`);
+  // Cycle: wait → pass → fail → wait
+  const current = testResults[n] || 'wait';
+  const next = current === 'wait' ? 'pass' : current === 'pass' ? 'fail' : 'wait';
+  testResults[n] = next;
+
+  el.classList.remove('passing', 'failing');
+  status.classList.remove('pass', 'fail', 'wait');
+
+  if (next === 'pass') {
+    el.classList.add('passing');
+    status.classList.add('pass');
+    status.textContent = '✓';
+  } else if (next === 'fail') {
+    el.classList.add('failing');
+    status.classList.add('fail');
+    status.textContent = '✗';
+  } else {
+    status.classList.add('wait');
+    status.textContent = '○';
+  }
+}
+</script>
+</body>
+</html>

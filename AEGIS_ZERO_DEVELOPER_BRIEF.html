@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — Developer Brief</title>
+<style>
+  :root {
+    --bg: #07110f;
+    --bg-2: #0d1816;
+    --panel: rgba(14, 24, 22, 0.9);
+    --panel-2: rgba(8, 13, 12, 0.95);
+    --line: rgba(0, 255, 204, 0.12);
+    --line-strong: rgba(0, 255, 204, 0.28);
+    --text: #d9ebe7;
+    --muted: #7ca39c;
+    --cyan: #00ffcc;
+    --gold: #ffd700;
+    --green: #59e7a1;
+    --amber: #ffbd59;
+    --red: #ff7070;
+    --blue: #77c8ff;
+    --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font: 14px/1.6 "IBM Plex Mono", "JetBrains Mono", "Fira Code", monospace;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(0,255,204,0.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(255,215,0,0.06), transparent 22%),
+      linear-gradient(180deg, #040807 0%, var(--bg) 40%, #050807 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 2px,
+      rgba(0,255,204,0.02) 2px,
+      rgba(0,255,204,0.02) 4px
+    );
+    opacity: 0.35;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 28px 22px;
+    background: rgba(4, 8, 7, 0.94);
+    border-right: 1px solid var(--line);
+    backdrop-filter: blur(18px);
+  }
+
+  .logo {
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    padding: 18px 16px;
+    margin-bottom: 22px;
+    background: linear-gradient(180deg, rgba(0,255,204,0.05), rgba(255,215,0,0.03));
+    box-shadow: var(--shadow);
+  }
+
+  .logo h1 {
+    margin: 0 0 6px;
+    font: 900 28px/1.05 Georgia, "Times New Roman", serif;
+    letter-spacing: 0.22em;
+    color: #fff;
+  }
+
+  .logo p {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  .nav-title, .mini-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin: 18px 0 8px;
+  }
+
+  .nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .nav a {
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.01);
+    transition: 0.18s ease;
+  }
+
+  .nav a:hover,
+  .nav a.active {
+    border-color: var(--line-strong);
+    background: rgba(0,255,204,0.06);
+    color: #fff;
+  }
+
+  .mini-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .mini-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .mini-card strong {
+    display: block;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .mini-card span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .content {
+    padding: 28px 32px 80px;
+  }
+
+  .hero {
+    padding: 22px 24px;
+    border: 1px solid var(--line-strong);
+    border-radius: 22px;
+    background: linear-gradient(140deg, rgba(0,255,204,0.05), rgba(255,215,0,0.035) 60%, rgba(255,255,255,0.02));
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.04) 48%, transparent 56%);
+    transform: translateX(-120%);
+    animation: sweep 8s linear infinite;
+  }
+
+  @keyframes sweep {
+    to { transform: translateX(120%); }
+  }
+
+  .eyebrow {
+    color: var(--cyan);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .hero h2 {
+    margin: 0 0 12px;
+    font: 900 clamp(30px, 4vw, 54px)/1.02 Georgia, "Times New Roman", serif;
+    letter-spacing: 0.02em;
+    color: #fff;
+    max-width: 12ch;
+  }
+
+  .hero p {
+    max-width: 92ch;
+    color: #cfe0dc;
+    margin: 0 0 18px;
+  }
+
+  .tag-row, .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tag, .filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.18);
+    color: var(--text);
+    font-size: 12px;
+  }
+
+  .filter-btn {
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+
+  .filter-btn.active,
+  .filter-btn:hover {
+    border-color: var(--line-strong);
+    background: rgba(0,255,204,0.08);
+    color: #fff;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    grid-column: span 12;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--panel);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .span-4 { grid-column: span 4; }
+  .span-5 { grid-column: span 5; }
+  .span-6 { grid-column: span 6; }
+  .span-7 { grid-column: span 7; }
+  .span-8 { grid-column: span 8; }
+
+  .section-title {
+    margin: 0 0 14px;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+  }
+
+  .section-sub {
+    margin: 0 0 16px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .metric {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    background: var(--panel-2);
+  }
+
+  .metric .value {
+    display: block;
+    font-size: 26px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .metric .label {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .status-board {
+    display: grid;
+    gap: 12px;
+  }
+
+  .status-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.015);
+  }
+
+  .status-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .status-name {
+    color: #fff;
+    font-size: 14px;
+  }
+
+  .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border: 1px solid;
+  }
+
+  .implemented { color: var(--green); border-color: rgba(89,231,161,0.35); background: rgba(89,231,161,0.1); }
+  .partial { color: var(--amber); border-color: rgba(255,189,89,0.35); background: rgba(255,189,89,0.1); }
+  .planned { color: var(--blue); border-color: rgba(119,200,255,0.35); background: rgba(119,200,255,0.1); }
+  .unsafe { color: var(--red); border-color: rgba(255,112,112,0.35); background: rgba(255,112,112,0.1); }
+
+  .architecture {
+    display: grid;
+    gap: 12px;
+  }
+
+  .layer {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding: 14px 16px;
+  }
+
+  .layer-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  .layer-head strong { color: #fff; }
+
+  .list, .roadmap-list, .risk-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .list-item, .road-item, .risk-item {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.14);
+  }
+
+  .feature-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .feature-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    transition: 0.18s ease;
+  }
+
+  .feature-card.hidden {
+    display: none;
+  }
+
+  .feature-card h4 {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  .feature-card p {
+    margin: 0 0 10px;
+    color: #c2d7d2;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .meta-chip {
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 9px;
+    background: rgba(255,255,255,0.015);
+  }
+
+  .accordion {
+    display: grid;
+    gap: 10px;
+  }
+
+  .acc-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .acc-button {
+    width: 100%;
+    background: transparent;
+    color: var(--text);
+    border: 0;
+    text-align: left;
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font: inherit;
+  }
+
+  .acc-button strong { color: #fff; }
+
+  .acc-content {
+    display: none;
+    padding: 0 16px 16px;
+    color: #c7d8d4;
+  }
+
+  .acc-item.open .acc-content { display: block; }
+  .acc-item.open .caret { transform: rotate(45deg); }
+  .caret {
+    transition: 0.18s ease;
+    color: var(--cyan);
+    font-size: 20px;
+  }
+
+  .footer-note {
+    margin-top: 26px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.02);
+  }
+
+  code {
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.95em;
+  }
+
+  @media (max-width: 1080px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: relative;
+      height: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .content { padding: 20px 18px 56px; }
+  }
+
+  @media (max-width: 860px) {
+    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="logo">
+        <h1>AEGIS ZERO</h1>
+        <p>Developer Brief</p>
+      </div>
+
+      <div class="nav-title">Sections</div>
+      <nav class="nav">
+        <a href="#overview" class="active">Overview</a>
+        <a href="#feature-matrix">Feature Matrix</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#inventory">Code Inventory</a>
+        <a href="#tests">Tests</a>
+        <a href="#gaps">Gaps</a>
+        <a href="#roadmap">Roadmap</a>
+      </nav>
+
+      <div class="mini-title">Snapshot</div>
+      <div class="mini-grid">
+        <div class="mini-card"><strong>18</strong><span>Automated tests passing</span></div>
+        <div class="mini-card"><strong>7</strong><span>Core Python modules</span></div>
+        <div class="mini-card"><strong>4</strong><span>Security boundary layers in code</span></div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero" id="overview">
+        <div class="eyebrow">State of the System</div>
+        <h2>Trusted Local Agent Kernel In Progress</h2>
+        <p>
+          Aegis Zero is no longer just an architecture concept pack. This repo now contains a working
+          trusted-kernel foundation for a local-first autonomous agent system: trusted retrieval,
+          deterministic tool policy, approval gating, policy-enforced tool execution, orchestration,
+          runtime config centralization, and harness-level regression coverage.
+        </p>
+        <div class="tag-row">
+          <span class="tag">Local-first</span>
+          <span class="tag">Trusted retrieval boundary</span>
+          <span class="tag">Policy-enforced tool execution</span>
+          <span class="tag">Approval-gated high-risk actions</span>
+          <span class="tag">Tested local happy path</span>
+        </div>
+      </section>
+
+      <div class="grid">
+        <section class="card span-8">
+          <h3 class="section-title">Executive Summary</h3>
+          <p class="section-sub">What a developer should understand in under two minutes.</p>
+          <div class="status-board">
+            <div class="status-item">
+              <div class="status-top">
+                <span class="status-name">What exists now</span>
+                <span class="pill implemented">Implemented</span>
+              </div>
+              <div>A real trusted-kernel spine: config, policy, retrieval boundary, harness, orchestration, tests.</div>
+            </div>
+            <div class="status-item">
+              <div class="status-top">
+                <span class="status-name">What is still missing</span>
+                <span class="pill partial">Partial</span>
+              </div>
+              <div>Real-service validation with local Ollama/Qdrant, broader tool adapters, deeper runtime integration.</div>
+            </div>
+            <div class="status-item">
+              <div class="status-top">
+                <span class="status-name">What should not be assumed</span>
+                <span class="pill unsafe">Unsafe</span>
+              </div>
+              <div>This is not yet an unrestricted production autonomous agent. It is a hardened kernel foundation.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card span-4">
+          <h3 class="section-title">Metrics</h3>
+          <p class="section-sub">Current repo-level capability snapshot.</p>
+          <div class="metric-grid">
+            <div class="metric"><span class="value">18</span><span class="label">Passing tests</span></div>
+            <div class="metric"><span class="value">4</span><span class="label">Security test groups</span></div>
+            <div class="metric"><span class="value">3</span><span class="label">Roadmap docs</span></div>
+            <div class="metric"><span class="value">1</span><span class="label">Interactive brief</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" id="feature-matrix">
+        <h3 class="section-title">Feature Matrix</h3>
+        <p class="section-sub">Filter by implementation status. This is the handoff view for prospective developers.</p>
+        <div class="feature-controls filter-row">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="implemented">Implemented</button>
+          <button class="filter-btn" data-filter="partial">Partially Implemented</button>
+          <button class="filter-btn" data-filter="planned">Planned</button>
+          <button class="filter-btn" data-filter="unsafe">Not Yet Safe Enough</button>
+        </div>
+
+        <div class="list">
+          <article class="feature-card" data-status="implemented">
+            <h4>Centralized Runtime Config</h4>
+            <p>Runtime assumptions for Qdrant, vector size, embedding model, fast/deep model ids, and Telegram are centralized in <code>aegis_config.py</code>.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">aegis_config.py</span>
+              <span class="meta-chip">context_engine.py</span>
+              <span class="meta-chip">agent_harness.py</span>
+              <span class="meta-chip">memrl_engine.py</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Trusted Retrieval Boundary</h4>
+            <p>All model-visible retrieval goes through a shared adapter that normalizes raw tool output, attaches trust metadata, and filters suspicious instruction markers before prompt exposure.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">trusted_mcp.py</span>
+              <span class="meta-chip">semantic cache trust gating</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Deterministic Tool Policy</h4>
+            <p>Explicit allow/deny rules now exist for knowledge reads/writes, shell, HTTP fetch, filesystem read, and filesystem write, including argument validation for URLs, paths, and destructive commands.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">tool_policy.py</span>
+              <span class="meta-chip">path validators</span>
+              <span class="meta-chip">URL validators</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Policy-Enforced Tool Execution</h4>
+            <p>The harness now has a single execution path that applies policy, optional approval, and safe execution before any registered MCP tool is called.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">policy_enforced_call_tool</span>
+              <span class="meta-chip">HardenedPuppeteer.execute_tool</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Approval Gate Fail-Closed Behavior</h4>
+            <p>Approval transport failure now fails closed rather than silently allowing low-confidence or risky actions through.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">ApprovalGate</span>
+              <span class="meta-chip">transport failure tested</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Local Context Engine and Memory Writer</h4>
+            <p>The repo is self-contained enough to run without depending on an external <code>~/.aegis/context</code> module for basic context assembly and episodic writes.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">context_engine.py</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Scout / Forge / Auditor Orchestration</h4>
+            <p>Multi-step orchestration exists in <code>puppeteer.py</code>, including a now-fixed path where standard tasks honor <code>needs_auditor=True</code>.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">puppeteer.py</span>
+              <span class="meta-chip">bug fixed via integration test</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Checkpointing and Observability Primitives</h4>
+            <p>Checkpoint writes, inference recording, and hardened wrapper logic are present, enabling resumability and trace capture.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">CheckpointStore</span>
+              <span class="meta-chip">ObservabilityStore</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="implemented">
+            <h4>Regression Coverage</h4>
+            <p>Boundary tests, harness tests, and a real local-kernel integration test under stubs now run successfully.</p>
+            <div class="meta-row">
+              <span class="pill implemented">Implemented</span>
+              <span class="meta-chip">18 passing tests</span>
+              <span class="meta-chip">test_policy_and_adapter.py</span>
+              <span class="meta-chip">test_harness_tools.py</span>
+              <span class="meta-chip">test_real_local_kernel.py</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="partial">
+            <h4>MemRL Utility Learning</h4>
+            <p>The memory utility engine exists and has safer defaults than before, but it is still not benchmarked against explicit task outcomes and remains a partial capability.</p>
+            <div class="meta-row">
+              <span class="pill partial">Partial</span>
+              <span class="meta-chip">memrl_engine.py</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="partial">
+            <h4>Tool Ecosystem Coverage</h4>
+            <p>Policy and trusted execution cover the categories now used in-repo, but broader file/network/system tool integrations are still to be added.</p>
+            <div class="meta-row">
+              <span class="pill partial">Partial</span>
+              <span class="meta-chip">tool policy foundation exists</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="partial">
+            <h4>Real-Service Runtime Validation</h4>
+            <p>The kernel is tested with high-fidelity stubs, not yet with live local Ollama/Qdrant in this repo’s automated path.</p>
+            <div class="meta-row">
+              <span class="pill partial">Partial</span>
+              <span class="meta-chip">next validation step</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="planned">
+            <h4>Broader Tool Adapters</h4>
+            <p>Planned next additions include richer file, network, and system adapters routed through the same trusted boundary.</p>
+            <div class="meta-row">
+              <span class="pill planned">Planned</span>
+              <span class="meta-chip">roadmap milestone 2+</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="planned">
+            <h4>Real-Service End-to-End Path</h4>
+            <p>A controlled validation path using live local Ollama and Qdrant is the next strong step after the current stub-backed trusted kernel tests.</p>
+            <div class="meta-row">
+              <span class="pill planned">Planned</span>
+              <span class="meta-chip">local services validation</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="unsafe">
+            <h4>Unrestricted Autonomy</h4>
+            <p>The project should not yet be presented as a fully autonomous production agent with unrestricted web or system power.</p>
+            <div class="meta-row">
+              <span class="pill unsafe">Not Yet Safe Enough</span>
+              <span class="meta-chip">explicitly deferred</span>
+            </div>
+          </article>
+
+          <article class="feature-card" data-status="unsafe">
+            <h4>LLM-as-Primary Safety Boundary</h4>
+            <p>The Auditor improves quality, but deterministic policy and approvals remain the real safety boundary. LLM-only auditing is not sufficient.</p>
+            <div class="meta-row">
+              <span class="pill unsafe">Not Yet Safe Enough</span>
+              <span class="meta-chip">kept advisory</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="grid" id="architecture">
+        <section class="card span-7">
+          <h3 class="section-title">Architecture</h3>
+          <p class="section-sub">The current trusted-kernel execution chain.</p>
+          <div class="architecture">
+            <div class="layer">
+              <div class="layer-head"><strong>1. User Request</strong><span class="pill implemented">Live</span></div>
+              <div>Messages enter through <code>HardenedPuppeteer.run()</code>.</div>
+            </div>
+            <div class="layer">
+              <div class="layer-head"><strong>2. Orchestration</strong><span class="pill implemented">Live</span></div>
+              <div><code>puppeteer.py</code> classifies the task and selects Scout / Forge / Auditor sequence.</div>
+            </div>
+            <div class="layer">
+              <div class="layer-head"><strong>3. Trusted Retrieval</strong><span class="pill implemented">Live</span></div>
+              <div><code>TrustedMCPAdapter</code> normalizes tool output before models see it.</div>
+            </div>
+            <div class="layer">
+              <div class="layer-head"><strong>4. Context Assembly</strong><span class="pill implemented">Live</span></div>
+              <div><code>ContextEngine</code> produces trust-labeled prompt material and basic memory context.</div>
+            </div>
+            <div class="layer">
+              <div class="layer-head"><strong>5. Policy-Governed Tool Use</strong><span class="pill implemented">Live</span></div>
+              <div><code>ToolPolicy</code> + <code>policy_enforced_call_tool()</code> decide, sanitize, and gate execution.</div>
+            </div>
+            <div class="layer">
+              <div class="layer-head"><strong>6. Approval + Audit</strong><span class="pill implemented">Live</span></div>
+              <div>High-risk paths can be blocked or approval-gated; traces are recorded through checkpoint and observability primitives.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card span-5">
+          <h3 class="section-title">Core Files</h3>
+          <p class="section-sub">Primary modules a new developer should read first.</p>
+          <div class="accordion">
+            <div class="acc-item open">
+              <button class="acc-button"><strong>aegis_config.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Shared env-backed runtime defaults for Qdrant, model ids, vector size, embeddings, Telegram.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>tool_policy.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Deterministic tool rules, risk classes, argument sanitization, and validators for URLs, paths, and destructive commands.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>trusted_mcp.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Trusted boundary for MCP reads and cache metadata creation.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>agent_harness.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Hardened wrapper, approval gate, checkpointing, observability, and policy-enforced tool execution path.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>puppeteer.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Scout / Forge / Auditor orchestration and cache write routing through trusted execution when available.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>context_engine.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Local context and episodic-memory layer used to make the repo self-contained.</div>
+            </div>
+            <div class="acc-item">
+              <button class="acc-button"><strong>memrl_engine.py</strong><span class="caret">+</span></button>
+              <div class="acc-content">Value-aware memory retrieval concept and reward logic with safer defaults, still awaiting stronger outcome-based validation.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid" id="inventory">
+        <section class="card span-6">
+          <h3 class="section-title">Capabilities Inventory</h3>
+          <p class="section-sub">What future hires can build on immediately.</p>
+          <div class="list">
+            <div class="list-item">Trusted semantic cache hits require audited metadata and high similarity.</div>
+            <div class="list-item">Retrieved search results are compacted into quoted reference entries before model use.</div>
+            <div class="list-item">Unknown tools are denied by default.</div>
+            <div class="list-item">Loopback HTTP fetch targets are blocked.</div>
+            <div class="list-item">Destructive shell command patterns are blocked.</div>
+            <div class="list-item">Filesystem parent traversal and sensitive roots are blocked by policy.</div>
+            <div class="list-item">Internal knowledge-store writes sanitize metadata before execution.</div>
+            <div class="list-item">A hardened wrapper can run the local orchestration path and record observability/checkpoint traces.</div>
+          </div>
+        </section>
+
+        <section class="card span-6">
+          <h3 class="section-title">Important Fixes Already Made</h3>
+          <p class="section-sub">These are concrete engineering improvements, not just documentation.</p>
+          <div class="risk-list">
+            <div class="risk-item">Removed the missing-runtime trap by adding local <code>context_engine.py</code>.</div>
+            <div class="risk-item">Eliminated raw MCP retrieval injection into prompts.</div>
+            <div class="risk-item">Made approval fail closed when Telegram delivery is unavailable.</div>
+            <div class="risk-item">Stopped generic follow-up messages from being treated as positive MemRL reward by default.</div>
+            <div class="risk-item">Fixed <code>STANDARD</code> task sequencing so <code>needs_auditor=True</code> is honored.</div>
+            <div class="risk-item">Centralized runtime configuration rather than scattering hardcoded host/port/model values.</div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" id="tests">
+        <h3 class="section-title">Test Coverage</h3>
+        <p class="section-sub">Current automated coverage and why it matters.</p>
+        <div class="accordion">
+          <div class="acc-item open">
+            <button class="acc-button"><strong>test_policy_and_adapter.py</strong><span class="caret">+</span></button>
+            <div class="acc-content">
+              Covers unknown-tool denial, shell/network/path rules, trusted/untrusted cache hits, retrieval normalization, metadata sanitization, and approval-required tool blocking.
+            </div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-button"><strong>test_harness_tools.py</strong><span class="caret">+</span></button>
+            <div class="acc-content">
+              Covers approval transport failure, metadata sanitization before execution, and a local happy path through <code>HardenedPuppeteer</code> with tool execution, observability, and checkpointing.
+            </div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-button"><strong>test_real_local_kernel.py</strong><span class="caret">+</span></button>
+            <div class="acc-content">
+              Runs the real repo <code>puppeteer.py</code> under the hardened wrapper using high-fidelity stubs for local services, forcing the actual Scout / Forge / Auditor path and verifying policy-enforced cache write behavior.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid" id="gaps">
+        <section class="card span-6">
+          <h3 class="section-title">Known Gaps</h3>
+          <p class="section-sub">The project is stronger when these are stated plainly.</p>
+          <div class="risk-list">
+            <div class="risk-item">No live-service validation path against real local Ollama and Qdrant yet in the automated suite.</div>
+            <div class="risk-item">Tool coverage is still narrow compared to the long-term vision.</div>
+            <div class="risk-item">MemRL exists, but is not yet grounded in explicit success/failure outcome labeling.</div>
+            <div class="risk-item">This is still a trusted-kernel foundation, not a production-autonomous internet agent.</div>
+          </div>
+        </section>
+
+        <section class="card span-6">
+          <h3 class="section-title">Not Yet Safe To Claim</h3>
+          <p class="section-sub">What future developers should not oversell.</p>
+          <div class="risk-list">
+            <div class="risk-item">“Fully autonomous” in an unrestricted sense.</div>
+            <div class="risk-item">“Production secure” for arbitrary external tools or web autonomy.</div>
+            <div class="risk-item">“Self-improving” in a benchmarked, outcome-validated sense.</div>
+            <div class="risk-item">“Zero compromise” unless execution scope remains bounded by current policy and testing.</div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card" id="roadmap">
+        <h3 class="section-title">Roadmap</h3>
+        <p class="section-sub">The recommended order for developers joining the project.</p>
+        <div class="roadmap-list">
+          <div class="road-item"><strong>Milestone 1:</strong> real local-service validation with Ollama and Qdrant under controlled conditions.</div>
+          <div class="road-item"><strong>Milestone 2:</strong> expand tool adapters and validators while keeping all execution policy-centered.</div>
+          <div class="road-item"><strong>Milestone 3:</strong> deepen harness-level tests for richer tool traces, approvals, and cache poisoning fixtures.</div>
+          <div class="road-item"><strong>Milestone 4:</strong> only then widen capability: more tools, richer memory, broader orchestration, measured autonomy.</div>
+        </div>
+        <div class="footer-note">
+          This brief is meant to be a hiring handoff: it shows what exists, what is safe, what is tested, what is still partial, and what the next engineering move should be.
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+  const filters = document.querySelectorAll(".filter-btn");
+  const cards = document.querySelectorAll(".feature-card");
+  filters.forEach((button) => {
+    button.addEventListener("click", () => {
+      filters.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+      const target = button.dataset.filter;
+      cards.forEach((card) => {
+        const show = target === "all" || card.dataset.status === target;
+        card.classList.toggle("hidden", !show);
+      });
+    });
+  });
+
+  document.querySelectorAll(".acc-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.parentElement.classList.toggle("open");
+    });
+  });
+
+  const navLinks = document.querySelectorAll(".nav a");
+  const sections = [...navLinks].map((a) => document.querySelector(a.getAttribute("href")));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      navLinks.forEach((link) => link.classList.remove("active"));
+      const active = document.querySelector('.nav a[href="#' + entry.target.id + '"]');
+      if (active) active.classList.add("active");
+    });
+  }, { rootMargin: "-35% 0px -50% 0px", threshold: 0.01 });
+  sections.forEach((section) => section && observer.observe(section));
+</script>
+</body>
+</html>

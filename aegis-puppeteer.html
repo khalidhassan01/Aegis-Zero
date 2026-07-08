@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — Puppeteer Orchestration</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:     #0d1117;
+  --s1:     #161b22;
+  --s2:     #1c2128;
+  --border: #21262d;
+  --border2:#30363d;
+  --text:   #c9d1d9;
+  --muted:  #6e7681;
+  --dim:    #484f58;
+
+  --puppet: #58a6ff;    /* blue — puppeteer */
+  --scout:  #3fb950;    /* green — scout */
+  --forge:  #f0883e;    /* orange — forge */
+  --audit:  #bc8cff;    /* purple — auditor */
+  --synth:  #ffa657;    /* amber — synthesizer */
+  --cache:  #39d353;    /* bright green — cache hit */
+
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* HEADER */
+.header {
+  padding: 36px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.h-left { }
+.h-eye {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 40px);
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.1;
+}
+
+h1 em { font-style: normal; color: var(--puppet); }
+
+.h-right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.chip-blue   { background: rgba(88,166,255,0.12); color: var(--puppet); border: 1px solid rgba(88,166,255,0.25); }
+.chip-green  { background: rgba(63,185,80,0.12); color: var(--scout); border: 1px solid rgba(63,185,80,0.2); }
+.chip-orange { background: rgba(240,136,62,0.12); color: var(--forge); border: 1px solid rgba(240,136,62,0.2); }
+.chip-purple { background: rgba(188,140,255,0.12); color: var(--audit); border: 1px solid rgba(188,140,255,0.2); }
+
+/* SECTION HEADER */
+.sec-head {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-head::before {
+  content: '//';
+  color: var(--dim);
+}
+
+/* ── SIMULATOR ── */
+.simulator {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.sim-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--border);
+}
+
+.sim-dots { display: flex; gap: 6px; }
+.sim-dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #ffbd2e; }
+.dot-g { background: #28c840; }
+
+.sim-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  flex: 1;
+  text-align: center;
+}
+
+.sim-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--scout);
+  padding: 2px 8px;
+  background: rgba(63,185,80,0.1);
+  border: 1px solid rgba(63,185,80,0.2);
+  border-radius: 20px;
+}
+
+/* Message selector */
+.msg-selector {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.msg-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.msg-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.msg-btn:hover { border-color: var(--puppet); color: var(--puppet); }
+.msg-btn.active { border-color: var(--puppet); color: var(--puppet); background: rgba(88,166,255,0.08); }
+
+/* Trace display */
+.trace-area {
+  padding: 20px;
+  min-height: 200px;
+}
+
+/* Classification badge */
+.class-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.class-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ct-simple   { background: rgba(63,185,80,0.12); color: var(--scout); border: 1px solid rgba(63,185,80,0.2); }
+.ct-standard { background: rgba(88,166,255,0.12); color: var(--puppet); border: 1px solid rgba(88,166,255,0.2); }
+.ct-complex  { background: rgba(240,136,62,0.12); color: var(--forge); border: 1px solid rgba(240,136,62,0.2); }
+.ct-research { background: rgba(188,140,255,0.12); color: var(--audit); border: 1px solid rgba(188,140,255,0.2); }
+.ct-cache    { background: rgba(57,211,83,0.12); color: var(--cache); border: 1px solid rgba(57,211,83,0.2); }
+
+/* Puppet sequence viz */
+.sequence {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.seq-puppet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.3s;
+}
+
+.seq-puppet.visible { opacity: 1; transform: translateY(0); }
+
+.seq-node {
+  width: 80px;
+  height: 56px;
+  border: 1.5px solid;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.seq-node.running::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 6px;
+  border: 2px solid;
+  border-color: inherit;
+  animation: pulse-border 0.8s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.seq-node.done { opacity: 0.6; }
+
+.seq-icon { font-size: 16px; }
+.seq-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.seq-model { font-family: var(--mono); font-size: 8px; color: var(--muted); }
+
+.seq-arrow {
+  color: var(--dim);
+  font-size: 14px;
+  padding: 0 2px;
+  margin-top: -20px;
+}
+
+/* Puppet logs */
+.puppet-logs { display: flex; flex-direction: column; gap: 10px; }
+
+.puppet-log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.3s;
+}
+
+.puppet-log.visible { opacity: 1; transform: translateX(0); }
+
+.pl-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+
+.pl-puppet { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.pl-model  { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.pl-dur    { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
+
+.pl-body {
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pl-tools {
+  padding: 6px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tool-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 8px;
+  background: rgba(88,166,255,0.08);
+  border: 1px solid rgba(88,166,255,0.15);
+  color: var(--puppet);
+  border-radius: 3px;
+}
+
+/* Final response */
+.final-response {
+  margin-top: 16px;
+  background: var(--bg);
+  border: 1px solid var(--scout);
+  border-radius: 4px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.final-response.visible { opacity: 1; }
+
+.fr-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(63,185,80,0.06);
+  border-bottom: 1px solid rgba(63,185,80,0.15);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--scout);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fr-body {
+  padding: 14px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.fr-meta {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* DECISION TABLE */
+.decision-table {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.dt-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 1.2fr;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.dt-row:last-child { border-bottom: none; }
+.dt-row.header { background: var(--s2); }
+.dt-row:not(.header):hover { background: rgba(255,255,255,0.02); }
+
+.dt-cell {
+  padding: 10px 14px;
+  font-size: 12px;
+  border-right: 1px solid var(--border);
+}
+
+.dt-cell:last-child { border-right: none; }
+.dt-row.header .dt-cell {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dt-seq {
+  font-family: var(--mono);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dt-puppet {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* PUPPET CARDS */
+.puppet-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 700px) { .puppet-cards { grid-template-columns: 1fr; } }
+
+.puppet-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pc-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.pc-name { font-weight: 700; font-size: 14px; color: #fff; }
+.pc-model { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+.pc-body { padding: 14px 16px; }
+.pc-role { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+
+.pc-asks {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  padding: 8px 12px;
+  background: var(--bg);
+  border-left: 2px solid;
+  border-radius: 0 3px 3px 0;
+  font-style: italic;
+}
+
+/* Integration callout */
+.integration-box {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--puppet);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 32px;
+}
+
+.ib-title {
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.code-diff {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+.diff-del { color: #ff7b72; }
+.diff-add { color: var(--scout); }
+.diff-ctx { color: var(--muted); }
+.diff-kw  { color: var(--puppet); }
+.diff-str { color: #a5d6ff; }
+.diff-cm  { color: var(--dim); font-style: italic; }
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-left">
+    <div class="h-eye">Aegis Zero · Innovation #3 · NeurIPS 2025 — arXiv:2505.19591</div>
+    <h1>Puppeteer<br><em>Orchestration</em></h1>
+  </div>
+  <div class="h-right">
+    <div class="chip chip-blue">Puppeteer</div>
+    <div class="chip chip-green">Scout</div>
+    <div class="chip chip-orange">Forge</div>
+    <div class="chip chip-purple">Auditor</div>
+  </div>
+</div>
+
+<!-- PUPPET CARDS -->
+<div class="sec-head">The 3 Puppets — Each Has One Job</div>
+<div class="puppet-cards">
+  <div class="puppet-card">
+    <div class="pc-header">
+      <div class="pc-icon" style="background:rgba(63,185,80,0.12);">🔭</div>
+      <div>
+        <div class="pc-name" style="color:var(--scout)">Scout</div>
+        <div class="pc-model">aegis-fast · always</div>
+      </div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-role">Gathers context before reasoning begins. Searches episodic memory, checks the semantic cache, retrieves relevant documents. Produces a structured briefing for Forge.</div>
+      <div class="pc-asks" style="border-color:var(--scout);">"What does Forge need to know to answer this well?"</div>
+    </div>
+  </div>
+  <div class="puppet-card">
+    <div class="pc-header">
+      <div class="pc-icon" style="background:rgba(240,136,62,0.12);">⚒</div>
+      <div>
+        <div class="pc-name" style="color:var(--forge)">Forge</div>
+        <div class="pc-model">aegis-deep (complex) · aegis-fast (simple)</div>
+      </div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-role">The reasoning and generation engine. Receives Scout's briefing and a 4-layer context-engineered prompt. Produces the actual response. Can run in parallel (×2–3) for research tasks.</div>
+      <div class="pc-asks" style="border-color:var(--forge);">"What is the best possible response to this request?"</div>
+    </div>
+  </div>
+  <div class="puppet-card">
+    <div class="pc-header">
+      <div class="pc-icon" style="background:rgba(188,140,255,0.12);">🔎</div>
+      <div>
+        <div class="pc-name" style="color:var(--audit)">Auditor</div>
+        <div class="pc-model">aegis-fast · complex + code only</div>
+      </div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-role">Reviews Forge's output before delivery. Checks: factual errors, incomplete answers, security leaks, code bugs, missed requirements. Returns approved response or revised version.</div>
+      <div class="pc-asks" style="border-color:var(--audit);">"Is this correct and safe to send?"</div>
+    </div>
+  </div>
+</div>
+
+<!-- SIMULATOR -->
+<div class="sec-head">Live Trace Simulator — Select a Message Type</div>
+<div class="simulator">
+  <div class="sim-toolbar">
+    <div class="sim-dots"><div class="sim-dot dot-r"></div><div class="sim-dot dot-y"></div><div class="sim-dot dot-g"></div></div>
+    <div class="sim-title">puppeteer.run() — live orchestration trace</div>
+    <div class="sim-badge" id="simBadge">ready</div>
+  </div>
+  <div class="msg-selector">
+    <span class="msg-label">message type:</span>
+    <button class="msg-btn active" onclick="simulate('simple')">💬 "hi there"</button>
+    <button class="msg-btn" onclick="simulate('standard')">❓ "explain Tailscale mesh"</button>
+    <button class="msg-btn" onclick="simulate('complex')">🐛 "debug my Python script"</button>
+    <button class="msg-btn" onclick="simulate('research')">🔬 "research ARM LLM optimization"</button>
+    <button class="msg-btn" onclick="simulate('cache')">⚡ "same question again"</button>
+  </div>
+  <div class="trace-area" id="traceArea">
+    <div style="color:var(--muted);font-family:var(--mono);font-size:11px;">Select a message type above to simulate orchestration...</div>
+  </div>
+</div>
+
+<!-- DECISION TABLE -->
+<div class="sec-head">Sequence Decision Table</div>
+<div class="decision-table">
+  <div class="dt-row header">
+    <div class="dt-cell">Input Pattern</div>
+    <div class="dt-cell">Puppet Sequence</div>
+    <div class="dt-cell">Models Used</div>
+    <div class="dt-cell">Quality Gain</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">"hi" / short chat / reminders</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(240,136,62,0.12);color:var(--forge)">forge</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">fast only</div>
+    <div class="dt-cell" style="color:var(--scout);">baseline</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">Explanation / Q&A / analysis</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(240,136,62,0.12);color:var(--forge)">forge</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">deep</div>
+    <div class="dt-cell" style="color:var(--scout);">+quality</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">Needs memory context first</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(63,185,80,0.12);color:var(--scout)">scout</span><span>→</span><span class="dt-puppet" style="background:rgba(240,136,62,0.12);color:var(--forge)">forge</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">fast + deep</div>
+    <div class="dt-cell" style="color:var(--scout);">+context</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">Code / complex reasoning</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(63,185,80,0.12);color:var(--scout)">scout</span><span>→</span><span class="dt-puppet" style="background:rgba(240,136,62,0.12);color:var(--forge)">forge</span><span>→</span><span class="dt-puppet" style="background:rgba(188,140,255,0.12);color:var(--audit)">audit</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">fast+deep+fast</div>
+    <div class="dt-cell" style="color:var(--scout);">+90%</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">Deep research / reports</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(63,185,80,0.12);color:var(--scout)">scout</span><span>→</span><span class="dt-puppet" style="background:rgba(240,136,62,0.12);color:var(--forge)">forge×2</span><span>→</span><span class="dt-puppet" style="background:rgba(255,166,87,0.12);color:var(--synth)">synth</span><span>→</span><span class="dt-puppet" style="background:rgba(188,140,255,0.12);color:var(--audit)">audit</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">fast+deep×2+fast+fast</div>
+    <div class="dt-cell" style="color:var(--scout);">research-grade</div>
+  </div>
+  <div class="dt-row">
+    <div class="dt-cell">Repeated / similar query</div>
+    <div class="dt-cell"><div class="dt-seq"><span class="dt-puppet" style="background:rgba(57,211,83,0.12);color:var(--cache)">cache hit</span></div></div>
+    <div class="dt-cell" style="font-family:var(--mono);font-size:11px;">no LLM call</div>
+    <div class="dt-cell" style="color:var(--cache);">instant</div>
+  </div>
+</div>
+
+<!-- INTEGRATION -->
+<div class="sec-head">Hermes Integration — 2-Line Change</div>
+<div class="integration-box">
+  <div class="ib-title">Replace the existing Hermes message handler</div>
+  <div class="code-diff">
+<span class="diff-cm"># ~/.aegis/hermes/handler.py — the only change needed</span>
+
+<span class="diff-cm"># BEFORE (existing handler)</span>
+<span class="diff-del">- response = ollama.generate(model="aegis-fast", prompt=message)</span>
+<span class="diff-del">- return response["response"]</span>
+
+<span class="diff-cm"># AFTER (puppeteer-powered handler)</span>
+<span class="diff-add">+ from orchestration.puppeteer import handle_message</span>
+<span class="diff-add">+ return handle_message(message, interface=interface)</span>
+
+<span class="diff-cm"># What happens under the hood:</span>
+<span class="diff-ctx">  1. TaskClassifier reads message → selects sequence</span>
+<span class="diff-ctx">  2. Scout checks semantic_cache first (free if hit)</span>
+<span class="diff-ctx">  3. Scout searches episodic + document memory</span>
+<span class="diff-ctx">  4. ContextEngine builds 4-layer prompt for Forge</span>
+<span class="diff-ctx">  5. Forge reasons with full context</span>
+<span class="diff-ctx">  6. Auditor reviews if complexity warrants it</span>
+<span class="diff-ctx">  7. MemoryWriter.write_turn() stores episode</span>
+<span class="diff-ctx">  8. Response cached in semantic_cache for future hits</span>
+<span class="diff-ctx">  9. Final response delivered — trace logged to improvements</span>
+
+<span class="diff-cm"># All existing token optimizations still apply:</span>
+<span class="diff-ctx">  Caveman compression (#21) ✓  Sidecar context (#28) ✓  execute_code RPC (#3) ✓</span></div>
+</div>
+
+<div class="footer">
+  <span>AEGIS ZERO · PUPPETEER ORCHESTRATION · v7.0 · APRIL 2026</span>
+  <span>3 puppets · dynamic sequences · zero new ports · €0 added cost</span>
+</div>
+</div>
+
+<script>
+const traces = {
+  simple: {
+    badge: "simple / fast",
+    complexity: "simple",
+    domain: "chat",
+    sequence: ["forge"],
+    puppets: [
+      {
+        id: "forge", type: "forge", model: "aegis-fast",
+        color: "var(--forge)", icon: "⚒",
+        dur: "0.4s", tokens: 38,
+        tools: [],
+        output: "Hey! How can I help you today?"
+      }
+    ],
+    final: "Hey! How can I help you today?",
+    totalDur: "0.4s", totalTokens: 38
+  },
+  standard: {
+    badge: "standard / deep",
+    complexity: "standard",
+    domain: "research",
+    sequence: ["forge"],
+    puppets: [
+      {
+        id: "forge", type: "forge", model: "aegis-deep",
+        color: "var(--forge)", icon: "⚒",
+        dur: "6.2s", tokens: 312,
+        tools: [],
+        output: "Tailscale creates a mesh VPN using WireGuard under the hood. Each device gets a stable IP in the 100.x.x.x range and can reach any other device directly — no central server routing traffic. In Aegis Zero, the Oracle ARM instance runs with zero public ports; all access is through the Tailscale mesh, making the server invisible to the internet while staying reachable from your laptop and phone."
+      }
+    ],
+    final: "Tailscale creates a mesh VPN using WireGuard under the hood. Each device gets a stable IP in the 100.x.x.x range and can reach any other device directly — no central server routing traffic. In Aegis Zero, the Oracle ARM instance runs with zero public ports; all access is through the Tailscale mesh, making the server invisible to the internet while staying reachable from your laptop and phone.",
+    totalDur: "6.2s", totalTokens: 312
+  },
+  complex: {
+    badge: "complex / scout→forge→audit",
+    complexity: "complex",
+    domain: "code",
+    sequence: ["scout", "forge", "auditor"],
+    puppets: [
+      {
+        id: "scout", type: "scout", model: "aegis-fast",
+        color: "var(--scout)", icon: "🔭",
+        dur: "1.1s", tokens: 94,
+        tools: ["semantic_cache_check → MISS", "knowledge_search (conversations)", "knowledge_search (documents)"],
+        output: "Briefing for Forge:\n• No cache hit for this query\n• Episodic memory: user debugged a similar Nginx config issue on 2025-04-08 (resolved)\n• No relevant documents found\n• User preference: Python scripts, concise explanations\n• Gap: no file content provided — Forge should request it or proceed with general guidance"
+      },
+      {
+        id: "forge", type: "forge", model: "aegis-deep",
+        color: "var(--forge)", icon: "⚒",
+        dur: "8.4s", tokens: 487,
+        tools: [],
+        output: "The KeyError usually means the dict key doesn't exist at that point. Most common causes:\n\n1. Off-by-one in a loop — you're indexing past the last element\n2. The API response schema changed — log the full response to see its shape\n3. Silent exception swallowed earlier — check if an exception was caught and execution continued\n\nQuick fix: replace `data['key']` with `data.get('key', default)` to surface the real issue. Then add: `print(json.dumps(data, indent=2))` before the failing line."
+      },
+      {
+        id: "auditor", type: "auditor", model: "aegis-fast",
+        color: "var(--audit)", icon: "🔎",
+        dur: "1.2s", tokens: 81,
+        tools: [],
+        output: "✓ Approved. Response is technically accurate, covers the 3 most common causes. No security concerns. No missed requirements. Confidence: 0.91"
+      }
+    ],
+    final: "The KeyError usually means the dict key doesn't exist at that point. Most common causes:\n\n1. Off-by-one in a loop — you're indexing past the last element\n2. The API response schema changed — log the full response to see its shape\n3. Silent exception swallowed earlier — check if an exception was caught and execution continued\n\nQuick fix: replace `data['key']` with `data.get('key', default)` to surface the real issue. Then add: `print(json.dumps(data, indent=2))` before the failing line.",
+    totalDur: "10.7s", totalTokens: 662
+  },
+  research: {
+    badge: "research / scout→forge×2→synth→audit",
+    complexity: "research",
+    domain: "research",
+    sequence: ["scout", "forge_1", "forge_2", "synthesize", "auditor"],
+    puppets: [
+      {
+        id: "scout", type: "scout", model: "aegis-fast",
+        color: "var(--scout)", icon: "🔭",
+        dur: "1.3s", tokens: 112,
+        tools: ["semantic_cache_check → MISS", "knowledge_search (documents)", "knowledge_search (web_cache)"],
+        output: "Briefing: Found 2 relevant documents on Ollama ARM tuning. No web cache hit. Key context: user is on 4-OCPU ARM A1, 24GB RAM, running Gemma 4 26B Q4_K_M. Target: reduce latency for aegis-fast (E4B). Forge should cover: batch size tuning, thread affinity, memory bandwidth, quantization trade-offs."
+      },
+      {
+        id: "forge (draft 1)", type: "forge", model: "aegis-deep",
+        color: "var(--forge)", icon: "⚒",
+        dur: "14.2s", tokens: 820,
+        tools: [],
+        output: "Draft 1 focus: Hardware-level optimizations. num_thread=4 matches OCPU count. num_batch=512 for E4B (aggressive batching). NUMA awareness on ARM. Memory bandwidth is the real bottleneck at 38.4 GB/s theoretical. Key insight: Q4_K_M is bandwidth-optimal for 26B — going to Q3 saves RAM but hurts quality more than it helps speed on bandwidth-limited ARM..."
+      },
+      {
+        id: "forge (draft 2)", type: "forge", model: "aegis-deep",
+        color: "var(--forge)", icon: "⚒",
+        dur: "13.8s", tokens: 794,
+        tools: [],
+        output: "Draft 2 focus: Software-level optimizations. Ollama context caching: set OLLAMA_KEEP_ALIVE=24h to prevent model unloading. mmap vs direct load: ARM prefers mmap for 26B. Flash attention on CPU: not supported yet but watch llama.cpp 0.6+. Key insight: the biggest gain is semantic caching — identical queries hit Qdrant at <5ms instead of 8s Forge call..."
+      },
+      {
+        id: "synthesizer", type: "synthesizer", model: "aegis-fast",
+        color: "var(--synth)", icon: "◎",
+        dur: "2.1s", tokens: 198,
+        tools: [],
+        output: "Synthesized: Hardware + software combined. Top 5 optimizations ranked by impact:\n1. Semantic cache (existing) — biggest win, already implemented\n2. OLLAMA_KEEP_ALIVE=24h — prevent 26B unload\n3. num_batch=512 for E4B — more aggressive batching\n4. Q4_K_M stays — bandwidth-optimal, don't downgrade\n5. Flash attention: watch llama.cpp 0.6+ for ARM CPU support"
+      },
+      {
+        id: "auditor", type: "auditor", model: "aegis-fast",
+        color: "var(--audit)", icon: "🔎",
+        dur: "1.4s", tokens: 88,
+        tools: [],
+        output: "✓ Approved. Synthesis is accurate and actionable. Flash attention caveat appropriately hedged. Confidence: 0.89"
+      }
+    ],
+    final: "Top 5 ARM LLM optimizations for Aegis Zero, ranked by impact:\n\n1. Semantic cache (already active) — biggest win by far, 8s→5ms on cache hit\n2. OLLAMA_KEEP_ALIVE=24h — prevents 26B model unloading between requests\n3. num_batch=512 for aegis-fast (E4B) — more aggressive batching on the dense model\n4. Keep Q4_K_M quantization — it's bandwidth-optimal for 38.4 GB/s ARM memory bus\n5. Flash attention on CPU: not yet available, watch llama.cpp 0.6+ for ARM support",
+    totalDur: "32.8s", totalTokens: 2012
+  },
+  cache: {
+    badge: "cache hit / instant",
+    complexity: "cache_hit",
+    domain: "chat",
+    sequence: ["cache"],
+    puppets: [
+      {
+        id: "scout (cache check)", type: "scout", model: "aegis-fast",
+        color: "var(--cache)", icon: "⚡",
+        dur: "0.08s", tokens: 0,
+        tools: ["semantic_cache_check → HIT (similarity: 0.97)"],
+        output: "Cache hit. Similarity: 0.97. Returning cached response. No LLM call needed."
+      }
+    ],
+    final: "Tailscale creates a mesh VPN using WireGuard under the hood... [cached response returned instantly]",
+    totalDur: "0.08s", totalTokens: 0
+  }
+};
+
+const puppetColors = {
+  scout: "var(--scout)",
+  forge: "var(--forge)",
+  auditor: "var(--audit)",
+  synthesizer: "var(--synth)"
+};
+
+const complexityClass = {
+  simple: "ct-simple",
+  standard: "ct-standard",
+  complex: "ct-complex",
+  research: "ct-research",
+  cache_hit: "ct-cache"
+};
+
+function simulate(type) {
+  // Update buttons
+  document.querySelectorAll(".msg-btn").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+
+  const t = traces[type];
+  const area = document.getElementById("traceArea");
+  const badge = document.getElementById("simBadge");
+
+  badge.textContent = "running...";
+  badge.style.color = "var(--forge)";
+  badge.style.borderColor = "rgba(240,136,62,0.3)";
+  badge.style.background = "rgba(240,136,62,0.08)";
+
+  // Build trace HTML
+  const seqHTML = t.puppets.map((p, i) => {
+    const color = p.color;
+    const isLast = i === t.puppets.length - 1;
+    return `
+      <div class="seq-puppet" id="seqP${i}">
+        <div class="seq-node" style="border-color:${color};color:${color};">
+          <div class="seq-icon">${p.icon}</div>
+          <div class="seq-label">${p.id.split(" ")[0]}</div>
+          <div class="seq-model">${p.model.replace("aegis-","")}</div>
+        </div>
+      </div>
+      ${!isLast ? '<div class="seq-arrow">→</div>' : ''}
+    `;
+  }).join("");
+
+  const logsHTML = t.puppets.map((p, i) => {
+    const color = p.color;
+    const toolsHTML = p.tools.length
+      ? `<div class="pl-tools">${p.tools.map(t => `<span class="tool-tag">${t}</span>`).join("")}</div>`
+      : "";
+    return `
+      <div class="puppet-log" id="log${i}" style="border-left-color:${color}">
+        <div class="pl-header">
+          <span class="pl-puppet" style="color:${color}">${p.icon} ${p.id}</span>
+          <span class="pl-model">${p.model}</span>
+          <span class="pl-dur">${p.dur} · ${p.tokens} tok</span>
+        </div>
+        <div class="pl-body">${p.output}</div>
+        ${toolsHTML}
+      </div>
+    `;
+  }).join("");
+
+  area.innerHTML = `
+    <div class="class-row">
+      <span class="class-tag ${complexityClass[t.complexity]}">${t.complexity}</span>
+      <span class="class-tag ct-standard">${t.domain}</span>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">sequence: ${t.sequence.join(" → ")}</span>
+    </div>
+    <div class="sequence" id="seqRow">${seqHTML}</div>
+    <div class="puppet-logs" id="logsRow">${logsHTML}</div>
+    <div class="final-response" id="finalResp">
+      <div class="fr-header">✓ final response delivered</div>
+      <div class="fr-body">${t.final}</div>
+      <div class="fr-meta">
+        <span>duration: ${t.totalDur}</span>
+        <span>tokens: ${t.totalTokens}</span>
+        <span>puppets: ${t.puppets.length}</span>
+        <span>memory: episode written ✓</span>
+        <span>cache: response stored ✓</span>
+      </div>
+    </div>
+  `;
+
+  // Animate in sequence
+  t.puppets.forEach((p, i) => {
+    setTimeout(() => {
+      const seqEl = document.getElementById(`seqP${i}`);
+      const logEl = document.getElementById(`log${i}`);
+      if (seqEl) {
+        seqEl.classList.add("visible");
+        const node = seqEl.querySelector(".seq-node");
+        if (node) node.classList.add("running");
+      }
+
+      setTimeout(() => {
+        if (logEl) logEl.classList.add("visible");
+        if (seqEl) {
+          const node = seqEl.querySelector(".seq-node");
+          if (node) { node.classList.remove("running"); node.classList.add("done"); }
+        }
+      }, 400);
+
+    }, i * 600);
+  });
+
+  // Show final response
+  setTimeout(() => {
+    const fr = document.getElementById("finalResp");
+    if (fr) fr.classList.add("visible");
+    badge.textContent = t.badge;
+    badge.style.color = "var(--scout)";
+    badge.style.borderColor = "rgba(63,185,80,0.3)";
+    badge.style.background = "rgba(63,185,80,0.08)";
+  }, t.puppets.length * 600 + 500);
+}
+
+// Auto-run simple on load
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const btn = document.querySelector(".msg-btn.active");
+    if (btn) btn.click();
+  }, 400);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — Logo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 60px;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  .label {
+    color: #00ffcc44;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: -40px;
+  }
+
+  /* ─── LOGO CONTAINER ─── */
+  .logo-wrap {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  /* ─── OUTER RING ─── */
+  .ring-outer {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    border: 1px solid #00ffcc22;
+    animation: ring-spin 20s linear infinite;
+  }
+
+  .ring-outer::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #00ffcc;
+    border-right-color: #00ffcc44;
+    animation: ring-spin 3s linear infinite;
+  }
+
+  /* ─── TICK MARKS ON OUTER RING ─── */
+  .ticks {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    animation: ring-spin 20s linear infinite reverse;
+  }
+
+  .tick {
+    position: absolute;
+    width: 2px;
+    height: 12px;
+    background: #00ffcc66;
+    left: 50%;
+    top: 0;
+    transform-origin: 50% 170px;
+  }
+
+  .tick.major {
+    height: 20px;
+    width: 2px;
+    background: #00ffcc;
+    box-shadow: 0 0 6px #00ffcc;
+  }
+
+  /* ─── MIDDLE RING ─── */
+  .ring-mid {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 1px solid #00ffcc33;
+    animation: ring-spin 12s linear infinite reverse;
+  }
+
+  .ring-mid::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    border-bottom-color: #ffd700;
+    border-left-color: #ffd70044;
+    animation: ring-spin 5s linear infinite;
+  }
+
+  /* ─── SHIELD SHAPE ─── */
+  .shield-wrap {
+    position: absolute;
+    width: 180px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .shield-svg {
+    width: 180px;
+    height: 200px;
+    filter: drop-shadow(0 0 20px #00ffcc55) drop-shadow(0 0 40px #00ffcc22);
+    animation: shield-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes shield-pulse {
+    0%, 100% { filter: drop-shadow(0 0 15px #00ffcc55) drop-shadow(0 0 35px #00ffcc22); }
+    50% { filter: drop-shadow(0 0 30px #00ffcc99) drop-shadow(0 0 60px #00ffcc44); }
+  }
+
+  /* ─── CENTER ZERO ─── */
+  .center-zero {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 2px #00ffcc;
+    letter-spacing: -4px;
+    text-shadow: 0 0 40px #00ffcc88, 0 0 80px #00ffcc44;
+    animation: zero-flicker 6s ease-in-out infinite;
+    z-index: 10;
+    line-height: 1;
+    margin-top: 8px;
+  }
+
+  @keyframes zero-flicker {
+    0%, 89%, 91%, 93%, 100% { opacity: 1; -webkit-text-stroke-color: #00ffcc; text-shadow: 0 0 40px #00ffcc88, 0 0 80px #00ffcc44; }
+    90% { opacity: 0.4; }
+    92% { opacity: 1; -webkit-text-stroke-color: #ffd700; text-shadow: 0 0 40px #ffd70088; }
+  }
+
+  /* ─── SCAN LINE OVER LOGO ─── */
+  .scanline {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffcc44, transparent);
+    animation: scan 4s linear infinite;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  @keyframes scan {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ─── CORNER BRACKETS ─── */
+  .brackets {
+    position: absolute;
+    width: 360px;
+    height: 360px;
+    pointer-events: none;
+  }
+
+  .bracket {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+  }
+
+  .bracket.tl { top: 10px; left: 10px; border-top: 2px solid #00ffcc; border-left: 2px solid #00ffcc; }
+  .bracket.tr { top: 10px; right: 10px; border-top: 2px solid #00ffcc; border-right: 2px solid #00ffcc; }
+  .bracket.bl { bottom: 10px; left: 10px; border-bottom: 2px solid #00ffcc; border-left: 2px solid #00ffcc; }
+  .bracket.br { bottom: 10px; right: 10px; border-bottom: 2px solid #00ffcc; border-right: 2px solid #00ffcc; }
+
+  /* ─── DATA DOTS ORBITING ─── */
+  .orbit {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    animation: ring-spin 8s linear infinite;
+  }
+
+  .dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ffcc;
+    box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc88;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .orbit-2 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    animation: ring-spin 8s linear infinite reverse;
+    animation-delay: -4s;
+  }
+
+  .dot-2 {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ffd700;
+    box-shadow: 0 0 8px #ffd700, 0 0 16px #ffd70088;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* ─── WORDMARK ─── */
+  .wordmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fade-in 2s ease forwards;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .wordmark-aegis {
+    font-family: 'Cinzel', serif;
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 18px;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px #00ffcc44;
+    padding-left: 18px; /* optical center for letter-spacing */
+  }
+
+  .wordmark-zero {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 10px;
+    color: #00ffcc;
+    text-transform: uppercase;
+    padding-left: 10px;
+    opacity: 0.9;
+  }
+
+  .wordmark-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00ffcc, #ffd700, #00ffcc, transparent);
+    margin: 2px 0;
+  }
+
+  .wordmark-tagline {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: #ffffff55;
+    text-transform: uppercase;
+  }
+
+  /* ─── GLITCH ON HOVER ─── */
+  .logo-wrap:hover .center-zero {
+    animation: glitch 0.3s steps(2) forwards, zero-flicker 6s ease-in-out infinite 0.3s;
+  }
+
+  @keyframes glitch {
+    0% { transform: translate(0); -webkit-text-stroke-color: #00ffcc; }
+    20% { transform: translate(-4px, 2px); -webkit-text-stroke-color: #ff003c; filter: blur(1px); }
+    40% { transform: translate(4px, -2px); -webkit-text-stroke-color: #00ffcc; }
+    60% { transform: translate(-2px, 1px); -webkit-text-stroke-color: #ffd700; }
+    80% { transform: translate(2px, -1px); -webkit-text-stroke-color: #00ffcc; }
+    100% { transform: translate(0); -webkit-text-stroke-color: #00ffcc; }
+  }
+
+  .logo-wrap:hover .shield-svg {
+    filter: drop-shadow(0 0 40px #00ffccaa) drop-shadow(0 0 80px #00ffcc55);
+  }
+
+  /* ─── RING SPIN ─── */
+  @keyframes ring-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* ─── STATUS LINE ─── */
+  .status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #00ffcc66;
+    letter-spacing: 2px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ffcc;
+    box-shadow: 0 0 8px #00ffcc;
+    display: inline-block;
+    animation: blink 2s ease infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* ─── EXPORT VARIANTS ROW ─── */
+  .variants {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  /* Small icon version */
+  .icon-sm {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #00ffcc33;
+    border-radius: 14px;
+    background: #000;
+    box-shadow: 0 0 20px #00ffcc22, inset 0 0 20px #00ffcc11;
+  }
+
+  .icon-sm svg {
+    width: 44px;
+    height: 50px;
+    filter: drop-shadow(0 0 6px #00ffcc88);
+  }
+
+  .icon-sm .z {
+    position: absolute;
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1.5px #00ffcc;
+    margin-top: 3px;
+  }
+
+  /* Pill badge version */
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #000;
+    border: 1px solid #00ffcc33;
+    border-radius: 100px;
+    padding: 10px 20px;
+    box-shadow: 0 0 20px #00ffcc11;
+  }
+
+  .badge svg {
+    width: 24px;
+    height: 28px;
+    filter: drop-shadow(0 0 4px #00ffcc88);
+  }
+
+  .badge-text {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 4px;
+  }
+
+  .badge-text span {
+    color: #00ffcc;
+  }
+
+  /* Dark card version */
+  .card-logo {
+    background: linear-gradient(135deg, #0a0a0a 0%, #050510 100%);
+    border: 1px solid #00ffcc22;
+    border-radius: 20px;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 0 40px #00ffcc11, 0 20px 60px #00000088;
+  }
+
+  .card-logo .name {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: #fff;
+    padding-left: 8px;
+  }
+
+  .card-logo .sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: #00ffcc99;
+    text-transform: uppercase;
+  }
+
+  .card-logo svg {
+    width: 48px;
+    height: 54px;
+    filter: drop-shadow(0 0 12px #00ffcc66);
+    margin-bottom: 4px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="label">AEGIS ZERO · BRAND IDENTITY</div>
+
+<!-- ═══ MAIN LOGO ═══ -->
+<div class="logo-wrap">
+
+  <!-- Brackets -->
+  <div class="brackets">
+    <div class="bracket tl"></div>
+    <div class="bracket tr"></div>
+    <div class="bracket bl"></div>
+    <div class="bracket br"></div>
+  </div>
+
+  <!-- Scan line -->
+  <div class="scanline"></div>
+
+  <!-- Outer ring with ticks -->
+  <div class="ring-outer"></div>
+  <div class="ticks" id="ticks"></div>
+
+  <!-- Orbiting dots -->
+  <div class="orbit"><div class="dot"></div></div>
+  <div class="orbit-2"><div class="dot-2"></div></div>
+
+  <!-- Middle ring -->
+  <div class="ring-mid"></div>
+
+  <!-- Shield -->
+  <div class="shield-wrap">
+    <svg class="shield-svg" viewBox="0 0 180 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="shieldGrad" x1="90" y1="0" x2="90" y2="200" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.02"/>
+        </linearGradient>
+        <linearGradient id="strokeGrad" x1="0" y1="0" x2="0" y2="200" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#00ffcc"/>
+          <stop offset="60%" stop-color="#00ffcc88"/>
+          <stop offset="100%" stop-color="#00ffcc22"/>
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <!-- Grid lines inside shield -->
+        <clipPath id="shieldClip">
+          <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"/>
+        </clipPath>
+      </defs>
+
+      <!-- Shield fill -->
+      <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"
+            fill="url(#shieldGrad)"/>
+
+      <!-- Grid lines (clipped to shield) -->
+      <g clip-path="url(#shieldClip)" opacity="0.25">
+        <!-- Horizontal lines -->
+        <line x1="0" y1="50" x2="180" y2="50" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="0" y1="80" x2="180" y2="80" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="0" y1="110" x2="180" y2="110" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="0" y1="140" x2="180" y2="140" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="0" y1="170" x2="180" y2="170" stroke="#00ffcc" stroke-width="0.5"/>
+        <!-- Vertical lines -->
+        <line x1="30" y1="0" x2="30" y2="200" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="60" y1="0" x2="60" y2="200" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="90" y1="0" x2="90" y2="200" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="120" y1="0" x2="120" y2="200" stroke="#00ffcc" stroke-width="0.5"/>
+        <line x1="150" y1="0" x2="150" y2="200" stroke="#00ffcc" stroke-width="0.5"/>
+      </g>
+
+      <!-- Shield outer stroke -->
+      <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"
+            fill="none"
+            stroke="url(#strokeGrad)"
+            stroke-width="2"
+            filter="url(#glow)"/>
+
+      <!-- Shield inner stroke (thinner, inset) -->
+      <path d="M90 16 L156 40 L156 100 C156 142 90 182 90 182 C90 182 24 142 24 100 L24 40 Z"
+            fill="none"
+            stroke="#00ffcc"
+            stroke-width="0.5"
+            opacity="0.3"/>
+
+      <!-- Top gold accent bar -->
+      <line x1="40" y1="32" x2="140" y2="32" stroke="#ffd700" stroke-width="1" opacity="0.6"/>
+
+      <!-- Corner fragment marks — top left -->
+      <path d="M12 50 L28 50" stroke="#00ffcc" stroke-width="1.5" opacity="0.8"/>
+      <path d="M12 32 L12 55" stroke="#00ffcc" stroke-width="1.5" opacity="0.8"/>
+      <!-- Corner fragment marks — top right -->
+      <path d="M152 50 L168 50" stroke="#00ffcc" stroke-width="1.5" opacity="0.8"/>
+      <path d="M168 32 L168 55" stroke="#00ffcc" stroke-width="1.5" opacity="0.8"/>
+
+      <!-- Gold tip at bottom -->
+      <circle cx="90" cy="190" r="3" fill="#ffd700" opacity="0.8"/>
+      <line x1="90" y1="182" x2="90" y2="190" stroke="#ffd700" stroke-width="1" opacity="0.6"/>
+    </svg>
+  </div>
+
+  <!-- CENTER ZERO -->
+  <div class="center-zero">0</div>
+
+</div>
+
+<!-- ═══ WORDMARK ═══ -->
+<div class="wordmark">
+  <div class="wordmark-aegis">AEGIS</div>
+  <div class="wordmark-divider"></div>
+  <div class="wordmark-zero">Z E R O</div>
+  <div class="wordmark-tagline">Zero Cost · Zero Ports · Zero Compromise</div>
+</div>
+
+<!-- ═══ STATUS ═══ -->
+<div class="status">
+  <span><span class="status-dot"></span> SYSTEM ONLINE</span>
+  <span>// v7.0</span>
+  <span>€0.00/mo</span>
+  <span>0 PORTS OPEN</span>
+</div>
+
+<!-- ═══ VARIANTS ═══ -->
+<div class="label" style="margin-bottom: -20px; margin-top: 20px;">LOGO VARIANTS</div>
+<div class="variants">
+
+  <!-- Icon only (app icon / GitHub avatar) -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <div class="icon-sm">
+      <svg viewBox="0 0 180 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"
+              fill="#00ffcc11" stroke="#00ffcc" stroke-width="2"/>
+        <line x1="40" y1="32" x2="140" y2="32" stroke="#ffd700" stroke-width="1.5" opacity="0.8"/>
+        <circle cx="90" cy="190" r="3" fill="#ffd700"/>
+      </svg>
+      <div class="z">0</div>
+    </div>
+    <span style="color:#ffffff33;font-size:9px;letter-spacing:2px;">ICON</span>
+  </div>
+
+  <!-- Pill badge -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <div class="badge">
+      <svg viewBox="0 0 180 200" fill="none">
+        <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"
+              fill="#00ffcc11" stroke="#00ffcc" stroke-width="3"/>
+        <line x1="40" y1="32" x2="140" y2="32" stroke="#ffd700" stroke-width="2" opacity="0.8"/>
+      </svg>
+      <div class="badge-text">AEGIS <span>ZERO</span></div>
+    </div>
+    <span style="color:#ffffff33;font-size:9px;letter-spacing:2px;">BADGE</span>
+  </div>
+
+  <!-- Dark card -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <div class="card-logo">
+      <svg viewBox="0 0 180 200" fill="none">
+        <path d="M90 4 L168 32 L168 100 C168 148 90 192 90 192 C90 192 12 148 12 100 L12 32 Z"
+              fill="#00ffcc0a" stroke="#00ffcc" stroke-width="2.5"/>
+        <line x1="40" y1="32" x2="140" y2="32" stroke="#ffd700" stroke-width="2" opacity="0.8"/>
+        <circle cx="90" cy="190" r="4" fill="#ffd700"/>
+        <text x="90" y="115" text-anchor="middle" font-family="Cinzel,serif" font-size="52"
+              font-weight="900" fill="none" stroke="#00ffcc" stroke-width="2">0</text>
+      </svg>
+      <div class="name">AEGIS</div>
+      <div class="sub">Z · E · R · O</div>
+    </div>
+    <span style="color:#ffffff33;font-size:9px;letter-spacing:2px;">CARD</span>
+  </div>
+
+</div>
+
+<script>
+  // Generate tick marks dynamically
+  const ticksEl = document.getElementById('ticks');
+  for (let i = 0; i < 60; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+    tick.style.transform = `rotate(${i * 6}deg)`;
+    ticksEl.appendChild(tick);
+  }
+</script>
+
+</body>
+</html>

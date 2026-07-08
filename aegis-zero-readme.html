@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEGIS ZERO — README</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Cinzel:wght@700;900&display=swap');
+
+  :root {
+    --cyan: #00ffcc;
+    --gold: #ffd700;
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #00ffcc18;
+    --text: #e0e0e0;
+    --muted: #666;
+    --red: #ff4444;
+    --yellow: #ffcc00;
+    --green: #44ff88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,204,0.015) 2px,
+      rgba(0,255,204,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 48px 20px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--gold), var(--cyan), transparent);
+  }
+
+  .logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .logo-container svg {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+  }
+
+  .tagline-main {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(13px, 3.5vw, 18px);
+    color: #fff;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .tagline-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  /* ── BADGES ── */
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    text-decoration: none;
+  }
+
+  .badge-label {
+    background: #555;
+    color: #fff;
+    padding: 3px 8px;
+  }
+
+  .badge-value {
+    padding: 3px 8px;
+    color: #fff;
+  }
+
+  .badge-gold .badge-value { background: #b8860b; }
+  .badge-red .badge-value { background: #c0392b; }
+  .badge-green .badge-value { background: #27ae60; }
+  .badge-blue .badge-value { background: #2980b9; }
+  .badge-purple .badge-value { background: #7b2d8b; }
+  .badge-orange .badge-value { background: #d35400; }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    margin: 48px 0;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-child { border-bottom: none; }
+
+  h2 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(16px, 4vw, 22px);
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2::before {
+    content: '//';
+    color: var(--gold);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  p { margin-bottom: 16px; color: #ccc; }
+
+  strong { color: #fff; }
+
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  blockquote {
+    border-left: 3px solid var(--cyan);
+    margin: 20px 0;
+    padding: 12px 16px;
+    background: #00ffcc08;
+    color: #aaa;
+    font-size: 13px;
+  }
+
+  blockquote strong { color: var(--cyan); }
+
+  /* ── LAWS BLOCK ── */
+  .laws {
+    background: #000;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: 6px;
+    padding: 24px;
+    font-size: 13px;
+  }
+
+  .law {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ffffff08;
+  }
+
+  .law:last-child { border-bottom: none; }
+
+  .law-num {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .law-text { color: #ccc; }
+
+  /* ── NUMBERS GRID ── */
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .number-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 14px;
+    transition: border-color 0.2s;
+  }
+
+  .number-card:hover { border-color: var(--cyan); }
+
+  .number-emoji { font-size: 20px; margin-bottom: 6px; }
+
+  .number-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cyan);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .number-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 12px;
+    overflow-x: auto;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #00ffcc99;
+    white-space: pre;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── TWO TIER ── */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 520px) {
+    .tier-grid { grid-template-columns: 1fr; }
+  }
+
+  .tier-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .tier-header {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tier-1 .tier-header { background: #00ffcc12; color: var(--cyan); border-bottom: 1px solid #00ffcc22; }
+  .tier-2 .tier-header { background: #ffd70012; color: var(--gold); border-bottom: 1px solid #ffd70022; }
+
+  .tier-body { padding: 14px 16px; }
+
+  .tier-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 6px 0;
+    border-bottom: 1px solid #ffffff06;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .tier-row:last-child { border-bottom: none; }
+  .tier-key { color: var(--muted); flex-shrink: 0; }
+  .tier-val { color: #ddd; text-align: right; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #a8ff78;
+    white-space: pre;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .code-block .comment { color: #555; }
+  .code-block .key { color: var(--cyan); }
+  .code-block .string { color: #ffd700; }
+  .code-block .num { color: #ff8c42; }
+
+  /* ── RAM BAR CHART ── */
+  .ram-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .ram-table tr { border-bottom: 1px solid #ffffff08; }
+  .ram-table td { padding: 10px 8px; }
+  .ram-table .ram-name { color: #ccc; }
+  .ram-table .ram-gb { color: var(--cyan); font-weight: 700; white-space: nowrap; }
+
+  .ram-bar-wrap {
+    background: #1a1a1a;
+    border-radius: 3px;
+    height: 6px;
+    width: 100%;
+    min-width: 60px;
+  }
+
+  .ram-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--cyan) 80%, transparent);
+  }
+
+  /* ── SECURITY LAYERS ── */
+  .layer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .layer-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .layer-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+
+  .layer-title { font-weight: 700; color: #fff; font-size: 13px; }
+  .layer-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .layer-impact {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: #ff444422;
+    color: #ff8888;
+    border: 1px solid #ff444433;
+    white-space: nowrap;
+  }
+
+  .layer-body {
+    padding: 0 16px 16px 56px;
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.8;
+  }
+
+  /* ── TABLES ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .data-table thead tr {
+    background: #00ffcc0a;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table th {
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--cyan);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #ffffff06;
+    color: #ccc;
+    vertical-align: top;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #ffffff04; }
+
+  .impact-red { color: #ff6666; }
+  .impact-yellow { color: var(--gold); }
+  .check { color: var(--green); }
+
+  /* ── PHASE LIST ── */
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .phase-num {
+    width: 28px;
+    height: 28px;
+    background: #00ffcc12;
+    border: 1px solid #00ffcc33;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cyan);
+    flex-shrink: 0;
+  }
+
+  .phase-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .phase-outcome { font-size: 11px; color: var(--muted); }
+  .phase-time { font-size: 11px; color: var(--gold); margin-top: 4px; }
+
+  /* ── TECH STACK ── */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .stack-category {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stack-items { font-size: 12px; color: #aaa; line-height: 1.9; }
+
+  /* ── STATUS BARS ── */
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #ffffff06;
+    font-size: 12px;
+  }
+
+  .status-item:last-child { border-bottom: none; }
+  .status-name { color: #ccc; width: 120px; flex-shrink: 0; }
+  .status-ver { color: var(--muted); width: 40px; }
+  .status-bar-wrap { flex: 1; background: #1a1a1a; border-radius: 3px; height: 6px; }
+  .status-bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--cyan), var(--gold)); width: 100%; }
+  .status-label { color: var(--muted); font-size: 11px; width: 120px; text-align: right; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 48px 20px;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), var(--gold), var(--cyan), transparent);
+  }
+
+  .footer-name {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 6px;
+    margin-bottom: 8px;
+  }
+
+  .footer-tagline {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  .footer-star {
+    font-size: 12px;
+    color: #555;
+    border: 1px solid #333;
+    border-radius: 6px;
+    display: inline-block;
+    padding: 8px 20px;
+  }
+
+  .footer-star span { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    h2 { font-size: 15px; }
+    .code-block { font-size: 11px; }
+    .arch-diagram { font-size: 9.5px; }
+    .tier-grid { grid-template-columns: 1fr; }
+    .number-card .number-value { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="logo-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340">
+      <defs>
+        <linearGradient id="shieldStroke" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00ffcc"/>
+          <stop offset="60%" stop-color="#00ffcc" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.1"/>
+        </linearGradient>
+        <linearGradient id="shieldFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.02"/>
+        </linearGradient>
+        <filter id="cg" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="gg" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <clipPath id="sc">
+          <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"/>
+        </clipPath>
+        <style>
+          @keyframes spin1 { from{transform-origin:300px 150px;transform:rotate(0deg)} to{transform-origin:300px 150px;transform:rotate(360deg)} }
+          @keyframes spin2 { from{transform-origin:300px 150px;transform:rotate(0deg)} to{transform-origin:300px 150px;transform:rotate(-360deg)} }
+          @keyframes pulse { 0%,100%{opacity:0.8} 50%{opacity:1} }
+          .r1{animation:spin1 20s linear infinite}
+          .r2{animation:spin2 12s linear infinite}
+          .orb{animation:spin1 8s linear infinite}
+          .orb2{animation:spin2 8s linear infinite}
+          .shield{animation:pulse 4s ease-in-out infinite}
+        </style>
+      </defs>
+      <rect width="600" height="340" fill="#000"/>
+      <g class="r1">
+        <circle cx="300" cy="150" r="148" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.15"/>
+        <circle cx="300" cy="150" r="148" fill="none" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.7" stroke-dasharray="8 4"/>
+        <g stroke="#00ffcc" stroke-opacity="0.4" stroke-width="1">
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(0,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(30,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(60,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(90,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(120,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(150,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(180,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(210,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(240,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(270,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(300,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="16" transform="rotate(330,300,150)"/>
+        </g>
+        <g stroke="#00ffcc" stroke-width="2" stroke-opacity="0.9" filter="url(#cg)">
+          <line x1="300" y1="2" x2="300" y2="22" transform="rotate(0,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="22" transform="rotate(90,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="22" transform="rotate(180,300,150)"/>
+          <line x1="300" y1="2" x2="300" y2="22" transform="rotate(270,300,150)"/>
+        </g>
+      </g>
+      <g class="r2">
+        <circle cx="300" cy="150" r="112" fill="none" stroke="#ffd700" stroke-width="0.8" stroke-opacity="0.25"/>
+        <circle cx="300" cy="150" r="112" fill="none" stroke="#ffd700" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="3 20"/>
+      </g>
+      <circle cx="300" cy="150" r="78" fill="none" stroke="#00ffcc" stroke-width="0.6" stroke-opacity="0.15"/>
+      <g class="orb"><circle cx="300" cy="2" r="4" fill="#00ffcc" filter="url(#cg)" transform="rotate(45,300,150)"/></g>
+      <g class="orb2"><circle cx="300" cy="2" r="3" fill="#ffd700" filter="url(#gg)" transform="rotate(225,300,150)"/></g>
+      <g class="shield">
+        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z" fill="url(#shieldFill)"/>
+        <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width="0.5" stroke-opacity="0.18">
+          <line x1="210" y1="90" x2="390" y2="90"/><line x1="210" y1="120" x2="390" y2="120"/>
+          <line x1="210" y1="150" x2="390" y2="150"/><line x1="210" y1="180" x2="390" y2="180"/>
+          <line x1="210" y1="210" x2="390" y2="210"/><line x1="240" y1="30" x2="240" y2="270"/>
+          <line x1="270" y1="30" x2="270" y2="270"/><line x1="300" y1="30" x2="300" y2="270"/>
+          <line x1="330" y1="30" x2="330" y2="270"/><line x1="360" y1="30" x2="360" y2="270"/>
+        </g>
+        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z" fill="none" stroke="url(#shieldStroke)" stroke-width="2.5" filter="url(#cg)"/>
+        <path d="M300 42 L378 66 L378 160 C378 212 300 258 300 258 C300 258 222 212 222 160 L222 66 Z" fill="none" stroke="#00ffcc" stroke-width="0.6" stroke-opacity="0.3"/>
+        <line x1="240" y1="58" x2="360" y2="58" stroke="#ffd700" stroke-width="1.5" stroke-opacity="0.8" filter="url(#gg)"/>
+        <path d="M210 80 L226 80" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+        <path d="M210 58 L210 84" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+        <path d="M374 80 L390 80" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+        <path d="M390 58 L390 84" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+        <circle cx="300" cy="268" r="4" fill="#ffd700" filter="url(#gg)"/>
+        <line x1="300" y1="258" x2="300" y2="265" stroke="#ffd700" stroke-width="1.5" stroke-opacity="0.8"/>
+        <text x="300" y="178" text-anchor="middle" font-family="Georgia,serif" font-size="88" font-weight="900" fill="none" stroke="#00ffcc" stroke-width="2.5" filter="url(#cg)" opacity="0.95">0</text>
+      </g>
+      <text x="300" y="308" text-anchor="middle" font-family="Georgia,serif" font-size="38" font-weight="900" fill="#ffffff" style="letter-spacing:16px">AEGIS</text>
+      <line x1="180" y1="316" x2="420" y2="316" stroke="#00ffcc" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="300" y="330" text-anchor="middle" font-family="'Courier New',monospace" font-size="11" fill="#00ffcc" style="letter-spacing:10px" opacity="0.9">Z E R O</text>
+    </svg>
+  </div>
+
+  <div class="tagline-main">Zero Cost · Zero Ports · Zero Compromise</div>
+  <div class="tagline-sub">A production-grade, fully private AI infrastructure that runs forever on €0/month</div>
+
+  <div class="badges">
+    <span class="badge badge-gold"><span class="badge-label">License</span><span class="badge-value">MIT</span></span>
+    <span class="badge badge-red"><span class="badge-label">Oracle</span><span class="badge-value">ARM A1 Free</span></span>
+    <span class="badge badge-green"><span class="badge-label">Monthly Cost</span><span class="badge-value">€0.00</span></span>
+    <span class="badge badge-blue"><span class="badge-label">Security</span><span class="badge-value">6-Layer Zero-Trust</span></span>
+    <span class="badge badge-purple"><span class="badge-label">LLM</span><span class="badge-value">Gemma 4 26B + E4B</span></span>
+    <span class="badge badge-green"><span class="badge-label">GDPR</span><span class="badge-value">Compliant</span></span>
+    <span class="badge badge-orange"><span class="badge-label">Architecture</span><span class="badge-value">v7.0</span></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- WHAT IS -->
+  <section>
+    <h2>What is Aegis Zero?</h2>
+    <p>Aegis Zero is a <strong>complete self-hosted AI infrastructure blueprint</strong> — designed, architected, and refined over 7 versions to achieve something most people think requires paid cloud services, enterprise budgets, or DevOps teams:</p>
+    <p><strong>A fully private, production-grade AI agent system that costs nothing to run. Forever.</strong></p>
+    <p>It runs on Oracle Cloud's Always Free ARM instance — 4 OCPUs, 24GB RAM, dedicated compute, Frankfurt region (GDPR by default). The server is invisible to the internet. All data stays in your instance. All AI runs locally. The system improves itself every night while you sleep.</p>
+    <blockquote>Built on top of <strong>Hermes Agent</strong> as the AI core — Aegis Zero is the <strong>complete production infrastructure</strong> wrapped around it: the security architecture, the LLM routing engine, the RAG memory system, the API fallback pools, the deployment strategy, and the self-improvement framework.</blockquote>
+  </section>
+
+  <!-- NUMBERS -->
+  <section>
+    <h2>The Numbers</h2>
+    <div class="numbers-grid">
+      <div class="number-card"><div class="number-emoji">💰</div><span class="number-value">€0.00</span><span class="number-label">Monthly cost — always</span></div>
+      <div class="number-card"><div class="number-emoji">🔒</div><span class="number-value">0</span><span class="number-label">Public ports open</span></div>
+      <div class="number-card"><div class="number-emoji">🧠</div><span class="number-value">#6</span><span class="number-label">Open model globally (Gemma 4 26B)</span></div>
+      <div class="number-card"><div class="number-emoji">⚡</div><span class="number-value">25 t/s</span><span class="number-label">Fast model speed on ARM</span></div>
+      <div class="number-card"><div class="number-emoji">🗄️</div><span class="number-value">21.7 GB</span><span class="number-label">RAM used — defeats idle reclamation</span></div>
+      <div class="number-card"><div class="number-emoji">📚</div><span class="number-value">7</span><span class="number-label">Qdrant knowledge collections</span></div>
+      <div class="number-card"><div class="number-emoji">🌐</div><span class="number-value">9</span><span class="number-label">Free API fallback providers</span></div>
+      <div class="number-card"><div class="number-emoji">🛡️</div><span class="number-value">6</span><span class="number-label">Independent security layers</span></div>
+      <div class="number-card"><div class="number-emoji">📈</div><span class="number-value">41</span><span class="number-label">Documented improvements</span></div>
+      <div class="number-card"><div class="number-emoji">🏗️</div><span class="number-value">16</span><span class="number-label">Guided build phases</span></div>
+    </div>
+  </section>
+
+  <!-- 5 LAWS -->
+  <section>
+    <h2>The 5 Laws</h2>
+    <p>These aren't configuration choices. They're the principles every architectural decision was made against.</p>
+    <div class="laws">
+      <div class="law"><span class="law-num">LAW 1</span><span class="law-text">Security IS the foundation, not a feature added later. Every component is both functional AND a security boundary.</span></div>
+      <div class="law"><span class="law-num">LAW 2</span><span class="law-text">Everything self-hosted = everything private. No personal data leaves the instance except by explicit choice.</span></div>
+      <div class="law"><span class="law-num">LAW 3</span><span class="law-text">Every component serves multiple purposes. No dead weight. Nothing installed that doesn't earn its place.</span></div>
+      <div class="law"><span class="law-num">LAW 4</span><span class="law-text">Every layer is replaceable without breaking others. Modular by design.</span></div>
+      <div class="law"><span class="law-num">LAW 5</span><span class="law-text">The system gets smarter autonomously. You use it — it improves. No extra effort from you ever.</span></div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section>
+    <h2>Architecture Overview</h2>
+    <div class="arch-diagram">┌─────────────────────────────────────────────────────────────┐
+│                        YOUR DEVICES                          │
+│          CachyOS Laptop  ·  Android Phone  ·  Any Device    │
+└──────────────────────┬──────────────────────────────────────┘
+                       │  Tailscale Mesh (encrypted)
+                       │  Zero public ports — server invisible
+┌──────────────────────▼──────────────────────────────────────┐
+│              ORACLE ARM A1 — Frankfurt (GDPR)               │
+│                4 OCPUs · 24 GB RAM · €0/month               │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │         LAYER 0 — TAILSCALE ZERO-PORT MESH          │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           LAYER 1 — ORACLE VCN FIREWALL             │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              LAYER 2 — OS HARDENING                 │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           LAYER 3 — NGINX REVERSE PROXY             │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │         LAYER 4 — APPLICATION SECURITY              │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           LAYER 5 — SESSION SECURITY                │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────┐  ┌──────────────────────────┐   │
+│  │    TWO-TIER AI       │  │     KNOWLEDGE SYSTEM     │   │
+│  │  Gemma 4 26B (deep)  │  │  Qdrant · 7 collections  │   │
+│  │  Gemma 4 E4B (fast)  │  │  RAG · Semantic Cache    │   │
+│  └──────────────────────┘  └──────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘</div>
+  </section>
+
+  <!-- TWO-TIER AI -->
+  <section>
+    <h2>Two-Tier AI Engine</h2>
+    <p>Most self-hosted setups run one model for everything — slow on simple tasks, wasteful on complex ones. Aegis Zero routes automatically between two models optimized for different jobs.</p>
+    <div class="tier-grid">
+      <div class="tier-card tier-1">
+        <div class="tier-header">⚙ TIER 1 — INTELLIGENCE</div>
+        <div class="tier-body">
+          <div class="tier-row"><span class="tier-key">Model</span><span class="tier-val">Gemma 4 26B</span></div>
+          <div class="tier-row"><span class="tier-key">Architecture</span><span class="tier-val">MoE 25.2B total</span></div>
+          <div class="tier-row"><span class="tier-key">Ranking</span><span class="tier-val">#6 open model globally</span></div>
+          <div class="tier-row"><span class="tier-key">Speed</span><span class="tier-val">4–8 tok/sec ARM</span></div>
+          <div class="tier-row"><span class="tier-key">Context</span><span class="tier-val">256K tokens</span></div>
+          <div class="tier-row"><span class="tier-key">Use for</span><span class="tier-val">Deep research, coding, planning</span></div>
+          <div class="tier-row"><span class="tier-key">License</span><span class="tier-val">Apache 2.0</span></div>
+        </div>
+      </div>
+      <div class="tier-card tier-2">
+        <div class="tier-header">⚡ TIER 2 — SPEED</div>
+        <div class="tier-body">
+          <div class="tier-row"><span class="tier-key">Model</span><span class="tier-val">Gemma 4 E4B</span></div>
+          <div class="tier-row"><span class="tier-key">Architecture</span><span class="tier-val">Dense + PLE 4.5B</span></div>
+          <div class="tier-row"><span class="tier-key">Feel</span><span class="tier-val">Near-instant</span></div>
+          <div class="tier-row"><span class="tier-key">Speed</span><span class="tier-val">15–25 tok/sec ARM</span></div>
+          <div class="tier-row"><span class="tier-key">Context</span><span class="tier-val">128K tokens</span></div>
+          <div class="tier-row"><span class="tier-key">Use for</span><span class="tier-val">Chat, reminders, Q&A</span></div>
+          <div class="tier-row"><span class="tier-key">Benefit</span><span class="tier-val">3–4x faster daily use</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="code-block"><span class="comment"># Tier 1 — ~/.aegis/Modelfile.gemma4-deep</span>
+FROM gemma4:26b
+PARAMETER num_thread 4
+PARAMETER num_batch 256
+PARAMETER num_ctx 65536    <span class="comment"># 64K — sweet spot for ARM RAM</span>
+PARAMETER num_gpu 0        <span class="comment"># CPU-only on ARM</span>
+PARAMETER temperature 0.7
+
+<span class="comment"># Tier 2 — ~/.aegis/Modelfile.gemma4-fast</span>
+FROM gemma4:e4b
+PARAMETER num_thread 4
+PARAMETER num_batch 512    <span class="comment"># E4B batches more aggressively</span>
+PARAMETER num_ctx 32768    <span class="comment"># 32K — plenty for chat</span>
+PARAMETER num_gpu 0
+PARAMETER temperature 0.7
+
+<span class="comment"># Build both:</span>
+ollama create aegis-deep -f Modelfile.gemma4-deep
+ollama create aegis-fast -f Modelfile.gemma4-fast</div>
+  </section>
+
+  <!-- RAM -->
+  <section>
+    <h2>RAM Architecture</h2>
+    <p>Every byte accounted for. 24 GB total. Oracle reclamation requires memory below 10% — with Gemma 4 26B loaded, RAM sits at <strong style="color:var(--cyan)">67%</strong>. Reclamation is physically impossible.</p>
+    <table class="ram-table">
+      <tr><td class="ram-name">Gemma 4 26B (Q4_K_M)</td><td class="ram-gb">~16.0 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:67%"></div></div></td></tr>
+      <tr><td class="ram-name">Gemma 4 E4B (on demand)</td><td class="ram-gb">~4.5 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:19%;background:linear-gradient(90deg,#ffd700,#ffd700)"></div></div></td></tr>
+      <tr><td class="ram-name">Hermes Agent + Gateway</td><td class="ram-gb">~1.5 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:6%"></div></div></td></tr>
+      <tr><td class="ram-name">Ubuntu OS + Nginx</td><td class="ram-gb">~2.0 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:8%"></div></div></td></tr>
+      <tr><td class="ram-name">Qdrant + nomic-embed</td><td class="ram-gb">~0.8 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:3%"></div></div></td></tr>
+      <tr><td class="ram-name">Open WebUI + Workspace</td><td class="ram-gb">~0.8 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:3%"></div></div></td></tr>
+      <tr><td class="ram-name">Tailscale + Whisper STT</td><td class="ram-gb">~0.6 GB</td><td><div class="ram-bar-wrap"><div class="ram-bar" style="width:2%"></div></div></td></tr>
+    </table>
+  </section>
+
+  <!-- SECURITY -->
+  <section>
+    <h2>Security Architecture — 6 Layers</h2>
+    <p>Security is not added on top. It IS the structure. Every component is both functional AND a security boundary.</p>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">0</div>
+        <div><div class="layer-title">Tailscale Zero-Port Mesh</div><div class="layer-subtitle">Server invisible to the internet</div></div>
+        <div class="layer-impact">🔴 Most Impactful</div>
+      </div>
+      <div class="layer-body">Two commands. Server becomes invisible. Zero ports open to the internet.<br><br><strong>Before:</strong> Ports 443+2222 open → attack surface exists → scanners find you<br><strong>After:</strong> Zero public ports → instance invisible → attackers cannot find what they cannot see</div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">1</div>
+        <div><div class="layer-title">Oracle VCN Firewall</div><div class="layer-subtitle">Deny ALL inbound — zero exceptions</div></div>
+        <div class="layer-impact">🔴 Critical</div>
+      </div>
+      <div class="layer-body">After Tailscale: Security List = deny ALL inbound. Egress: HTTPS 443 outbound only. Reserved Static IP never changes after reboot.</div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">2</div>
+        <div><div class="layer-title">OS Hardening</div><div class="layer-subtitle">iptables DROP · Fail2ban · Metadata IP block</div></div>
+        <div class="layer-impact">🔴 Critical</div>
+      </div>
+      <div class="layer-body">iptables default DROP policy. Fail2ban brute force protection. Oracle metadata endpoint blocked at 169.254.169.254 — prevents credential exfiltration. Unattended security upgrades enabled.</div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">3</div>
+        <div><div class="layer-title">Nginx Reverse Proxy</div><div class="layer-subtitle">Internal routing only</div></div>
+        <div class="layer-impact">🟡 High</div>
+      </div>
+      <div class="layer-body">Internal routing only. No external binding. All services communicate on localhost. SSL termination inside the mesh.</div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">4</div>
+        <div><div class="layer-title">Application Security</div><div class="layer-subtitle">Command approval · PII redaction · Secret scanner</div></div>
+        <div class="layer-impact">🟡 High</div>
+      </div>
+      <div class="layer-body">Command approval before execution. PII redaction on external API calls. Secret scanner on all outputs. Inline diff previews before any file changes. Stealth browser for research agents.</div>
+    </div>
+
+    <div class="layer">
+      <div class="layer-header">
+        <div class="layer-num">5</div>
+        <div><div class="layer-title">Session Security</div><div class="layer-subtitle">No reverse access · Session continuity IDs</div></div>
+        <div class="layer-impact">🟡 High</div>
+      </div>
+      <div class="layer-body">No reverse access path to client devices exists. Session continuity IDs across all interfaces. Credential pool isolation per provider.</div>
+    </div>
+  </section>
+
+  <!-- 41 IMPROVEMENTS -->
+  <section>
+    <h2>41 Improvements — Impact-Rated</h2>
+    <p>Every improvement is documented with category, impact level, and implementation cost.</p>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Improvement</th><th>Category</th><th>Impact</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Tailscale Zero-Port Security</td><td>Security</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>3</td><td>execute_code RPC Pipelines</td><td>Tokens</td><td class="impact-red">🔴 95% reduction</td></tr>
+        <tr><td>11</td><td>AI Body Doubling</td><td>Productivity</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>13</td><td>Friction Removal Architecture</td><td>UX</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>25</td><td>Oracle Weekly Encrypted Backups</td><td>Resilience</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>31</td><td>Karpathy Coding Guidelines</td><td>Code Quality</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>32</td><td>Two-Tier Local AI Strategy</td><td>Performance</td><td class="impact-red">🔴 3–4x faster</td></tr>
+        <tr><td>36</td><td>Oracle Metadata IP Block</td><td>Security</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>39</td><td>Oracle Insurance Cron</td><td>Resilience</td><td class="impact-red">🔴 Critical</td></tr>
+        <tr><td>21</td><td>Caveman-Compressed Prompts</td><td>Tokens</td><td class="impact-yellow">🟡 58% savings</td></tr>
+        <tr><td>28</td><td>Sidecar Selective Context</td><td>Tokens</td><td class="impact-yellow">🟡 60–80% less</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 16 PHASES -->
+  <section>
+    <h2>16-Phase Build Plan</h2>
+    <p>Every phase has wizard assistance — you never manually edit a config file unless you choose to. <strong>~7 hours from zero to fully operational.</strong></p>
+    <div class="phases">
+      <div class="phase"><div class="phase-num">1</div><div><div class="phase-name">ARM Capture</div><div class="phase-outcome">Oracle A1 instance running</div><div class="phase-time">When available</div></div></div>
+      <div class="phase"><div class="phase-num">2</div><div><div class="phase-name">Foundation Security</div><div class="phase-outcome">Hardened OS</div><div class="phase-time">45 min</div></div></div>
+      <div class="phase"><div class="phase-num">3</div><div><div class="phase-name">Tailscale Mesh</div><div class="phase-outcome">Zero-port invisible server</div><div class="phase-time">20 min</div></div></div>
+      <div class="phase"><div class="phase-num">4</div><div><div class="phase-name">Local AI Engine</div><div class="phase-outcome">Two-tier AI online</div><div class="phase-time">30 min + download</div></div></div>
+      <div class="phase"><div class="phase-num">5</div><div><div class="phase-name">Knowledge System</div><div class="phase-outcome">Qdrant vault ready</div><div class="phase-time">20 min</div></div></div>
+      <div class="phase"><div class="phase-num">6</div><div><div class="phase-name">Caveman Install</div><div class="phase-outcome">60% token savings active</div><div class="phase-time">15 min</div></div></div>
+      <div class="phase"><div class="phase-num">7</div><div><div class="phase-name">Hermes Core</div><div class="phase-outcome">Agent live on Telegram</div><div class="phase-time">30 min</div></div></div>
+      <div class="phase"><div class="phase-num">8</div><div><div class="phase-name">WebUI + Workspace</div><div class="phase-outcome">Full GUI available</div><div class="phase-time">25 min</div></div></div>
+      <div class="phase"><div class="phase-num">9</div><div><div class="phase-name">Stealth Browser</div><div class="phase-outcome">Research agents everywhere</div><div class="phase-time">15 min</div></div></div>
+      <div class="phase"><div class="phase-num">10</div><div><div class="phase-name">API Pool</div><div class="phase-outcome">Unlimited free capacity</div><div class="phase-time">60 min</div></div></div>
+      <div class="phase"><div class="phase-num">11</div><div><div class="phase-name">Specialist Profiles</div><div class="phase-outcome">Domain expert agents ready</div><div class="phase-time">45 min</div></div></div>
+      <div class="phase"><div class="phase-num">12</div><div><div class="phase-name">AGENTS.md + Karpathy</div><div class="phase-outcome">Auto-context + code quality</div><div class="phase-time">25 min</div></div></div>
+      <div class="phase"><div class="phase-num">13</div><div><div class="phase-name">Community Tools</div><div class="phase-outcome">Growth engine active</div><div class="phase-time">20 min</div></div></div>
+      <div class="phase"><div class="phase-num">14</div><div><div class="phase-name">Personality + SOUL</div><div class="phase-outcome">Agent feels alive</div><div class="phase-time">45 min</div></div></div>
+      <div class="phase"><div class="phase-num">15</div><div><div class="phase-name">Automations</div><div class="phase-outcome">Proactive mode ON</div><div class="phase-time">30 min</div></div></div>
+      <div class="phase"><div class="phase-num">16</div><div><div class="phase-name">Voice + Resilience</div><div class="phase-outcome">Complete + permanent</div><div class="phase-time">20 min</div></div></div>
+    </div>
+  </section>
+
+  <!-- REQUIREMENTS -->
+  <section>
+    <h2>Requirements — All Met</h2>
+    <table class="data-table">
+      <thead><tr><th>Requirement</th><th>Solution</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Zero cost — always</td><td>Open source + 9 free API pools + Oracle Free</td><td class="check">✅</td></tr>
+        <tr><td>Maximum power</td><td>Two-tier AI + RAG + 41 improvements</td><td class="check">✅</td></tr>
+        <tr><td>Fully private</td><td>6-layer shield + Tailscale zero-port</td><td class="check">✅</td></tr>
+        <tr><td>GDPR compliant</td><td>Frankfurt Oracle + Mistral EU + local-first</td><td class="check">✅</td></tr>
+        <tr><td>Zero attack surface</td><td>Tailscale — server is invisible</td><td class="check">✅</td></tr>
+        <tr><td>Oracle reclamation defeated</td><td>RAM alone keeps memory at 67%</td><td class="check">✅</td></tr>
+        <tr><td>Personal data never leaks</td><td>Local routing + PII redact + metadata IP block</td><td class="check">✅</td></tr>
+        <tr><td>Token efficiency</td><td>6 optimization layers — 60–80% savings</td><td class="check">✅</td></tr>
+        <tr><td>Self-improving</td><td>Skills + memory + RAG + overnight agents</td><td class="check">✅</td></tr>
+        <tr><td>Always online</td><td>Oracle 24/7 + mobile backup + insurance cron</td><td class="check">✅</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- TECH STACK -->
+  <section>
+    <h2>Tech Stack</h2>
+    <div class="stack-grid">
+      <div class="stack-card"><div class="stack-category">Infrastructure</div><div class="stack-items">Oracle Cloud ARM A1<br>Ubuntu 22.04 LTS ARM64<br>Tailscale · Nginx<br>iptables · Fail2ban</div></div>
+      <div class="stack-card"><div class="stack-category">AI Engine</div><div class="stack-items">Ollama<br>Gemma 4 26B (MoE)<br>Gemma 4 E4B<br>nomic-embed-text<br>faster-whisper (STT)</div></div>
+      <div class="stack-card"><div class="stack-category">Memory & RAG</div><div class="stack-items">Qdrant Vector DB<br>Semantic cache<br>Full-text search<br>7 collections</div></div>
+      <div class="stack-card"><div class="stack-category">Agent Core</div><div class="stack-items">Hermes Agent<br>Open WebUI<br>Telegram Bot API<br>Workspace GUI</div></div>
+      <div class="stack-card"><div class="stack-category">API Fallback</div><div class="stack-items">9 free providers<br>Auto-routing<br>Cooldown config<br>Local-first logic</div></div>
+      <div class="stack-card"><div class="stack-category">Languages</div><div class="stack-items">Python · Bash · YAML<br>hermes doctor<br>Daily health cron<br>Weekly backup</div></div>
+    </div>
+  </section>
+
+  <!-- STATUS -->
+  <section>
+    <h2>Status</h2>
+    <div class="status-item"><span class="status-name">Architecture</span><span class="status-ver">v7.0</span><div class="status-bar-wrap"><div class="status-bar"></div></div><span class="status-label">Complete</span></div>
+    <div class="status-item"><span class="status-name">Security</span><span class="status-ver">v7.0</span><div class="status-bar-wrap"><div class="status-bar"></div></div><span class="status-label">6 layers active</span></div>
+    <div class="status-item"><span class="status-name">AI Engine</span><span class="status-ver">v7.0</span><div class="status-bar-wrap"><div class="status-bar"></div></div><span class="status-label">Two-tier operational</span></div>
+    <div class="status-item"><span class="status-name">RAG System</span><span class="status-ver">v7.0</span><div class="status-bar-wrap"><div class="status-bar"></div></div><span class="status-label">7 collections</span></div>
+    <div class="status-item"><span class="status-name">Automations</span><span class="status-ver">v7.0</span><div class="status-bar-wrap"><div class="status-bar"></div></div><span class="status-label">16 phases documented</span></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-name">AEGIS ZERO</div>
+  <div class="footer-tagline">Designed and architected by Khaled Hassan · v7.0 · April 2026</div>
+  <p style="font-size:12px;color:#444;font-style:italic;margin-bottom:24px;">Built with obsession. Runs on nothing. Improves forever.</p>
+  <div class="footer-star">If this helped you — leave a <span>⭐</span> on GitHub</div>
+</footer>
+
+</body>
+</html>
