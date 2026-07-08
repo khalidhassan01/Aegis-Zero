@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 340" width="600" height="340">
+  <defs>
+    <linearGradient id="shieldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc"/>
+      <stop offset="60%" stop-color="#00ffcc" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="shieldFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.02"/>
+    </linearGradient>
+    <filter id="cg" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gg" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="sc">
+      <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"/>
+    </clipPath>
+    <style>
+      @keyframes spin1 { from{transform-origin:300px 150px;transform:rotate(0deg)} to{transform-origin:300px 150px;transform:rotate(360deg)} }
+      @keyframes spin2 { from{transform-origin:300px 150px;transform:rotate(0deg)} to{transform-origin:300px 150px;transform:rotate(-360deg)} }
+      @keyframes pulse { 0%,100%{opacity:0.8} 50%{opacity:1} }
+      .r1{animation:spin1 20s linear infinite}
+      .r2{animation:spin2 12s linear infinite}
+      .orb{animation:spin1 8s linear infinite}
+      .orb2{animation:spin2 8s linear infinite}
+      .shield{animation:pulse 4s ease-in-out infinite}
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="600" height="340" fill="#000000"/>
+  
+  <!-- Outer Ring - Animated -->
+  <g class="r1">
+    <circle cx="300" cy="150" r="148" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.15"/>
+    <circle cx="300" cy="150" r="148" fill="none" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.7" stroke-dasharray="8 4"/>
+    <g stroke="#00ffcc" stroke-opacity="0.4" stroke-width="1">
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(0,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(30,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(60,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(90,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(120,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(150,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(180,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(210,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(240,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(270,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(300,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="16" transform="rotate(330,300,150)"/>
+    </g>
+    <g stroke="#00ffcc" stroke-width="2" stroke-opacity="0.9" filter="url(#cg)">
+      <line x1="300" y1="2" x2="300" y2="22" transform="rotate(0,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="22" transform="rotate(90,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="22" transform="rotate(180,300,150)"/>
+      <line x1="300" y1="2" x2="300" y2="22" transform="rotate(270,300,150)"/>
+    </g>
+  </g>
+  
+  <!-- Middle Ring - Gold -->
+  <g class="r2">
+    <circle cx="300" cy="150" r="112" fill="none" stroke="#ffd700" stroke-width="0.8" stroke-opacity="0.25"/>
+    <circle cx="300" cy="150" r="112" fill="none" stroke="#ffd700" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="3 20"/>
+  </g>
+  
+  <!-- Inner Ring -->
+  <circle cx="300" cy="150" r="78" fill="none" stroke="#00ffcc" stroke-width="0.6" stroke-opacity="0.15"/>
+  
+  <!-- Orbiting Particles -->
+  <g class="orb"><circle cx="300" cy="2" r="4" fill="#00ffcc" filter="url(#cg)" transform="rotate(45,300,150)"/></g>
+  <g class="orb2"><circle cx="300" cy="2" r="3" fill="#ffd700" filter="url(#gg)" transform="rotate(225,300,150)"/></g>
+  
+  <!-- Shield - Animated -->
+  <g class="shield">
+    <!-- Shield Fill -->
+    <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z" fill="url(#shieldFill)"/>
+    
+    <!-- Shield Grid -->
+    <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width="0.5" stroke-opacity="0.18">
+      <line x1="210" y1="90" x2="390" y2="90"/>
+      <line x1="210" y1="120" x2="390" y2="120"/>
+      <line x1="210" y1="150" x2="390" y2="150"/>
+      <line x1="210" y1="180" x2="390" y2="180"/>
+      <line x1="210" y1="210" x2="390" y2="210"/>
+      <line x1="240" y1="30" x2="240" y2="270"/>
+      <line x1="270" y1="30" x2="270" y2="270"/>
+      <line x1="300" y1="30" x2="300" y2="270"/>
+      <line x1="330" y1="30" x2="330" y2="270"/>
+      <line x1="360" y1="30" x2="360" y2="270"/>
+    </g>
+    
+    <!-- Shield Outline -->
+    <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z" fill="none" stroke="url(#shieldStroke)" stroke-width="2.5" filter="url(#cg)"/>
+    <path d="M300 42 L378 66 L378 160 C378 212 300 258 300 258 C300 258 222 212 222 160 L222 66 Z" fill="none" stroke="#00ffcc" stroke-width="0.6" stroke-opacity="0.3"/>
+    
+    <!-- Gold Top Bar -->
+    <line x1="240" y1="58" x2="360" y2="58" stroke="#ffd700" stroke-width="1.5" stroke-opacity="0.8" filter="url(#gg)"/>
+    
+    <!-- Corner Marks -->
+    <path d="M210 80 L226 80" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+    <path d="M210 58 L210 84" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+    <path d="M374 80 L390 80" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+    <path d="M390 58 L390 84" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.8"/>
+    
+    <!-- Gold Tip Dot -->
+    <circle cx="300" cy="268" r="4" fill="#ffd700" filter="url(#gg)"/>
+    <line x1="300" y1="258" x2="300" y2="265" stroke="#ffd700" stroke-width="1.5" stroke-opacity="0.8"/>
+    
+    <!-- Center ZERO -->
+    <text x="300" y="178" text-anchor="middle" font-family="Georgia,serif" font-size="88" font-weight="900" fill="none" stroke="#00ffcc" stroke-width="2.5" filter="url(#cg)" opacity="0.95">0</text>
+  </g>
+  
+  <!-- AEGIS Wordmark -->
+  <text x="300" y="308" text-anchor="middle" font-family="Georgia,serif" font-size="38" font-weight="900" fill="#ffffff" style="letter-spacing:16px">AEGIS</text>
+  
+  <!-- Divider -->
+  <line x1="180" y1="316" x2="420" y2="316" stroke="#00ffcc" stroke-width="0.8" stroke-opacity="0.5"/>
+  
+  <!-- ZERO Subtext -->
+  <text x="300" y="330" text-anchor="middle" font-family="'Courier New',monospace" font-size="11" fill="#00ffcc" style="letter-spacing:10px" opacity="0.9">Z E R O</text>
+</svg>
