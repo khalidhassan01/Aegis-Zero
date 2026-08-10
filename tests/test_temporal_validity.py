@@ -20,9 +20,14 @@ class _Embedder:
     dim = 8
 
     async def embed_one(self, text: str):
+        # Deterministic embedding (no builtin hash(), which is seeded
+        # per-process and would make ranking tests flaky).
+        import hashlib
+
         v = [0.0] * self.dim
         for tok in text.lower().split():
-            v[hash(tok) % self.dim] += 1.0
+            h = int.from_bytes(hashlib.sha256(tok.encode()).digest()[:4], "big")
+            v[h % self.dim] += 1.0
         n = math.sqrt(sum(x * x for x in v)) or 1.0
         return [x / n for x in v]
 
