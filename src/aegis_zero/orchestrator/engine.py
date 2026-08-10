@@ -133,15 +133,17 @@ class AgentEngine:
         context: ContextBuilder | None = None,
         bus: EventBus | None = None,
         config: EngineConfig | None = None,
+        harness_path: str | None = None,
     ) -> None:
         self.provider = provider
         self.registry = registry or ToolRegistry()
         self.policy = policy or PolicyEngine()
         self.approval = approval or DenyAll()
         self.memory = memory
-        self.context = context or ContextBuilder(memory)
+        self.context = context or ContextBuilder(memory, harness_path=harness_path)
         self.bus = bus or NullBus()
         self.cfg = config or EngineConfig()
+        self.harness_path = harness_path
 
     # -- public API --------------------------------------------------
 
@@ -201,6 +203,7 @@ class AgentEngine:
         outputs = await self._run_subtasks(plan, recon, history, state, budget, result)
         answer = await self._synthesize(goal, plan, outputs, state, budget)
 
+        verification = None
         if self.cfg.enable_critique:
             answer, critique, revisions, verification = await self._critique_loop(
                 goal, answer, recon, state, budget
@@ -214,7 +217,7 @@ class AgentEngine:
 
         result.answer = answer
         result.ok = result.critique is None or result.critique.verdict != "fail"
-        await self._learn(goal, answer, result)
+        await self._learn(goal, answer, result, verification)
         return result
 
     async def _plan(self, goal: str, state: RunState, budget: Budget) -> Plan:
@@ -495,7 +498,9 @@ class AgentEngine:
             return min(self.cfg.max_fail_revisions, self.cfg.max_revisions)
         return self.cfg.max_revisions
 
-    async def _learn(self, goal: str, answer: str, result: AgentResult) -> None:
+    async def _learn(
+        self, goal: str, answer: str, result: AgentResult, verification: Any = None
+    ) -> None:
         if self.memory is None:
             return
         confidence = result.confidence or 0.5
@@ -510,6 +515,31 @@ class AgentEngine:
                     kind="episode",
                     metadata={"run_id": result.run_id, "confidence": confidence},
                 )
+
+        # Continual Harness: persist a GROUNDED lesson from the verified
+        # outcome. Unlike prime-agent's self-narrative /refine, the decision
+        # is driven by the deterministic verifier + task success, so a lesson
+        # is only stored when the run was actually correct. Scope is global
+        # because a verified lesson is by definition reusable.
+        if self.context.harness_path:
+            with contextlib.suppress(Exception):
+                from ..memory.harness import HarnessController
+                from ..memory.harness_extraction import propose_from_outcome
+                from .verifier import Verification
+
+                v = verification if isinstance(verification, Verification) else None
+                # When critique is disabled there is no auditor confidence;
+                # treat an otherwise-successful run as implicitly verified.
+                eff_confidence = confidence if v is not None else max(confidence, 1.0)
+                proposal = propose_from_outcome(
+                    goal=goal,
+                    answer=answer,
+                    verification=v or Verification(checks=[]),
+                    run_ok=result.ok,
+                    confidence=eff_confidence,
+                )
+                if proposal.edits:
+                    HarnessController(self.context.harness_path).apply(proposal, scope="global")
 
     # -- primitives --------------------------------------------------
 

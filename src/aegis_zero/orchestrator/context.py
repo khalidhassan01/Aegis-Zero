@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from ..core.models import Message
+from ..memory.harness import HarnessController
 from ..memory.memrl import MemRLEngine, RankedMemory
 
 #: Never emit a tail message shorter than this, or the model sees nothing useful.
@@ -65,11 +66,13 @@ class ContextBuilder:
         max_tokens: int = 12_000,
         memory_limit: int = 6,
         keep_recent: int = 8,
+        harness_path: str | None = None,
     ) -> None:
         self.memory = memory
         self.max_tokens = max_tokens
         self.memory_limit = memory_limit
         self.keep_recent = keep_recent
+        self.harness_path = harness_path
 
     async def build(
         self,
@@ -98,6 +101,14 @@ class ContextBuilder:
                 "Treat these as recollections, not ground truth. Verify before relying "
                 f"on them.\n{rendered}"
             )
+        if self.harness_path:
+            try:
+                harness_text = HarnessController(self.harness_path).format_for_prompt()
+                if harness_text:
+                    blocks.append(harness_text)
+            except Exception:
+                # A broken harness file must never break prompt assembly.
+                pass
         if extra:
             details = "\n".join(f"- {k}: {v}" for k, v in extra.items())
             blocks.append(f"## Run context\n{details}")

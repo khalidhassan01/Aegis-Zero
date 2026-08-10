@@ -86,7 +86,7 @@ def build_agent(
         policy=policy,
         approval=approval or DenyAll(),
         memory=memory,
-        context=ContextBuilder(memory, memory_limit=settings.memory.top_k),
+        context=ContextBuilder(memory, memory_limit=settings.memory.top_k, harness_path=_harness_path(settings)),
         bus=bus,
         config=EngineConfig(
             fast_model=settings.models.fast,
@@ -97,6 +97,7 @@ def build_agent(
                 max_seconds=settings.max_seconds,
             ),
         ),
+        harness_path=_harness_path(settings),
     )
 
     return Aegis(
@@ -108,3 +109,8 @@ def build_agent(
         registry=tools,
         memory=memory,
     )
+
+
+def _harness_path(settings: Settings) -> str | None:
+    path = settings.harness_path.strip()
+    return path or None

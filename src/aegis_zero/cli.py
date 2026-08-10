@@ -15,6 +15,7 @@ from .core.config import load_settings
 from .core.errors import AegisError
 from .core.events import EventType
 from .core.models import Budget
+from .memory.harness import HarnessController, HarnessEntry, load_harness_state
 from .tools.approval import AutoApprove, ConsoleGate, DenyAll
 
 
@@ -110,6 +111,79 @@ async def cmd_health(args: argparse.Namespace) -> int:
     return 0 if report.get("provider_reachable") else 1
 
 
+async def cmd_harness_inspect(args: argparse.Namespace) -> int:
+    """Show the current Continual Harness entries and refinement history."""
+    ctrl = HarnessController(args.path)
+    state = ctrl.state
+    total = sum(len(v) for v in state.entries.values())
+    print(f"# Continual Harness ({args.path})")
+    print(f"entries: {total}  | refinements: {len(state.refinements)}")
+    print("")
+    for kind in ("prompt", "memory", "skill", "subagent"):
+        entries = list(state.entries[kind].values())
+        if not entries:
+            continue
+        print(f"## {kind} ({len(entries)})")
+        for e in entries:
+            print(f"- [{e.scope}:{e.id}] v{e.version} {e.title}: {e.content[:160]}")
+    if state.refinements:
+        print("\n## refinement history")
+        for ev in state.refinements:
+            tag = " [grounded]" if ev.grounded else ""
+            changes = ", ".join(ev.changes) or "no applied edits"
+            print(f"- [{ev.id}]{tag} {ev.trigger}: {changes}")
+    return 0
+
+
+async def cmd_harness_rollback(args: argparse.Namespace) -> int:
+    """Roll back a prior refinement by id (reverts every applied edit)."""
+    ctrl = HarnessController(args.path)
+    target = None
+    for ev in ctrl.state.refinements:
+        if ev.id == args.refinement:
+            from .memory.harness import AppliedRefinementEdit, RefinementResult
+
+            applied = [
+                AppliedRefinementEdit(
+                    action=d.get("action", "create"),
+                    kind=d.get("kind", "memory"),
+                    id=d.get("id", ""),
+                    title=d.get("title"),
+                    content=d.get("content"),
+                    path=d.get("path"),
+                    reference=d.get("reference"),
+                    arguments=d.get("arguments"),
+                    metadata=d.get("metadata"),
+                    reason=d.get("reason"),
+                    applied=bool(d.get("applied", True)),
+                    before=_entry_from_dict(d.get("before")) if d.get("before") else None,
+                    after=_entry_from_dict(d.get("after")) if d.get("after") else None,
+                    error=d.get("error"),
+                )
+                for d in ev.detail
+            ]
+            target = RefinementResult(
+                id=ev.id,
+                summary=ev.trigger,
+                rationale="",
+                expected_outcome=ev.outcome,
+                applied_edits=applied,
+                scope="global",
+                grounded=ev.grounded,
+            )
+            break
+    if target is None:
+        print(f"error: no refinement with id {args.refinement}", file=sys.stderr)
+        return 1
+    result = ctrl.rollback(target)
+    print(f"rolled back {args.refinement}: {len(result.applied_edits)} edit(s) reverted")
+    return 0
+
+
+def _entry_from_dict(d: dict[str, Any]) -> HarnessEntry:
+    return HarnessEntry(**{k: d[k] for k in HarnessEntry.__dataclass_fields__ if k in d})
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="aegis", description="Aegis Zero agentic runtime")
     p.add_argument("--version", action="version", version=f"aegis-zero {__version__}")
@@ -141,6 +215,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     health = sub.add_parser("health", help="check provider and memory health")
     health.set_defaults(fn=cmd_health)
+
+    harness = sub.add_parser("harness", help="inspect and manage the Continual Harness")
+    harness_sub = harness.add_subparsers(dest="harness_command", required=True)
+    inspect = harness_sub.add_parser("inspect", help="show entries and refinement history")
+    inspect.add_argument("--path", required=True, help="harness_state.json path")
+    inspect.set_defaults(fn=cmd_harness_inspect)
+    rollback = harness_sub.add_parser("rollback", help="revert a refinement by id")
+    rollback.add_argument("--path", required=True, help="harness_state.json path")
+    rollback.add_argument("--refinement", required=True, help="refinement id to revert")
+    rollback.set_defaults(fn=cmd_harness_rollback)
     return p
 
 

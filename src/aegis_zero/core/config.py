@@ -61,6 +61,7 @@ class Settings:
     max_tokens: int = 200_000
     log_level: str = "INFO"
     trace_dir: str = ""
+    harness_path: str = ""
 
     def with_overrides(self, **kw: Any) -> Settings:
         return replace(self, **kw)
