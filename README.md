@@ -1,442 +1,255 @@
-# AEGIS ZERO
+# Aegis Zero
 
-> **Advanced Security & Trust Framework for Autonomous AI Agents**
+**A state-of-the-art agentic runtime.** Async orchestration, policy-governed
+tool use, and reinforcement-weighted memory — in a single dependency-light
+Python package.
 
-**Version:** 7.0  
-**Architecture:** Aegis-Zero  
-**Author:** Khalid Hassan  
-**License:** MIT (Open Source)  
-**Status:** ✅ Production-Ready
-
----
-
-## 🚀 Overview
-
-Aegis Zero is a **cutting-edge, production-hardened** autonomous AI agent framework that implements the **12-Factor Agent** principles adapted from the classic 12-Factor App methodology. It provides enterprise-grade security, resilience, and self-improvement capabilities for LLM-powered systems.
-
-### 🏆 Key Innovations
-
-| # | Innovation | Description |
-|---|------------|-------------|
-| 1 | **MCP Layer** | Model Context Protocol - Unified tool interface |
-| 2 | **Context Engine** | 4-layer context assembly with memory injection |
-| 3 | **Puppeteer** | Dynamic multi-agent orchestration |
-| 4 | **Trusted Kernel** | Security-hardened execution environment |
-| 5 | **12-Factor Agent** | Production hardening framework |
-| 6 | **MemRL Engine** | Self-evolving agents via runtime RL on episodic memory |
+[![CI](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg)](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
-## 📊 Architecture
+## Why Aegis Zero
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        AEGIS ZERO STACK                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌───────────┐ │
-│  │   Security       │    │   AI Engine      │    │  Memory   │ │
-│  │   Layers 0-5     │    │  (Ollama + API)  │    │ (Qdrant)  │ │
-│  │  - Tailscale     │    │  - gemma4:26b    │    │  - Vector │ │
-│  │  - VCN Firewall  │    │  - gemma4:e4b    │    │  - Semantic│ │
-│  │  - OS Hardening  │    │  - Embeddings    │    │  - Episodic│ │
-│  └─────────────────┘    └─────────────────┘    └───────────┘ │
-│                                                               │
-│  ┌─────────────────┐    ┌─────────────────┐                  │
-│  │  Agent Core      │    │  Self-Improvement│                  │
-│  │  - Puppeteer     │    │  - Nightly runs  │                  │
-│  │  - Scout/Forge   │    │  - MemRL Engine  │                  │
-│  │  - Auditor       │    │  - Feedback loops│                  │
-│  └─────────────────┘    └─────────────────┘                  │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
-```
+Most agent frameworks give you a prompt loop and hope for the best. Aegis Zero
+is built around three commitments:
 
----
+1. **Nothing executes unreviewed.** Every tool call passes a policy engine that
+   classifies risk, blocks SSRF and destructive commands, contains filesystem
+   access, redacts secrets, and routes high-risk actions to a human.
+2. **Memory learns.** Retrieved memories are scored by whether they actually
+   helped. Useful recollections surface more often; misleading ones decay away.
+3. **Failures are typed, never swallowed.** Every error is a specific exception
+   with structured context. Budgets are hard limits, not suggestions.
 
-## 🎯 Core Components
-
-### 1. **agent_harness.py** - 12-Factor Production Harness
-- ✅ **Factor 1:** Stateless Steps (Qdrant checkpointing)
-- ✅ **Factor 2:** Own Your Context Window (ContextEngine integration)
-- ✅ **Factor 3:** Own Your Control Flow (Puppeteer sequencing)
-- ✅ **Factor 4:** Structured Tool Outputs (TypedResult validation)
-- ✅ **Factor 5:** Checkpointing (Resumable after any crash)
-- ✅ **Factor 6:** Human-in-the-Loop (Telegram approval gates)
-- ✅ **Factor 7:** Error Recovery (Retry with backoff, fallback models)
-- ✅ **Factor 8:** Separation of Concerns (Reasoning ≠ Execution)
-- ✅ **Factor 9:** Observability (Every inference logged to Qdrant)
-- ✅ **Factor 10:** Dependency Injection (All components swappable)
-- ✅ **Factor 11:** Idempotency (Safe to retry any operation)
-- ✅ **Factor 12:** Graceful Degradation (12 failure modes handled)
-
-### 2. **puppeteer.py** - Multi-Agent Orchestrator
-- **Scout:** Context gathering agent (aegis-fast)
-- **Forge:** Reasoning and generation (aegis-deep or aegis-fast)
-- **Auditor:** Quality control before delivery (aegis-fast)
-- **Dynamic Routing:** Task complexity classification
-- **Parallel Execution:** For research tasks with multiple perspectives
-
-### 3. **memrl_engine.py** - Self-Evolving Memory
-- **Two-Phase Retrieval:** Semantic + Q-value re-ranking
-- **EMA Learning:** Q-values updated via Exponential Moving Average
-- **Implicit Rewards:** No human labelling required
-- **Reward Sources:** Auditor approval, user continuation, corrections, outcomes
-- **Nightly Batch Updates:** Automatic Q-value maintenance
-
-### 4. **context_engine.py** - 4-Layer Context Assembly
-- Epistic memory retrieval
-- Semantic document search
-- Trust-level annotation
-- Context-optimized prompts
-
-### 5. **trusted_mcp.py** - Model Context Protocol Adapter
-- Tool access normalization
-- Trust-level enforcement
-- Prompt injection protection
-- Suspicious content filtering
-
-### 6. **tool_policy.py** - Security Policy Engine
-- **Risk Classification:** LOW, MEDIUM, HIGH, CRITICAL
-- **Action Types:** READ, WRITE, EXEC, NETWORK
-- **Allow/Deny Lists:** Per-tool policy rules
-- **Path Validation:** Safe filesystem access
-- **URL Filtering:** Block localhost and internal IPs
-
----
-
-## 🔧 Installation & Setup
-
-### Prerequisites
+## Install
 
 ```bash
-# Required
-python3 >= 3.10
-pip >= 23.0
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install Ollama (AI runtime)
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Install Qdrant (Vector database)
-docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
-
-# Pull models
-ollama pull gemma4:26b      # aegis-deep
-ollama pull gemma4:e4b      # aegis-fast
-ollama pull nomic-embed-text # embeddings
+pip install -e ".[dev]"          # from a clone
+pip install -e ".[qdrant]"       # with the Qdrant memory backend
 ```
 
-### Environment Configuration
+Requires Python 3.11+. Runtime dependencies are just `httpx` and `PyYAML`.
 
-```bash
-# Required environment variables
-export AEGIS_QDRANT_HOST=127.0.0.1
-export AEGIS_QDRANT_PORT=6333
-export AEGIS_VECTOR_SIZE=768
-export AEGIS_EMBED_MODEL=nomic-embed-text
-
-# Optional: Telegram integration
-export AEGIS_TELEGRAM_BOT_TOKEN=your_bot_token
-export AEGIS_TELEGRAM_CHAT_ID=your_chat_id
-
-# Optional: Model overrides
-export AEGIS_FAST_MODEL=aegis-fast
-export AEGIS_DEEP_MODEL=aegis-deep
-```
-
-### Quick Start
+## Quick start
 
 ```python
-from agent_harness import handle_message_v2
+import asyncio
+from aegis_zero import build_agent
+from aegis_zero.tools import ConsoleGate
 
-# Simple usage
-response = handle_message_v2(
-    message="What is the capital of France?",
-    interface="telegram"
-)
-print(response)
+async def main():
+    async with build_agent(approval=ConsoleGate()) as agent:
+        result = await agent.ask("What is 2^16, and why does it matter?")
+        print(result.answer)
+        print(result.summary())
 
-# With custom configuration
-response = handle_message_v2(
-    message="Debug this Python code: def foo(): pass",
-    interface="webui",
-    config={"telegram_bot_token": "...", "telegram_chat_id": "..."}
+asyncio.run(main())
+```
+
+From the command line:
+
+```bash
+aegis run "Summarise the CAP theorem"     # run a goal
+aegis run "..." --stats -v                # with metrics and live events
+aegis tools                               # list tools + policy verdicts
+aegis config                              # show effective configuration
+aegis health                              # check provider and memory
+```
+
+## Architecture
+
+```
+                        ┌─────────────┐
+   goal ───────────────>│   Planner   │  decompose into subtasks
+                        └──────┬──────┘
+                               │
+                        ┌──────▼──────┐
+                        │    Scout    │  reconnaissance (complex goals only)
+                        └──────┬──────┘
+                               │
+              ┌────────────────┼────────────────┐   parallel dependency waves
+        ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
+        │   Forge   │    │   Forge   │    │   Forge   │  bounded tool loops
+        └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
+              └────────────────┼────────────────┘
+                        ┌──────▼──────┐
+                        │ Synthesizer │  merge, resolve conflicts
+                        └──────┬──────┘
+                               │
+                        ┌──────▼──────┐
+                        │   Auditor   │  adversarial review ──┐
+                        └──────┬──────┘                       │ revise
+                               │  pass                        │
+                        ┌──────▼──────┐                       │
+                        │   MemRL     │<──────────────────────┘
+                        └─────────────┘  reward what helped
+```
+
+Every tool call in every Forge loop is intercepted:
+
+```
+tool call ──> PolicyEngine ──> allow ─────────────> execute
+                    │
+                    ├────────> sanitize ──────────> execute (redacted args)
+                    ├────────> approve ──> human ─> execute or refuse
+                    └────────> deny ─────────────> error returned to model
+```
+
+### Package layout
+
+```
+src/aegis_zero/
+├── core/            models, typed errors, layered config, event bus
+├── providers/       async LLM abstraction, OpenAI-compat, retry + fallback
+├── tools/           registry with derived schemas, policy engine, approvals
+├── memory/          vector stores, MemRL reinforcement retrieval
+├── orchestrator/    planning, context assembly, the agent engine
+├── observability/   structured logging, metrics, JSONL tracing
+├── app.py           composition root
+└── cli.py           command-line interface
+```
+
+## Core concepts
+
+### Tools are typed functions
+
+Schemas are derived from signatures, so the contract can't drift from the code.
+
+```python
+from aegis_zero.core.models import Risk
+from aegis_zero.tools import default_registry
+
+registry = default_registry()
+
+@registry.tool(risk=Risk.MEDIUM)
+async def query_database(sql: str, limit: int = 100) -> list[dict]:
+    """Run a read-only query against the application database."""
+    return await db.fetch(sql, limit)
+```
+
+### Policy is declarative and enforced
+
+```python
+from aegis_zero.tools import PolicyEngine
+
+policy = PolicyEngine(
+    approval_threshold="high",       # high and critical need a human
+    allowed_roots=("/srv/workspace",),  # filesystem containment
+    denied_tools=("shell",),
+    allow_network=True,
 )
 ```
 
----
+Blocked by default: private/loopback/metadata addresses after DNS resolution,
+non-HTTP schemes, `/etc/shadow` and friends, `.ssh` and `.gnupg`, symlink and
+traversal escapes from allowed roots, and a broad set of destructive shell
+patterns. Secret-looking keys and values are redacted before a tool ever sees
+them — and before anything reaches a log or trace.
 
-## 🧪 Testing
+### Memory that learns
 
-All tests pass successfully:
-
-```bash
-# Run all tests
-python3 -m unittest discover -s . -p "test_*.py"
-
-# Individual test files
-python3 test_harness_tools.py      # 3 tests - Harness & approval tests
-python3 test_policy_and_adapter.py  # 14 tests - Policy & MCP tests
-python3 test_real_local_kernel.py   # 1 test - Integration test
-
-# Expected output: All tests PASSED ✅
-```
-
-### Test Coverage
-
-| Component | Tests | Status |
-|-----------|-------|--------|
-| agent_harness.py | 3 | ✅ PASS |
-| tool_policy.py | 7 | ✅ PASS |
-| trusted_mcp.py | 7 | ✅ PASS |
-| Integration | 1 | ✅ PASS |
-| **Total** | **18** | **100% PASS** |
-
----
-
-## 📈 Performance Metrics
-
-### Token Optimization
-- **Caveman Compression:** 58% savings (Improvement #21)
-- **Sidecar Selective Context:** 60-80% savings (Improvement #28)
-- **Execute Code RPC:** 95% reduction (Improvement #3)
-
-### Model Performance
-| Model | RAM | Speed | Use Case |
-|-------|-----|-------|----------|
-| gemma4:26b | 16GB | 4-8 tok/s | Deep research, coding, planning |
-| gemma4:e4b | 4.5GB | 15-25 tok/s | Chat, QA, quick tasks |
-| nomic-embed | 0.4GB | Fast | Semantic search |
-
-### Task Routing
-| Complexity | Sequence | Models Used | Token Cost |
-|------------|----------|-------------|------------|
-| Simple | forge | fast | 1x baseline |
-| Standard | forge | deep | ~4x |
-| Complex | scout → forge → auditor | fast + deep + fast | ~5x |
-| Research | scout → forge×2 → synth → auditor | fast + deep×2 + fast×2 | ~10x |
-
----
-
-## 🛡️ Security Features
-
-### Layer 0: Tailscale
-- Mesh networking only
-- Zero public ports
-- Mutual TLS authentication
-
-### Layer 1: VCN Firewall
-- DENY_ALL ingress by default
-- HTTPS-only egress (port 443)
-- Static IP reservation
-
-### Layer 2: OS Hardening
-- iptables DROP default policy
-- fail2ban enabled (5 retries = 1 hour ban)
-- Metadata endpoint blocked (169.254.169.254)
-- Unattended security upgrades
-
-### Layer 3: Nginx
-- Localhost binding only
-- SSL termination internal only
-- Service routing (Open WebUI, Qdrant, Hermes)
-
-### Layer 4: Application
-- Command approval required
-- PII redaction on external calls
-- Secret scanning on outputs
-- Diff preview before file changes
-- Stealth browser mode
-
-### Layer 5: Session
-- No reverse access to clients
-- Session continuity IDs
-- Credential pool isolation
-
----
-
-## 📊 Self-Improvement Engine
-
-### MemRL (Memory Reinforcement Learning)
-- **Principle:** Runtime RL on episodic memory
-- **Paper:** arXiv:2601.03192 (MemTensor/MemRL)
-- **Approach:** Intent-Experience-Utility triplets
-- **Update Rule:** Q_new = α * reward + (1-α) * Q_old
-- **Learning Rate (α):** 0.3 (measured, not reactive)
-
-### Reward Signals (Implicit)
-| Signal | Reward | Source |
-|--------|--------|--------|
-| Auditor approved (high confidence) | 0.90 | Auditor |
-| Auditor approved | 0.75 | Auditor |
-| Conversation continued | 0.70 | User |
-| Task resolved | 0.65 | Outcome |
-| Auditor revised | 0.30 | Auditor |
-| User correction | 0.15 | User |
-| Task abandoned | 0.10 | Outcome |
-
-### Nightly Maintenance
-- **Time:** 02:00 daily
-- **Batch Q-value updates:** Initializes new episodes, stabilizes existing
-- **Pruning:** Marks low-utility, stale memories (Q < 0.10, >30 days, never selected)
-- **Health reports:** Telegram notification with Q-value distribution
-
----
-
-## 🎨 Puppeteer Orchestration
-
-### Task Classification
 ```python
-# Complexity levels
-SIMPLE      # Single-turn, no research
-STANDARD    # Needs context, moderate reasoning
-COMPLEX     # Multi-step, research + reasoning
-RESEARCH    # Deep investigation, parallel exploration
+result = await agent.ask("How do I deploy the service?")
+# Memories used in a successful, confidently-audited run get rewarded.
+# Memories that were retrieved but never helped decay and are eventually pruned.
 
-# Domains
-CHAT, CODE, RESEARCH, SYSTEM, CREATIVE, ANALYSIS, PLANNING
+await agent.memory.consolidate()   # nightly maintenance
+await agent.memory.health()        # {'count': ..., 'hit_rate': ..., ...}
 ```
 
-### Execution Sequences
-```
-Simple:   [forge_fast]
-Standard: [scout] → [forge_deep] → [auditor]
-Complex:  [scout] → [forge_deep] → [auditor]
-Research: [scout] → [forge_deep × N] → [synthesizer] → [auditor]
-```
-
----
-
-## 📁 Project Structure
+Ranking blends similarity, learned utility, and recency:
 
 ```
-Aegis-Zero/
-├── agent_harness.py          # 12-Factor production harness
-├── memrl_engine.py           # Self-evolving memory engine
-├── puppeteer.py              # Multi-agent orchestrator
-├── context_engine.py         # 4-layer context assembly
-├── trusted_mcp.py            # Model Context Protocol adapter
-├── tool_policy.py            # Security policy engine
-├── aegis_config.py           # Configuration management
-├── test_harness_tools.py     # Unit tests (3 tests)
-├── test_policy_and_adapter.py # Unit tests (14 tests)
-├── test_real_local_kernel.py  # Integration tests (1 test)
-├── aegis.conf.yaml.txt       # Full declarative configuration
-├── requirements.txt          # Python dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                 # This file
+rank = 0.60 * similarity + 0.30 * utility + 0.10 * recency
 ```
 
----
+### Budgets are enforced
 
-## 📚 Documentation
+```python
+from aegis_zero.core.models import Budget
 
-### Core Documentation
-- **[AEGIS_ZERO_DEVELOPER_BRIEF.html](AEGIS_ZERO_DEVELOPER_BRIEF.html)** - Complete developer guide
-- **[AEGIS_INTEGRATION_GUIDE.md](AEGIS_INTEGRATION_GUIDE.md)** - Integration instructions
-- **[AEGIS_ZERO_RESEARCH_FOUNDATION.md](AEGIS_ZERO_RESEARCH_FOUNDATION.md)** - Research methodology
-- **[AEGIS_ZERO_TRUSTED_KERNEL_ROADMAP.md](AEGIS_ZERO_TRUSTED_KERNEL_ROADMAP.md)** - Future development roadmap
+result = await agent.ask(goal, budget=Budget(
+    max_steps=12, max_tokens=50_000, max_seconds=120, max_tool_calls=20,
+))
+```
 
-### Architecture Guides
-- **[aegis-12factor.html](aegis-12factor.html)** - 12-Factor Agent principles
-- **[aegis-integration-guide.html](aegis-integration-guide.html)** - Integration patterns
-- **[aegis-memrl.html](aegis-memrl.html)** - MemRL engine documentation
-- **[aegis-puppeteer.html](aegis-puppeteer.html)** - Puppeteer orchestration guide
+Exceeding any limit raises `BudgetExceeded`, which the engine converts into a
+failed-but-reported result rather than an unbounded spend.
 
----
+### Observability
 
-## 🤝 Contributing
+```python
+agent.bus.subscribe(lambda e: print(e.type.value, e.data))
+print(agent.metrics.snapshot())
+# {'runs': 3, 'llm_calls': 14, 'tool_calls': 6, 'tool_failures': 0,
+#  'policy_denials': 1, 'tokens': 8420, 'latency_p95_ms': 812.4, ...}
+```
 
-### Code Standards
-- ✅ Type hints on all public functions
-- ✅ Docstrings for all classes and methods
-- ✅ Structured logging (JSON format)
-- ✅ No print() statements in production code
-- ✅ Dependency injection over global state
-- ✅ Graceful degradation on failures
+Set `trace_dir` in config to write a JSONL trace of every event.
 
-### Testing Requirements
-- ✅ Unit tests for all modules
-- ✅ Integration tests for critical paths
-- ✅ Mock dependencies for isolated testing
-- ✅ 100% test pass rate required
+## Configuration
 
-### Pull Request Process
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📞 Support & Contact
-
-- **GitHub:** [https://github.com/khalidhassan01/Aegis-Zero](https://github.com/khalidhassan01/Aegis-Zero)
-- **Author:** Khalid Hassan
-- **Status:** Actively maintained
-
----
-
-## 🎯 Roadmap
-
-### Current Version: 7.0
-- ✅ All 12-Factor Agent principles implemented
-- ✅ MemRL self-evolution engine operational
-- ✅ Multi-agent orchestration production-ready
-- ✅ Comprehensive test suite (18 tests, 100% pass)
-
-### Upcoming Features
-- **Improvement #42:** Advanced prompt injection detection
-- **Improvement #43:** Multi-modal support (vision, audio)
-- **Improvement #44:** Federated learning across instances
-- **Improvement #45:** Automated security audit reports
-
----
-
-## 💡 Quick Verification
+Defaults < YAML file < environment. Environment always wins.
 
 ```bash
-# Clone the repository
-git clone git@github.com:khalidhassan01/Aegis-Zero.git
-cd Aegis-Zero
-
-# Verify all files are present
-git ls-files | wc -l
-# Expected: 24+ files
-
-# Run tests (with mocked dependencies)
-python3 test_harness_tools.py
-python3 test_policy_and_adapter.py
-python3 test_real_local_kernel.py
-# Expected: All tests PASSED ✅
-
-# Check syntax of all Python files
-python3 -m py_compile agent_harness.py memrl_engine.py puppeteer.py \
-    context_engine.py trusted_mcp.py tool_policy.py aegis_config.py
-# Expected: No errors
+export AEGIS_PROVIDER__BASE_URL=http://127.0.0.1:11434/v1
+export AEGIS_MODELS__FAST=qwen2.5:7b
+export AEGIS_POLICY__APPROVAL_THRESHOLD=medium
+export AEGIS_MAX_STEPS=12
 ```
 
----
+See [`aegis.example.yaml`](aegis.example.yaml) for every option.
 
-## ✨ Summary
+Any OpenAI-compatible endpoint works: OpenAI, Ollama's `/v1` shim, vLLM,
+LiteLLM, or a local router.
 
-**Aegis Zero is a production-ready, cutting-edge AI agent framework** that implements:
+## Testing without a model
 
-✅ **12-Factor Agent** principles for production hardening  
-✅ **Multi-agent orchestration** with Scout/Forge/Auditor architecture  
-✅ **Self-evolving memory** via MemRL reinforcement learning  
-✅ **Enterprise-grade security** with 6-layer protection  
-✅ **Comprehensive testing** with 18 passing tests  
-✅ **Professional documentation** with complete guides  
+`EchoProvider` returns scripted completions, so orchestration logic is testable
+offline and deterministically:
 
-**Repository Status:** ✅ FULLY OPERATIONAL & PRODUCTION-READY
+```python
+from aegis_zero.providers import EchoProvider, scripted_tool_call
 
----
+provider = EchoProvider(script=[
+    scripted_tool_call("calculate", {"expression": "6*7"}),
+    "The answer is 42.",
+    '{"verdict":"pass","confidence":0.95,"issues":[]}',
+])
+```
 
-**Built with love for the future of autonomous AI agents.** 🚀
+See [`examples/offline_testing.py`](examples/offline_testing.py).
 
-*Generated by Mistral Vibe - GitHub Management System*
+## Development
+
+```bash
+pytest --cov              # 167 tests
+ruff check src tests      # lint
+mypy                      # type check
+```
+
+CI runs lint, mypy, tests on Python 3.11/3.12/3.13, a coverage floor, a
+distribution build, an installed-CLI smoke test, and CodeQL.
+
+## Migrating from v1
+
+v1 modules are preserved under [`legacy/`](legacy/) for reference. The mapping:
+
+| v1 | v2 |
+|---|---|
+| `puppeteer.Puppeteer` | `orchestrator.AgentEngine` |
+| `agent_harness.HardenedPuppeteer` | `app.build_agent()` |
+| `tool_policy.ToolPolicy` | `tools.PolicyEngine` |
+| `memrl_engine.MemRLEngine` | `memory.MemRLEngine` (async) |
+| `context_engine.ContextEngine` | `orchestrator.ContextBuilder` |
+| `aegis_config.get_*()` | `core.config.load_settings()` |
+| direct `ollama` calls | `providers.OpenAICompatProvider` |
+
+The principal change is that everything is `async`, and subtasks that don't
+depend on each other now run concurrently.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

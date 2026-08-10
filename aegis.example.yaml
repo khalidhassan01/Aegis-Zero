@@ -1,0 +1,37 @@
+# Aegis Zero configuration.
+# Every value can also be set via environment variables:
+#   AEGIS_PROVIDER__BASE_URL, AEGIS_MODELS__FAST, AEGIS_MAX_STEPS, ...
+# Environment always wins over this file.
+
+provider:
+  kind: openai            # openai | ollama | vllm | litellm | echo
+  base_url: http://127.0.0.1:8001/v1
+  api_key: ""             # prefer AEGIS_PROVIDER__API_KEY
+  timeout: 120.0
+  max_retries: 3
+
+models:
+  fast: qwen2.5:7b        # planning, scouting, auditing
+  deep: qwen2.5:7b        # execution and synthesis
+  code: qwen2.5-coder:7b
+  embed: nomic-embed-text
+  fallback_chain: []      # e.g. ["qwen2.5:3b", "llama3.2:1b"]
+
+memory:
+  backend: memory         # memory | qdrant
+  url: http://127.0.0.1:6333
+  collection: aegis_episodes
+  vector_size: 768
+  top_k: 6
+
+policy:
+  approval_threshold: high   # safe | low | medium | high | critical
+  allow_network: true
+  allowed_roots: []          # empty = no filesystem containment
+  denied_tools: []
+
+max_steps: 24
+max_seconds: 600.0
+max_tokens: 200000
+log_level: INFO
+trace_dir: ""              # set a directory to write trace.jsonl

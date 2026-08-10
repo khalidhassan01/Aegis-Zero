@@ -1,247 +1,80 @@
-# AEGIS ZERO - Changelog
+# Changelog
 
-> **Advanced Security & Trust Framework for Autonomous AI Agents**
+All notable changes to this project are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/1.1.0/);
+versioning follows [Semantic Versioning](https://semver.org/).
 
-All notable changes to this project will be documented in this file.
+## [2.0.0] - 2026-08-10
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
----
-
-## 📋 **Version History**
-
-### [7.0.0] - July 8, 2026
-
-#### ✨ **New Features**
-
-- **Complete Repository Polishing** by Mistral Vibe (GitHub Manager)
-  - Added professional LICENSE (MIT)
-  - Added CONTRIBUTING.md with comprehensive contribution guidelines
-  - Added CODE_OF_CONDUCT.md for community standards
-  - Added SECURITY.md with vulnerability reporting policy
-  - Added CONTRIBUTORS.md for contributor recognition
-  - Added CHANGELOG.md for version history
-  - Added .github/ directory with issue and PR templates
-  - Enhanced .gitignore with comprehensive patterns
-
-- **Branding & Design**
-  - Created `Logo-Designs/` directory for organized branding assets
-  - Extracted standalone `aegis-zero-logo.svg` from README
-  - Added comprehensive `Logo-Designs/BRANDING.md` guide
-  - Added `BRANDING_VERIFICATION.md` report
-
-- **Documentation**
-  - Added comprehensive `README.md` (15KB+)
-  - Added `AUDIT_REPORT.md` with detailed audit findings
-  - Added `FINAL_VERIFICATION_REPORT.md` with exhaustive verification
-  - All existing documentation preserved
-
-- **Professional Standards**
-  - All Python files have proper type hints
-  - All classes and functions have docstrings
-  - Structured logging throughout
-  - Comprehensive error handling
-  - No placeholders or incomplete code
-
-#### 🔧 **Improvements**
-
-- **Repository Structure**
-  - Clean, organized directory layout
-  - Proper file naming conventions
-  - Logical grouping of related files
-
-- **Testing**
-  - All 18 tests pass (100%)
-  - Comprehensive test coverage
-  - Proper mocking of dependencies
-
-- **Code Quality**
-  - PEP 8 compliant
-  - Dependency injection pattern
-  - Modular architecture
-  - Separation of concerns
-
-#### 🐛 **Bug Fixes**
-
-- None (initial release)
-
-#### 📚 **Documentation**
-
-- Complete API documentation
-- Architecture guides
-- Integration guides
-- Security documentation
-- Branding guidelines
-
-#### 🎯 **Architecture**
-
-- **12-Factor Agent** - All 12 principles implemented
-- **MemRL Engine** - Self-evolving memory system
-- **Puppeteer** - Multi-agent orchestration
-- **Context Engine** - 4-layer context assembly
-- **Trusted Kernel** - Security-hardened execution
-- **6-Layer Security** - Enterprise-grade protection
-
----
-
-## 📊 **Version 7.0 - Initial Release**
-
-### Core Components
-
-| Component | Status | Description |
-|-----------|--------|-------------|
-| agent_harness.py | ✅ Complete | 12-Factor production harness |
-| memrl_engine.py | ✅ Complete | Self-evolving memory engine |
-| puppeteer.py | ✅ Complete | Multi-agent orchestrator |
-| context_engine.py | ✅ Complete | 4-layer context assembly |
-| trusted_mcp.py | ✅ Complete | Model Context Protocol adapter |
-| tool_policy.py | ✅ Complete | Security policy engine |
-| aegis_config.py | ✅ Complete | Configuration management |
-
-### Test Suite
-
-| Test File | Tests | Status |
-|-----------|-------|--------|
-| test_harness_tools.py | 3 | ✅ PASS |
-| test_policy_and_adapter.py | 14 | ✅ PASS |
-| test_real_local_kernel.py | 1 | ✅ PASS |
-| **Total** | **18** | **100% PASS** |
-
-### Documentation
-
-| File | Type | Size | Status |
-|------|------|------|--------|
-| README.md | Main documentation | 15KB | ✅ Complete |
-| README-1.md | Original README | 25KB | ✅ Preserved |
-| AUDIT_REPORT.md | Audit report | 16KB | ✅ Complete |
-| FINAL_VERIFICATION_REPORT.md | Verification report | 14KB | ✅ Complete |
-| BRANDING_VERIFICATION.md | Branding report | 14KB | ✅ Complete |
-| LICENSE | License | 1KB | ✅ Added |
-| CONTRIBUTING.md | Contribution guide | 9KB | ✅ Added |
-| CODE_OF_CONDUCT.md | Code of Conduct | 3KB | ✅ Added |
-| SECURITY.md | Security policy | 5KB | ✅ Added |
-| CONTRIBUTORS.md | Contributors list | 3KB | ✅ Added |
-| CHANGELOG.md | Version history | This file | ✅ Added |
-
----
-
-## 🎯 **Pre-Release History**
-
-### Innovation Timeline
-
-| Date | Innovation | Description |
-|------|------------|-------------|
-| 2026-04 | Innovation #1 | MCP Layer - Unified tool interface |
-| 2026-04 | Innovation #2 | Context Engine - 4-layer context assembly |
-| 2026-04 | Innovation #3 | Puppeteer - Multi-agent orchestration |
-| 2026-04 | Innovation #4 | Trusted Kernel - Security-hardened execution |
-| 2026-05 | Innovation #6 | 12-Factor Agent - Production hardening |
-| 2026-06 | Innovation #8 | MemRL Engine - Self-evolving memory |
-| 2026-07-08 | **Version 7.0** | **Repository Polishing & Professionalization** |
-
----
-
-## 📈 **Repository Statistics**
-
-### Current State (July 8, 2026)
-
-| Metric | Value |
-|--------|-------|
-| **Total Files** | 34 |
-| **Python Files** | 10 |
-| **Test Files** | 3 |
-| **Documentation Files** | 15+ |
-| **Configuration Files** | 4 |
-| **Branding Files** | 3 |
-| **Total Lines of Code** | 4,000+ |
-| **Tests** | 18 |
-| **Test Pass Rate** | 100% |
-| **Security Layers** | 6 |
-| **12-Factor Compliance** | 12/12 |
-
-### GitHub Repository
-
-- **Repository:** https://github.com/khalidhassan01/Aegis-Zero
-- **Status:** ✅ Public & Active
-- **License:** MIT
-- **Stars:** (Growing!)
-- **Forks:** (Growing!)
-
----
-
-## 🏆 **Future Roadmap**
-
-### Upcoming Features (Planned)
-
-| Version | Feature | Priority |
-|---------|---------|----------|
-| 7.1.0 | Advanced prompt injection detection | High |
-| 7.2.0 | Multi-modal support (vision, audio) | Medium |
-| 7.3.0 | Federated learning across instances | Medium |
-| 7.4.0 | Automated security audit reports | Medium |
-| 8.0.0 | Next-generation architecture | Low |
-
-### Improvement Pipeline
-
-- **Improvement #42:** Advanced prompt injection detection
-- **Improvement #43:** Multi-modal support (vision, audio)
-- **Improvement #44:** Federated learning across instances
-- **Improvement #45:** Automated security audit reports
-- **Improvement #46+:** Future innovations
-
----
-
-## 📝 **Changelog Format**
-
-This changelog follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
-
-### Categories
-
-- **Added** - New features
-- **Changed** - Changes in existing functionality
-- **Deprecated** - Soon-to-be removed features
-- **Removed** - Removed features
-- **Fixed** - Bug fixes
-- **Security** - Vulnerability fixes
-
-### Version Format
-
-```markdown
-## [X.Y.Z] - YYYY-MM-DD
+Complete architectural rebuild. v1 modules are preserved under `legacy/`.
 
 ### Added
-- Feature 1
-- Feature 2
+
+- **Async runtime.** The entire execution path is `async`. Independent
+  subtasks are resolved into dependency waves and run concurrently.
+- **Provider abstraction** (`providers/`). Any OpenAI-compatible endpoint —
+  OpenAI, Ollama, vLLM, LiteLLM, or a local router. Includes retry with
+  exponential backoff and jitter, an ordered model fallback chain, streaming,
+  and embeddings.
+- **`EchoProvider`** for deterministic, offline, no-network testing.
+- **Tool registry** with JSON Schemas derived from type hints, so the model's
+  contract cannot drift from the implementation. Per-tool timeouts; tool
+  failures return a typed result rather than raising.
+- **Policy engine** (`tools/policy.py`) with four-way decisions
+  (allow / sanitize / approve / deny), risk tiers, per-run call limits,
+  DNS-resolving SSRF protection, symlink-aware path containment, destructive
+  command detection, and nested secret redaction.
+- **Approval gates**: `ConsoleGate`, `CallbackGate`, `AutoApprove`, `DenyAll`.
+  The default is `DenyAll` — risky tools do not run without a configured human.
+- **MemRL** rewritten as an async reinforcement-weighted retriever. Ranking
+  blends similarity, learned utility, and recency; consolidation decays and
+  prunes memories that never help.
+- **Pluggable vector stores**: dependency-free `InMemoryStore` and an optional
+  `QdrantStore`.
+- **Event bus** with typed events; logging, metrics, and JSONL tracing are
+  subscribers rather than engine concerns.
+- **Budgets** for steps, tokens, wall-clock time, tool calls, and tool-loop
+  iterations, plus cooperative cancellation.
+- **Typed error taxonomy** rooted at `AegisError`, each carrying structured
+  context and a `retryable` flag.
+- **Layered configuration**: defaults < YAML < environment.
+- **CLI**: `aegis run | tools | config | health`.
+- **CI**: ruff, mypy, pytest on Python 3.11/3.12/3.13, a coverage floor,
+  a distribution build, an installed-CLI smoke test, and CodeQL.
+- 179 tests at 86% coverage; four runnable examples.
 
 ### Changed
-- Change 1
-- Change 2
+
+- Repository restructured to a `src/` layout installable as `aegis-zero`.
+- `Puppeteer` → `AgentEngine`; `ToolPolicy` → `PolicyEngine`;
+  `ContextEngine` → `ContextBuilder`; `aegis_config.get_*()` →
+  `load_settings()`.
+- The auditor now returns structured JSON. Unparseable auditor output is
+  treated as `revise` with low confidence instead of a silent pass.
+- Sub-agent prompts are versioned constants rather than inline strings.
 
 ### Fixed
-- Bug fix 1
-- Bug fix 2
 
-### Security
-- Vulnerability fix 1
-
-### Deprecated
-- Deprecated feature 1
+- **Path containment bypass.** `/proc/self/environ` resolved to
+  `/proc/<pid>/environ`, slipping past the prefix denylist. Both the pre- and
+  post-resolution path are now checked.
+- **Tool-call wire format.** `arguments` was serialized as a JSON object;
+  the OpenAI contract requires a JSON *string*, and Ollama and vLLM reject an
+  object with HTTP 400. Found by running against a live model.
+- **Secret-redaction false positives.** `tokens`, `max_tokens`, and other
+  telemetry keys matched the `token` secret pattern and were redacted from
+  metrics output. Key matching is now whole-word with a safe-key allowlist.
+- Silent `except: pass` blocks removed; failures are typed or explicitly
+  suppressed with a stated reason.
+- Removed the dead `unittest2` dependency.
 
 ### Removed
-- Removed feature 1
-```
 
----
+- Duplicate `README-1.md` and six generated HTML documents (moved to
+  `docs/assets/`).
+- Self-referential verification and audit reports (moved to `docs/`).
 
-## 📞 **Contact**
+## [1.0.0] - 2026-08
 
-- **GitHub:** https://github.com/khalidhassan01/Aegis-Zero
-- **Author:** Khalid Hassan
-- **License:** MIT
-- **Status:** Actively Maintained
-
----
-
-**Last Updated:** July 8, 2026
-
-*CHANGELOG.md - Version History for Aegis-Zero*
+- Initial release: 12-factor agent design, Puppeteer orchestration,
+  MemRL engine, tool policy layer, trusted MCP adapter.

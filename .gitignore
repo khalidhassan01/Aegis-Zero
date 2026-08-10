@@ -129,3 +129,15 @@ _docs/
 .test_results/
 .pytest_cache/
 .coverage
+
+# v2 build artifacts
+dist/
+build/
+*.egg-info/
+.venv/
+.coverage
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+trace.jsonl
