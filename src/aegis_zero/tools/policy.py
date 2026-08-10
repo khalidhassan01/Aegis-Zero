@@ -240,10 +240,36 @@ class PolicyEngine:
 
     def check_path(self, raw: str) -> tuple[bool, str]:
         """Contain filesystem access within configured roots, following symlinks."""
+        # A NUL byte terminates the path at the OS layer, so "/tmp/ok\0/etc/shadow"
+        # can read a different file than the one inspected here. Reject outright;
+        # Path.resolve() also raises ValueError on it, which used to crash policy
+        # evaluation and take down the whole run.
+        if "\x00" in raw:
+            return False, "path contains a NUL byte"
+
+        # Percent-encoding is not meaningful in a filesystem path, so its
+        # presence means someone is trying to smuggle separators past the
+        # traversal check. Decode repeatedly and inspect the result too.
+        decoded = raw
+        for _ in range(3):
+            nxt = unquote(decoded)
+            if nxt == decoded:
+                break
+            decoded = nxt
+        if decoded != raw:
+            if "\x00" in decoded:
+                return False, "path contains an encoded NUL byte"
+            ok, why = self._check_path_literal(decoded)
+            if not ok:
+                return False, f"{why} (after percent-decoding)"
+
+        return self._check_path_literal(raw)
+
+    def _check_path_literal(self, raw: str) -> tuple[bool, str]:
         try:
             target = Path(raw).expanduser()
             resolved = target.resolve()
-        except (OSError, RuntimeError):
+        except (OSError, RuntimeError, ValueError):
             return False, "path could not be resolved"
 
         # Check the pre-resolution path too: /proc/self/environ resolves to

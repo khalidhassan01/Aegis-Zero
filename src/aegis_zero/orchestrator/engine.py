@@ -18,7 +18,7 @@ import asyncio
 import contextlib
 import time
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from ..core.errors import (
@@ -110,6 +110,12 @@ class EngineConfig:
     enable_memory_write: bool = True
     min_confidence: float = 0.6
     temperature: float = 0.2
+    #: Attempt a corrective pass when the auditor returns "fail".
+    #: Set False to treat "fail" as terminal and stop immediately.
+    revise_on_fail: bool = True
+    #: A "fail" verdict gets at most this many attempts, regardless of
+    #: ``max_revisions``, so one harsh verdict cannot exhaust the budget.
+    max_fail_revisions: int = 1
 
 
 class AgentEngine:
@@ -419,11 +425,13 @@ class AgentEngine:
             )
         )
         revisions = 0
-        while (
-            revisions < self.cfg.max_revisions
-            and not critique.passed
-            and critique.verdict != "fail"
-        ):
+        # A "fail" verdict previously skipped revision entirely, so the worst
+        # answers were the only ones never corrected. That is defensible if
+        # "fail" means unsalvageable, but with small auditor models it mostly
+        # wasted the run. It is now an explicit policy, and a fail is given at
+        # most one corrective attempt so a harsh verdict cannot burn the whole
+        # revision budget.
+        while revisions < self._revision_cap(critique) and not critique.passed:
             revisions += 1
             issues = "\n".join(f"- {i}" for i in critique.issues) or "- (unspecified)"
             completion = await self._call(
@@ -455,6 +463,14 @@ class AgentEngine:
                 )
             )
         return answer, critique, revisions
+
+    def _revision_cap(self, critique: Critique) -> int:
+        """How many revisions this verdict is allowed to trigger."""
+        if critique.verdict == "fail":
+            if not self.cfg.revise_on_fail:
+                return 0
+            return min(self.cfg.max_fail_revisions, self.cfg.max_revisions)
+        return self.cfg.max_revisions
 
     async def _learn(self, goal: str, answer: str, result: AgentResult) -> None:
         if self.memory is None:
@@ -523,20 +539,50 @@ class AgentEngine:
         await self.bus.publish(Event(type=kind, run_id=state.run_id, data=data))
 
 
+def normalize_subtasks(subtasks: Sequence[Subtask]) -> list[Subtask]:
+    """Repair a plan the model may have emitted badly.
+
+    An LLM planner will occasionally produce duplicate ids, self-references,
+    or dependencies on tasks that do not exist. Keying a dict on the raw ids
+    silently dropped whole subtasks, so the repairs are explicit here.
+    """
+    seen: dict[str, int] = {}
+    fixed: list[Subtask] = []
+    for i, task in enumerate(subtasks):
+        tid = task.id or f"s{i + 1}"
+        if tid in seen:  # duplicate id: suffix it rather than lose the task
+            seen[tid] += 1
+            tid = f"{tid}__{seen[tid]}"
+        else:
+            seen[tid] = 0
+        fixed.append(replace(task, id=tid))
+
+    valid = {t.id for t in fixed}
+    out: list[Subtask] = []
+    for task in fixed:
+        deps = tuple(d for d in dict.fromkeys(task.depends_on) if d in valid and d != task.id)
+        out.append(replace(task, depends_on=deps) if deps != task.depends_on else task)
+    return out
+
+
 def _topological_waves(subtasks: Sequence[Subtask]) -> list[list[Subtask]]:
-    """Group subtasks into dependency waves; each wave runs in parallel."""
-    pending = {t.id: t for t in subtasks}
+    """Group subtasks into dependency waves; each wave runs in parallel.
+
+    Input is normalized first, so ids are unique and every dependency refers
+    to a real task. A genuine cycle is broken deterministically by running
+    the lowest-id member of the cycle first.
+    """
+    tasks = normalize_subtasks(subtasks)
+    pending = {t.id: t for t in tasks}
     done: set[str] = set()
     waves: list[list[Subtask]] = []
 
     while pending:
-        wave = [
-            t
-            for t in pending.values()
-            if all(d in done or d not in pending for d in t.depends_on)
-        ]
-        if not wave:  # dependency cycle: run the remainder sequentially
-            wave = [next(iter(pending.values()))]
+        wave = [t for t in pending.values() if all(d in done for d in t.depends_on)]
+        if not wave:
+            # Cycle. Break it deterministically instead of by dict order.
+            stuck = min(pending.values(), key=lambda t: t.id)
+            wave = [stuck]
         waves.append(wave)
         for t in wave:
             pending.pop(t.id, None)

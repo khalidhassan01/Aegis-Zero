@@ -207,10 +207,19 @@ async def test_revision_respects_max_revisions():
     assert result.revisions == 2
 
 
-async def test_fail_verdict_stops_immediately():
-    engine, _ = make(
-        ["bad", '{"verdict":"fail","confidence":0.9,"issues":["unsafe"]}'], max_revisions=3
-    )
+async def test_fail_verdict_gets_one_corrective_attempt():
+    """A "fail" is the strongest signal a revision is needed, but it is
+    capped at one attempt so a harsh verdict cannot burn the whole budget."""
+    fail = '{"verdict":"fail","confidence":0.9,"issues":["unsafe"]}'
+    engine, _ = make(["bad", fail, "better", fail], max_revisions=3)
+    result = await engine.run("hi")
+    assert result.revisions == 1, "capped by max_fail_revisions, not max_revisions"
+    assert not result.ok, "a final fail verdict still marks the run unsuccessful"
+
+
+async def test_fail_verdict_can_be_configured_terminal():
+    fail = '{"verdict":"fail","confidence":0.9,"issues":["unsafe"]}'
+    engine, _ = make(["bad", fail], max_revisions=3, revise_on_fail=False)
     result = await engine.run("hi")
     assert result.revisions == 0 and not result.ok
 
