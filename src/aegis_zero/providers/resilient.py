@@ -72,8 +72,39 @@ class ResilientProvider(LLMProvider):
     async def stream(
         self, messages: Sequence[Message], *, model: str, **kw: Any
     ) -> AsyncIterator[str]:
-        async for piece in self.inner.stream(messages, model=model, **kw):
-            yield piece
+        """Stream with retry and model fallback.
+
+        Retrying a stream is only safe *before* the first token reaches the
+        caller; once output has been yielded a retry would duplicate it. So
+        failures are recoverable up to the first token and fatal after it.
+        """
+        chain = (model, *[m for m in self.fallback_models if m != model])
+        failures: list[str] = []
+
+        for candidate in chain:
+            for attempt in range(self.retry.attempts):
+                emitted = False
+                try:
+                    async for piece in self.inner.stream(messages, model=candidate, **kw):
+                        emitted = True
+                        yield piece
+                    return
+                except AegisError as exc:
+                    failures.append(f"{candidate}: {exc}")
+                    if emitted:
+                        # Partial output is already downstream; retrying
+                        # would duplicate it. Fail loudly instead.
+                        raise
+                    if not getattr(exc, "retryable", False):
+                        break
+                    if attempt == self.retry.attempts - 1:
+                        break
+                    await self._sleep(self.retry.delay_for(attempt, self._rng))
+
+        raise AllProvidersFailed(
+            "all models exhausted (stream)",
+            context={"tried": list(chain), "failures": failures[-4:]},
+        )
 
     async def embed(self, texts: Sequence[str], *, model: str) -> list[list[float]]:
         last: Exception | None = None

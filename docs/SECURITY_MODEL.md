@@ -31,9 +31,33 @@ a file it read). Every defence below sits between the model and the effect.
 
 ### Command execution
 
-A broad regex denies `rm -rf`, `mkfs`, `dd` to block devices, shutdown and
-reboot, fork bombs, recursive `chmod 777 /`, force pushes, `iptables -F`, and
-user deletion. Denial is unconditional — approval cannot override it.
+A regex denies the literal forms of `rm -rf`, `mkfs`, `dd` to block devices,
+shutdown and reboot, fork bombs, recursive `chmod 777 /`, force pushes,
+`iptables -F`, and user deletion. Denial is unconditional — approval cannot
+override it.
+
+**This is a guardrail against mistakes, not a security boundary.** A shell
+has unbounded ways to express the same command, and the denylist is defeated
+by trivial obfuscation:
+
+| Payload | Result |
+|---|---|
+| `rm -rf /` | blocked |
+| `r\'\'m -rf /` | **allowed** |
+| `echo cm0gLXJmIC8= \| base64 -d \| sh` | **allowed** |
+
+Enumerating bad strings cannot be made to work. If a shell tool is exposed to
+an untrusted model, the only effective controls are:
+
+- **Containment** -- run tools in a container, VM, or unprivileged user
+  account with no access to anything that must not be destroyed.
+- **Allowlisting** -- permit a fixed set of commands rather than trying to
+  forbid the dangerous ones.
+- **Do not ship a shell tool.** Prefer narrow, typed tools that cannot
+  express arbitrary commands.
+
+The default configuration in this document sets `denied_tools: ["shell"]`
+for exactly this reason.
 
 ### Secrets
 
