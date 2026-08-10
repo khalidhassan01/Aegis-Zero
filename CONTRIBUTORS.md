@@ -25,11 +25,8 @@ This file recognizes all individuals who have contributed to the Aegis-Zero proj
 | Metric | Value |
 |--------|-------|
 | Total Contributors | 1 |
-| Total Commits | 10+ |
-| Lines of Code | 4,000+ |
-| Files | 28+ |
-| Tests | 18 |
-| Test Coverage | 100% |
+| Tests | 201 |
+| Test Coverage | 86% (branch) |
 
 ---
 

@@ -126,9 +126,9 @@ All dependencies are regularly scanned for vulnerabilities.
 
 ## 📚 Security Documentation
 
-- [AEGIS_ZERO_DEVELOPER_BRIEF.html](AEGIS_ZERO_DEVELOPER_BRIEF.html) - Detailed security architecture
-- [aegis.conf.yaml.txt](aegis.conf.yaml.txt) - Security configuration
-- [AUDIT_REPORT.md](AUDIT_REPORT.md) - Security audit results
+- [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) - Threat model, enforced controls, and known gaps
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Policy evaluation order and trust boundaries
+- [aegis.example.yaml](aegis.example.yaml) - Security-relevant configuration options
 
 ---
 
