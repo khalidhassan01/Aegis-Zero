@@ -118,7 +118,10 @@ class QdrantStore(VectorStore):
                 from qdrant_client import AsyncQdrantClient
             except ImportError as exc:
                 raise MemoryError_("qdrant-client not installed") from exc
-            self._client = AsyncQdrantClient(url=self.url)
+            if self.url in (":memory:", "memory", ":in-memory:"):
+                self._client = AsyncQdrantClient(location=":memory:")
+            else:
+                self._client = AsyncQdrantClient(url=self.url)
         if not self._ready:
             from qdrant_client.models import Distance, VectorParams
 
@@ -187,18 +190,38 @@ class QdrantStore(VectorStore):
             from qdrant_client.models import FieldCondition, Filter, MatchValue
 
             flt = Filter(must=[FieldCondition(key="kind", match=MatchValue(value=kind))])
-        found = await client.search(
-            collection_name=self.collection,
-            query_vector=list(vector),
-            limit=limit,
-            query_filter=flt,
-        )
+        # qdrant-client >= 1.10 renamed ``search`` to ``query_points``; the
+        # old method was removed in 1.19, so use the current API.
+        try:
+            resp = await client.query_points(
+                collection_name=self.collection,
+                query=list(vector),
+                limit=limit,
+                query_filter=flt,
+                with_payload=True,
+            )
+        except AttributeError:
+            # Fall back for very old clients that still expose ``search``.
+            found = await client.search(
+                collection_name=self.collection,
+                query_vector=list(vector),
+                limit=limit,
+                query_filter=flt,
+            )
+            return [
+                Hit(
+                    self._episode((p.payload or {}).get("eid", p.id), p.payload or {}),
+                    float(p.score),
+                )
+                for p in found
+            ]
+        points = resp.points if hasattr(resp, "points") else resp
         return [
             Hit(
                 self._episode((p.payload or {}).get("eid", p.id), p.payload or {}),
                 float(p.score),
             )
-            for p in found
+            for p in points
         ]
 
     async def get(self, episode_id: str) -> Episode | None:
