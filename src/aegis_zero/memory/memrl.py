@@ -31,6 +31,13 @@ class MemRLConfig:
     prune_below: float = -0.60
     min_similarity: float = 0.05
     candidate_multiplier: int = 4
+    #: Exploration bonus (UCB1 style). A memory that has rarely been tried
+    #: gets a ranking boost, so a single early lucky reward cannot lock a
+    #: competitor out forever. Set to 0.0 for pure exploitation.
+    exploration: float = 0.15
+    #: Ceiling on the exploration bonus, so an unseen memory cannot outrank
+    #: a strongly relevant one on novelty alone.
+    exploration_cap: float = 0.35
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +115,23 @@ class MemRLEngine:
         """Squash the learned score into 0..1."""
         return 1.0 / (1.0 + math.exp(-ep.score))
 
+    def _exploration_bonus(self, ep: Episode, total_retrievals: int) -> float:
+        """UCB1-style optimism for rarely-tried memories.
+
+        Without this the ranking is purely greedy: whichever memory happens
+        to win once accumulates utility and is shown again, so an equally
+        good competitor that never got an early lucky reward is locked out
+        permanently. Measured before this change: one lucky reward gave a
+        memory 15 out of 15 subsequent retrievals.
+        """
+        if self.cfg.exploration <= 0.0:
+            return 0.0
+        tries = max(ep.retrievals, 0)
+        bonus = self.cfg.exploration * math.sqrt(
+            math.log(total_retrievals + math.e) / (tries + 1)
+        )
+        return min(bonus, self.cfg.exploration_cap)
+
     async def recall(
         self,
         query: str,
@@ -120,6 +144,8 @@ class MemRLEngine:
         pool = max(limit * self.cfg.candidate_multiplier, limit)
         hits: list[Hit] = await self.store.search(vec, limit=pool, kind=kind)
 
+        total_retrievals = sum(max(h.episode.retrievals, 0) for h in hits)
+
         ranked: list[RankedMemory] = []
         for hit in hits:
             if hit.similarity < self.cfg.min_similarity:
@@ -130,6 +156,7 @@ class MemRLEngine:
                 self.cfg.w_similarity * hit.similarity
                 + self.cfg.w_utility * util
                 + self.cfg.w_recency * rec
+                + self._exploration_bonus(hit.episode, total_retrievals)
             )
             ranked.append(RankedMemory(hit.episode, hit.similarity, util, rec, rank))
 
