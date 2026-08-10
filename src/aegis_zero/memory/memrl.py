@@ -98,17 +98,97 @@ class MemRLEngine:
             text=text,
             kind=kind,
             created_at=self._clock(),
+            asserted_at=self._clock(),
             metadata=metadata or {},
         )
         vec = await self.embedder.embed_one(text)
         await self.store.upsert(ep, vec)
+        # Contradiction handling: if a stable entity_key is supplied, any
+        # older memory with the same key is superseded (deprecated + given a
+        # short validity tail) rather than both coexisting as equals. This is
+        # conservative -- the key is caller-supplied, never inferred, so we
+        # never risk wrongly deprecating an unrelated memory.
+        key = ep.entity_key
+        if key:
+            await self._supersede(key, ep.id)
         return ep
+
+    async def _supersede(self, entity_key: str, new_id: str) -> int:
+        """Deprecate older memories sharing ``entity_key`` (P6.5)."""
+        now = self._clock()
+        superseded = 0
+        for old in await self.store.all(limit=10_000):
+            if old.id == new_id or old.entity_key != entity_key:
+                continue
+            if old.deprecated:
+                continue
+            updated = replace(old, deprecated=True, valid_until=now + 30 * 86_400.0)
+            await self.store.update(updated)
+            superseded += 1
+        return superseded
+
+    async def invalidate(self, episode_id: str, *, reason: str = "") -> Episode | None:
+        """Explicitly mark a memory as no longer true (verifier/P1 found it
+        wrong). Tombstones rather than deletes, keeping the corpus reversible.
+        """
+        ep = await self.store.get(episode_id)
+        if ep is None:
+            return None
+        updated = replace(
+            ep,
+            deprecated=True,
+            valid_until=self._clock(),
+            metadata={**ep.metadata, "invalidated": reason or True},
+        )
+        await self.store.update(updated)
+        return updated
+
+    async def invalidate_by_entity(self, entity_key: str, *, reason: str = "") -> int:
+        """Deprecate every (non-deprecated) memory with this entity key."""
+        now = self._clock()
+        count = 0
+        for old in await self.store.all(limit=10_000):
+            if old.entity_key != entity_key or old.deprecated:
+                continue
+            await self.store.update(
+                replace(
+                    old,
+                    deprecated=True,
+                    valid_until=now,
+                    metadata={**old.metadata, "invalidated": reason or True},
+                )
+            )
+            count += 1
+        return count
+
+    async def invalidate_by_ids(self, episode_ids: Sequence[str], *, reason: str = "") -> int:
+        """Deprecate specific memories by id (e.g. ones that were in context
+        when the verifier caught a hard factual error)."""
+        count = 0
+        for eid in episode_ids:
+            if await self.invalidate(eid, reason=reason) is not None:
+                count += 1
+        return count
 
     # -- read --------------------------------------------------------
 
     def _recency(self, created_at: float) -> float:
         age_days = max(0.0, (self._clock() - created_at) / 86_400.0)
         return 0.5 ** (age_days / self.cfg.half_life_days)
+
+    def _validity(self, ep: Episode, now: float) -> float:
+        """Gate a memory's rank by whether it is still true.
+
+        1.0 while the fact is valid; decays toward 0 after ``valid_until`` so
+        a fact that became false is not deleted outright (reversible) yet is
+        pushed below still-true competitors.
+        """
+        if ep.is_valid(now):
+            return 1.0
+        stale_days = max(0.0, (now - (ep.valid_until or now)) / 86_400.0)
+        # ~half weight after 30 days stale, floor at 0.05 so it stays findable
+        # for manual correction.
+        return max(0.05, 0.5 ** (stale_days / 30.0))
 
     @staticmethod
     def _utility(ep: Episode) -> float:
@@ -152,12 +232,13 @@ class MemRLEngine:
                 continue
             util = self._utility(hit.episode)
             rec = self._recency(hit.episode.created_at)
+            validity = self._validity(hit.episode, self._clock())
             rank = (
                 self.cfg.w_similarity * hit.similarity
                 + self.cfg.w_utility * util
                 + self.cfg.w_recency * rec
                 + self._exploration_bonus(hit.episode, total_retrievals)
-            )
+            ) * validity
             ranked.append(RankedMemory(hit.episode, hit.similarity, util, rec, rank))
 
         ranked.sort(key=lambda r: r.rank, reverse=True)

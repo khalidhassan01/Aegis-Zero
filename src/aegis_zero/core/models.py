@@ -169,7 +169,14 @@ class RunState:
 
 @dataclass(frozen=True, slots=True)
 class Episode:
-    """A memory record scored by the MemRL engine."""
+    """A memory record scored by the MemRL engine.
+
+    Bi-temporal: ``asserted_at`` is when the fact was learned, ``valid_until``
+    is when it stopped being true (None = still valid). A memory whose
+    ``valid_until`` is in the past is deprecated rather than deleted, so the
+    corpus stays reversible and a contradiction can be resolved without
+    destroying history.
+    """
 
     id: str
     text: str
@@ -179,4 +186,25 @@ class Episode:
     selections: int = 0
     reward: float = 0.0
     created_at: float = field(default_factory=time.time)
+    asserted_at: float = field(default_factory=time.time)
+    valid_until: float | None = None
+    deprecated: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def entity_key(self) -> str | None:
+        """Stable identity used for contradiction detection.
+
+        Supplied by the caller (e.g. ``metadata["entity_key"]``); never
+        guessed from text, which would risk false positives that silently
+        deprecate correct memories.
+        """
+        key = self.metadata.get("entity_key")
+        return str(key) if key else None
+
+    def is_valid(self, now: float) -> bool:
+        if self.deprecated:
+            return False
+        if self.valid_until is None:
+            return True
+        return now <= self.valid_until

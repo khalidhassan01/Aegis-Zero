@@ -131,13 +131,15 @@ step to cite the memory ids it used, and rewarding only those.
 Do this after P1, because the reward signal is only as good as the verifier
 that produces it.
 
-## P6.5 — Temporal validity and contradiction handling  *(complexity: M)*
+## P6.5 — Temporal validity and contradiction handling  *(complexity: M)* — **DONE**
 
 The memory store has no notion of *when* a fact was true. A memory such as
 "the user lives in X" can become false and still rank highly, and two
 contradictory memories about the same entity coexist with no way to decide
 which is current. This directly poisons generations and is the highest-value
 gap the memory audit surfaced that the earlier fixes did not touch.
+
+**Implemented** (see `tests/test_temporal_validity.py`, 6 tests):
 
 Design (lowest-risk version, no new ML):
 

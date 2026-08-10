@@ -147,6 +147,9 @@ class QdrantStore(VectorStore):
             "selections": ep.selections,
             "reward": ep.reward,
             "created_at": ep.created_at,
+            "asserted_at": ep.asserted_at,
+            "valid_until": ep.valid_until,
+            "deprecated": ep.deprecated,
             "metadata": ep.metadata,
         }
 
@@ -161,6 +164,11 @@ class QdrantStore(VectorStore):
             selections=int(payload.get("selections", 0)),
             reward=float(payload.get("reward", 0.0)),
             created_at=float(payload.get("created_at", time.time())),
+            asserted_at=float(
+                payload.get("asserted_at", payload.get("created_at", time.time()))
+            ),
+            valid_until=payload.get("valid_until"),
+            deprecated=bool(payload.get("deprecated", False)),
             metadata=payload.get("metadata") or {},
         )
 

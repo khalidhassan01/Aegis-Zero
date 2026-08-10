@@ -202,10 +202,15 @@ class AgentEngine:
         answer = await self._synthesize(goal, plan, outputs, state, budget)
 
         if self.cfg.enable_critique:
-            answer, critique, revisions = await self._critique_loop(
+            answer, critique, revisions, verification = await self._critique_loop(
                 goal, answer, recon, state, budget
             )
             result.critique, result.revisions = critique, revisions
+            # P6.5: a hard factual check failure means a recalled memory likely
+            # fed a wrong claim. Tombstone the memories that were in context so
+            # they stop ranking highly, rather than poisoning future runs.
+            if verification.hard_failures and self.memory and result.memory_ids:
+                await self.memory.invalidate_by_ids(result.memory_ids, reason="failed verifier")
 
         result.answer = answer
         result.ok = result.critique is None or result.critique.verdict != "fail"
@@ -480,7 +485,7 @@ class AgentEngine:
                     step=f"audit:{revisions}",
                 )
             )
-        return answer, critique, revisions
+        return answer, critique, revisions, verification
 
     def _revision_cap(self, critique: Critique) -> int:
         """How many revisions this verdict is allowed to trigger."""
