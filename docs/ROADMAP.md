@@ -131,6 +131,53 @@ step to cite the memory ids it used, and rewarding only those.
 Do this after P1, because the reward signal is only as good as the verifier
 that produces it.
 
+## P6.5 — Temporal validity and contradiction handling  *(complexity: M)*
+
+The memory store has no notion of *when* a fact was true. A memory such as
+"the user lives in X" can become false and still rank highly, and two
+contradictory memories about the same entity coexist with no way to decide
+which is current. This directly poisons generations and is the highest-value
+gap the memory audit surfaced that the earlier fixes did not touch.
+
+Design (lowest-risk version, no new ML):
+
+- Each episode stores an `(asserted_at, valid_until)` pair.
+- On write, run a cheap contradiction check against existing episodes that
+  share the same normalized entity key (the same kind of identity match the
+  policy engine already does for paths/hosts). On conflict, set the older
+  episode's `valid_until` and flag it deprecated rather than deleting it.
+- Ranking multiplies by a validity gate: `1.0` while valid, decaying toward
+  `0.0` after `valid_until`.
+- An explicit invalidation path, triggered by a verifier (P1) detecting a
+  wrong claim, sets `valid_until = now` on the responsible memory.
+
+Keep it as tombstoning, not deletion, so the corpus stays reversible for
+ablation. This is independent of P6 (which is about *credit*, this about
+*validity*) and does not need the verifier first.
+
+---
+
+## Corrections to the research inputs
+
+Two claims from the memory-architecture sub-report were checked against the
+code and the running system, and are **not** accurate as applied here:
+
+- *"There is no decay."* False. `MemRLEngine.consolidate()` subtracts
+  `decay_per_batch * log1p(retrievals)` from every unused episode each
+  consolidation pass, and prunes below `prune_below`. The decay exists; it is
+  only absent from the *per-reward* rule, which is a different (and minor)
+  point.
+- *"Repeated success pushes score to infinity; the update rule has a dead
+  zone."* False. The rule is `score += lr * (reward - tanh(score))`, which
+  is self-limiting: 500 consecutive `+1` rewards reach `2.64`, and `pytest`
+  pins this. There is no divergence and no saturation dead zone in practice.
+
+The sub-report's valid, unaddressed findings are the ones captured above:
+coarse credit assignment (P6), popularity bias (fixed in AUDIT-10), and
+temporal validity (P6.5). Its suggestion to *learn* the ranking weights via
+a pointwise model is reasonable but premature until P1/P6 give a trustworthy
+label signal.
+
 ---
 
 ## Deliberately not doing
