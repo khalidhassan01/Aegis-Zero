@@ -157,6 +157,10 @@ class RunState:
     usage: Usage = field(default_factory=Usage)
     started_at: float = field(default_factory=time.monotonic)
     cancelled: bool = False
+    #: Tool result payloads accumulated during the run, exposed to the
+    #: verifier so it can confirm the answer does not contradict what tools
+    #: actually returned.
+    tool_outputs: list = field(default_factory=list)
 
     @property
     def elapsed(self) -> float:

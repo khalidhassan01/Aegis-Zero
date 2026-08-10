@@ -57,6 +57,7 @@ from .agents import (
     scout_prompt,
 )
 from .context import ContextBuilder
+from .verifier import run_default_checks
 
 SYNTHESIS_SYSTEM = """You are the Synthesizer in Aegis Zero. Merge the
 subtask results into one coherent answer for the user. Resolve conflicts
@@ -378,6 +379,7 @@ class AgentEngine:
             )
             await self._emit(EventType.TOOL_START, state, {"tool": call.name})
             out = await self.registry.execute(call.name, args, call_id=call.id)
+            state.tool_outputs.append(out)
             await self._emit(
                 EventType.TOOL_END,
                 state,
@@ -415,6 +417,14 @@ class AgentEngine:
     async def _critique_loop(
         self, goal: str, answer: str, recon: str, state: RunState, budget: Budget
     ) -> tuple[str, Critique, int]:
+        # Deterministic verification runs BEFORE the LLM auditor. A hard
+        # check failure (e.g. a wrong arithmetic total) forces a revision
+        # regardless of what the model says about its own answer -- this is
+        # the external signal intrinsic self-correction lacks
+        # (Huang et al., ICLR 2024).
+        verification = run_default_checks(goal, answer, list(state.tool_outputs))
+        forced = bool(verification.hard_failures)
+
         critique = parse_critique(
             await self._call(
                 auditor_prompt(goal, answer),
@@ -424,6 +434,14 @@ class AgentEngine:
                 step="audit",
             )
         )
+        if forced and critique.verdict == "pass":
+            # The model is overconfident; downgrade so the revision loop runs.
+            critique = Critique(
+                "revise",
+                min(critique.confidence, 0.4),
+                tuple(v.detail for v in verification.hard_failures),
+                verification.report,
+            )
         revisions = 0
         # A "fail" verdict previously skipped revision entirely, so the worst
         # answers were the only ones never corrected. That is defensible if
