@@ -1,4 +1,5 @@
 """Structured tracing, metrics, and JSONL trace export."""
+
 from __future__ import annotations
 
 import json
@@ -14,8 +15,9 @@ from ..core.events import Event, EventBus, EventType
 from ..tools.policy import redact
 
 
-def configure_logging(level: str = "INFO", *, json_format: bool = False,
-                      stream: TextIO | None = None) -> logging.Logger:
+def configure_logging(
+    level: str = "INFO", *, json_format: bool = False, stream: TextIO | None = None
+) -> logging.Logger:
     """Configure the ``aegis`` logger. Idempotent."""
     logger = logging.getLogger("aegis")
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
@@ -24,9 +26,9 @@ def configure_logging(level: str = "INFO", *, json_format: bool = False,
     if json_format:
         handler.setFormatter(_JsonFormatter())
     else:
-        handler.setFormatter(logging.Formatter(
-            "%(asctime)s %(levelname)-7s %(name)s: %(message)s", "%H:%M:%S"
-        ))
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s %(levelname)-7s %(name)s: %(message)s", "%H:%M:%S")
+        )
     logger.addHandler(handler)
     logger.propagate = False
     return logger
@@ -88,18 +90,24 @@ class Metrics:
 
     def snapshot(self) -> dict[str, Any]:
         lat = sorted(self.latencies_ms)
+
         def pct(p: float) -> float:
             if not lat:
                 return 0.0
             return round(lat[min(len(lat) - 1, int(len(lat) * p))], 1)
+
         return {
-            "runs": self.runs, "runs_failed": self.runs_failed,
-            "llm_calls": self.llm_calls, "tool_calls": self.tool_calls,
-            "tool_failures": self.tool_failures, "tokens": self.tokens,
+            "runs": self.runs,
+            "runs_failed": self.runs_failed,
+            "llm_calls": self.llm_calls,
+            "tool_calls": self.tool_calls,
+            "tool_failures": self.tool_failures,
+            "tokens": self.tokens,
             "approvals_requested": self.approvals_requested,
             "approvals_denied": self.approvals_denied,
             "policy_denials": self.policy_denials,
-            "latency_p50_ms": pct(0.5), "latency_p95_ms": pct(0.95),
+            "latency_p50_ms": pct(0.5),
+            "latency_p95_ms": pct(0.95),
             "per_tool": dict(self.per_tool),
         }
 
@@ -112,8 +120,12 @@ class TraceRecorder:
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def __call__(self, event: Event) -> None:
-        row = {"ts": event.at, "type": event.type.value,
-               "run_id": event.run_id, "data": event.data}
+        row = {
+            "ts": event.at,
+            "type": event.type.value,
+            "run_id": event.run_id,
+            "data": event.data,
+        }
         with self.path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
 
@@ -134,22 +146,37 @@ class LogSubscriber:
         elif t is EventType.RUN_END:
             self.log.info("[%s] run end: %s", short, d)
         elif t is EventType.LLM_END:
-            self.log.debug("[%s] llm %s tokens=%s %sms", short, d.get("step"),
-                           d.get("tokens"), d.get("latency_ms"))
+            self.log.debug(
+                "[%s] llm %s tokens=%s %sms",
+                short,
+                d.get("step"),
+                d.get("tokens"),
+                d.get("latency_ms"),
+            )
         elif t is EventType.TOOL_END:
             level = self.log.debug if d.get("ok") else self.log.warning
-            level("[%s] tool %s ok=%s %s", short, d.get("tool"),
-                  d.get("ok"), d.get("error") or "")
+            level(
+                "[%s] tool %s ok=%s %s", short, d.get("tool"), d.get("ok"), d.get("error") or ""
+            )
         elif t is EventType.POLICY_DECISION and d.get("decision") in ("deny", "approve"):
-            self.log.warning("[%s] policy %s on %s: %s", short, d.get("decision"),
-                             d.get("tool"), d.get("reason"))
+            self.log.warning(
+                "[%s] policy %s on %s: %s",
+                short,
+                d.get("decision"),
+                d.get("tool"),
+                d.get("reason"),
+            )
         elif t is EventType.RUN_ERROR:
             self.log.error("[%s] run error: %s", short, d.get("error"))
 
 
-def instrument(bus: EventBus, *, metrics: Metrics | None = None,
-               trace_path: str | Path | None = None,
-               logger: logging.Logger | None = None) -> Metrics:
+def instrument(
+    bus: EventBus,
+    *,
+    metrics: Metrics | None = None,
+    trace_path: str | Path | None = None,
+    logger: logging.Logger | None = None,
+) -> Metrics:
     """Attach logging, metrics, and optional trace recording to a bus."""
     m = metrics or Metrics()
     bus.subscribe(m.observe)

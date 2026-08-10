@@ -1,4 +1,5 @@
 """Vector store abstraction with an always-available in-process backend."""
+
 from __future__ import annotations
 
 import abc
@@ -34,8 +35,9 @@ class VectorStore(abc.ABC):
     async def upsert(self, episode: Episode, vector: Sequence[float]) -> str: ...
 
     @abc.abstractmethod
-    async def search(self, vector: Sequence[float], *, limit: int = 6,
-                     kind: str | None = None) -> list[Hit]: ...
+    async def search(
+        self, vector: Sequence[float], *, limit: int = 6, kind: str | None = None
+    ) -> list[Hit]: ...
 
     @abc.abstractmethod
     async def get(self, episode_id: str) -> Episode | None: ...
@@ -50,7 +52,7 @@ class VectorStore(abc.ABC):
     async def delete(self, episode_id: str) -> bool: ...
 
     async def count(self) -> int:
-        return len(await self.all(limit=10 ** 6))
+        return len(await self.all(limit=10**6))
 
 
 class InMemoryStore(VectorStore):
@@ -67,8 +69,9 @@ class InMemoryStore(VectorStore):
         self._vecs[eid] = list(vector)
         return eid
 
-    async def search(self, vector: Sequence[float], *, limit: int = 6,
-                     kind: str | None = None) -> list[Hit]:
+    async def search(
+        self, vector: Sequence[float], *, limit: int = 6, kind: str | None = None
+    ) -> list[Hit]:
         scored = [
             Hit(ep, cosine(vector, self._vecs.get(eid, [])))
             for eid, ep in self._eps.items()
@@ -96,9 +99,13 @@ class InMemoryStore(VectorStore):
 class QdrantStore(VectorStore):
     """Qdrant-backed store. Imported lazily so Qdrant stays optional."""
 
-    def __init__(self, url: str = "http://127.0.0.1:6333",
-                 collection: str = "aegis_episodes",
-                 vector_size: int = 768, client: Any = None) -> None:
+    def __init__(
+        self,
+        url: str = "http://127.0.0.1:6333",
+        collection: str = "aegis_episodes",
+        vector_size: int = 768,
+        client: Any = None,
+    ) -> None:
         self.url = url
         self.collection = collection
         self.vector_size = vector_size
@@ -120,81 +127,109 @@ class QdrantStore(VectorStore):
             if self.collection not in names:
                 await self._client.create_collection(
                     collection_name=self.collection,
-                    vectors_config=VectorParams(size=self.vector_size,
-                                                distance=Distance.COSINE),
+                    vectors_config=VectorParams(
+                        size=self.vector_size, distance=Distance.COSINE
+                    ),
                 )
             self._ready = True
         return self._client
 
     @staticmethod
     def _payload(ep: Episode) -> dict[str, Any]:
-        return {"text": ep.text, "kind": ep.kind, "score": ep.score,
-                "retrievals": ep.retrievals, "selections": ep.selections,
-                "reward": ep.reward, "created_at": ep.created_at,
-                "metadata": ep.metadata}
+        return {
+            "text": ep.text,
+            "kind": ep.kind,
+            "score": ep.score,
+            "retrievals": ep.retrievals,
+            "selections": ep.selections,
+            "reward": ep.reward,
+            "created_at": ep.created_at,
+            "metadata": ep.metadata,
+        }
 
     @staticmethod
     def _episode(pid: str, payload: dict[str, Any]) -> Episode:
-        return Episode(id=str(pid), text=payload.get("text", ""),
-                       kind=payload.get("kind", "episode"),
-                       score=float(payload.get("score", 0.0)),
-                       retrievals=int(payload.get("retrievals", 0)),
-                       selections=int(payload.get("selections", 0)),
-                       reward=float(payload.get("reward", 0.0)),
-                       created_at=float(payload.get("created_at", time.time())),
-                       metadata=payload.get("metadata") or {})
+        return Episode(
+            id=str(pid),
+            text=payload.get("text", ""),
+            kind=payload.get("kind", "episode"),
+            score=float(payload.get("score", 0.0)),
+            retrievals=int(payload.get("retrievals", 0)),
+            selections=int(payload.get("selections", 0)),
+            reward=float(payload.get("reward", 0.0)),
+            created_at=float(payload.get("created_at", time.time())),
+            metadata=payload.get("metadata") or {},
+        )
 
     async def upsert(self, episode: Episode, vector: Sequence[float]) -> str:
         from qdrant_client.models import PointStruct
 
         client = await self._ensure()
         eid = episode.id or new_id("ep")
-        await client.upsert(collection_name=self.collection, points=[
-            PointStruct(id=_uuid_of(eid), vector=list(vector),
-                        payload={**self._payload(episode), "eid": eid})
-        ])
+        await client.upsert(
+            collection_name=self.collection,
+            points=[
+                PointStruct(
+                    id=_uuid_of(eid),
+                    vector=list(vector),
+                    payload={**self._payload(episode), "eid": eid},
+                )
+            ],
+        )
         return eid
 
-    async def search(self, vector: Sequence[float], *, limit: int = 6,
-                     kind: str | None = None) -> list[Hit]:
+    async def search(
+        self, vector: Sequence[float], *, limit: int = 6, kind: str | None = None
+    ) -> list[Hit]:
         client = await self._ensure()
         flt = None
         if kind:
             from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-            flt = Filter(must=[FieldCondition(key="kind",
-                                              match=MatchValue(value=kind))])
-        found = await client.search(collection_name=self.collection,
-                                    query_vector=list(vector),
-                                    limit=limit, query_filter=flt)
-        return [Hit(self._episode((p.payload or {}).get("eid", p.id), p.payload or {}),
-                    float(p.score)) for p in found]
+            flt = Filter(must=[FieldCondition(key="kind", match=MatchValue(value=kind))])
+        found = await client.search(
+            collection_name=self.collection,
+            query_vector=list(vector),
+            limit=limit,
+            query_filter=flt,
+        )
+        return [
+            Hit(
+                self._episode((p.payload or {}).get("eid", p.id), p.payload or {}),
+                float(p.score),
+            )
+            for p in found
+        ]
 
     async def get(self, episode_id: str) -> Episode | None:
         client = await self._ensure()
-        pts = await client.retrieve(collection_name=self.collection,
-                                    ids=[_uuid_of(episode_id)])
+        pts = await client.retrieve(collection_name=self.collection, ids=[_uuid_of(episode_id)])
         if not pts:
             return None
         return self._episode(episode_id, pts[0].payload or {})
 
     async def update(self, episode: Episode) -> None:
         client = await self._ensure()
-        await client.set_payload(collection_name=self.collection,
-                                 payload=self._payload(episode),
-                                 points=[_uuid_of(episode.id)])
+        await client.set_payload(
+            collection_name=self.collection,
+            payload=self._payload(episode),
+            points=[_uuid_of(episode.id)],
+        )
 
     async def all(self, limit: int = 1000) -> list[Episode]:
         client = await self._ensure()
-        points, _ = await client.scroll(collection_name=self.collection,
-                                        limit=limit, with_payload=True)
-        return [self._episode((p.payload or {}).get("eid", p.id), p.payload or {})
-                for p in points]
+        points, _ = await client.scroll(
+            collection_name=self.collection, limit=limit, with_payload=True
+        )
+        return [
+            self._episode((p.payload or {}).get("eid", p.id), p.payload or {}) for p in points
+        ]
 
     async def delete(self, episode_id: str) -> bool:
         client = await self._ensure()
-        await client.delete(collection_name=self.collection,
-                            points_selector=[_uuid_of(episode_id)])
+        await client.delete(
+            collection_name=self.collection, points_selector=[_uuid_of(episode_id)]
+        )
         return True
 
 

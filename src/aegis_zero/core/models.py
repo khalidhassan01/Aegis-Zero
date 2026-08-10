@@ -1,4 +1,5 @@
 """Typed domain models. Pure data, no I/O, no side effects."""
+
 from __future__ import annotations
 
 import json
@@ -129,8 +130,7 @@ class ToolResult:
 
     def as_message(self) -> Message:
         body = str(self.output) if self.ok else f"ERROR: {self.error}"
-        return Message(role="tool", content=body, name=self.tool,
-                       tool_call_id=self.call_id)
+        return Message(role="tool", content=body, name=self.tool, tool_call_id=self.call_id)
 
 
 @dataclass(slots=True)

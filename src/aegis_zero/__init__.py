@@ -1,15 +1,16 @@
 """Aegis Zero - a state-of-the-art agentic runtime.
 
-    import asyncio
-    from aegis_zero import build_agent
+import asyncio
+from aegis_zero import build_agent
 
-    async def main():
-        async with build_agent() as agent:
-            result = await agent.ask("What is the capital of Morocco?")
-            print(result.answer)
+async def main():
+    async with build_agent() as agent:
+        result = await agent.ask("What is the capital of Morocco?")
+        print(result.answer)
 
-    asyncio.run(main())
+asyncio.run(main())
 """
+
 from __future__ import annotations
 
 __version__ = "2.0.0"

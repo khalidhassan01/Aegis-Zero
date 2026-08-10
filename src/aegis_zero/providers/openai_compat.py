@@ -1,5 +1,6 @@
 """OpenAI-compatible provider. Works with OpenAI, vLLM, LiteLLM, Ollama's
 /v1 shim, and any local router exposing the same contract."""
+
 from __future__ import annotations
 
 import json
@@ -55,21 +56,18 @@ class OpenAICompatProvider(LLMProvider):
                 f"{self.base_url}{path}", json=payload, headers=self._headers()
             )
         except httpx.TimeoutException as exc:
-            raise ProviderTimeout("request timed out",
-                                  context={"path": path}) from exc
+            raise ProviderTimeout("request timed out", context={"path": path}) from exc
         except httpx.HTTPError as exc:
-            raise ProviderUnavailable("transport failure",
-                                      context={"path": path}) from exc
+            raise ProviderUnavailable("transport failure", context={"path": path}) from exc
 
         if resp.status_code == 429:
             raise ProviderRateLimited("rate limited", context={"path": path})
         if resp.status_code >= 500:
-            raise ProviderUnavailable("upstream error",
-                                      context={"status": resp.status_code})
+            raise ProviderUnavailable("upstream error", context={"status": resp.status_code})
         if resp.status_code >= 400:
-            raise ProviderError("bad request",
-                                context={"status": resp.status_code,
-                                         "body": resp.text[:300]})
+            raise ProviderError(
+                "bad request", context={"status": resp.status_code, "body": resp.text[:300]}
+            )
         try:
             return resp.json()
         except ValueError as exc:
@@ -139,12 +137,10 @@ class OpenAICompatProvider(LLMProvider):
 
         client = await self._http()
         async with client.stream(
-            "POST", f"{self.base_url}/chat/completions",
-            json=payload, headers=self._headers()
+            "POST", f"{self.base_url}/chat/completions", json=payload, headers=self._headers()
         ) as resp:
             if resp.status_code >= 400:
-                raise ProviderError("stream failed",
-                                    context={"status": resp.status_code})
+                raise ProviderError("stream failed", context={"status": resp.status_code})
             async for line in resp.aiter_lines():
                 if not line.startswith("data:"):
                     continue
@@ -185,7 +181,10 @@ def _parse_tool_calls(raw: Any) -> tuple[ToolCall, ...]:
             except ValueError:
                 args = {"_raw": args}
         calls.append(
-            ToolCall(name=fn.get("name", ""), arguments=args or {},
-                     id=item.get("id") or "call_unknown")
+            ToolCall(
+                name=fn.get("name", ""),
+                arguments=args or {},
+                id=item.get("id") or "call_unknown",
+            )
         )
     return tuple(calls)

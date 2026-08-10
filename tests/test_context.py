@@ -36,8 +36,9 @@ async def test_short_history_is_untouched():
 async def test_memories_are_injected_and_tracked():
     mem = MemRLEngine(InMemoryStore(), Embedder(EchoProvider(vector_size=32), "e"))
     ep = await mem.remember("Rabat is the capital of Morocco")
-    packet = await ContextBuilder(mem).build("Rabat is the capital of Morocco",
-                                             [], system="SYS")
+    packet = await ContextBuilder(mem).build(
+        "Rabat is the capital of Morocco", [], system="SYS"
+    )
     assert "Rabat" in packet.system
     assert ep.id in packet.memory_ids
 
@@ -53,8 +54,9 @@ async def test_memory_failure_degrades_gracefully():
 
 
 async def test_extra_context_rendered():
-    packet = await ContextBuilder().build("g", [], system="S",
-                                          extra={"reconnaissance": "notes here"})
+    packet = await ContextBuilder().build(
+        "g", [], system="S", extra={"reconnaissance": "notes here"}
+    )
     assert "notes here" in packet.system
 
 

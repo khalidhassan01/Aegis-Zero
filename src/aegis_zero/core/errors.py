@@ -3,6 +3,7 @@
 Every failure mode in the system maps to exactly one of these. Nothing is
 swallowed: callers either handle a specific subclass or let it propagate.
 """
+
 from __future__ import annotations
 
 

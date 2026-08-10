@@ -1,4 +1,5 @@
 """Memory subsystem: vector stores and reinforcement-weighted retrieval."""
+
 from ..core.config import MemorySettings
 from ..core.errors import ConfigError
 from .memrl import (
@@ -32,6 +33,7 @@ def build_store(settings: MemorySettings) -> VectorStore:
     if backend in ("memory", "inmemory", "local"):
         return InMemoryStore()
     if backend == "qdrant":
-        return QdrantStore(url=settings.url, collection=settings.collection,
-                           vector_size=settings.vector_size)
+        return QdrantStore(
+            url=settings.url, collection=settings.collection, vector_size=settings.vector_size
+        )
     raise ConfigError("unknown memory backend", context={"backend": settings.backend})

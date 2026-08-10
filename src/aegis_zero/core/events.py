@@ -3,6 +3,7 @@
 Streaming UIs, tracing, and cost accounting all subscribe rather than
 being wired into the orchestrator.
 """
+
 from __future__ import annotations
 
 import asyncio

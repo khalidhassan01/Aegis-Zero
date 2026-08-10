@@ -7,6 +7,7 @@ memories that mislead decay out.
 
 Final rank = w_sim * similarity + w_util * utility + w_rec * recency
 """
+
 from __future__ import annotations
 
 import math
@@ -44,8 +45,9 @@ class RankedMemory:
 class Embedder:
     """Adapts an LLM provider's embedding endpoint, with caching."""
 
-    def __init__(self, provider: Any, model: str = "nomic-embed-text",
-                 cache_size: int = 512) -> None:
+    def __init__(
+        self, provider: Any, model: str = "nomic-embed-text", cache_size: int = 512
+    ) -> None:
         self.provider = provider
         self.model = model
         self._cache: dict[str, list[float]] = {}
@@ -67,9 +69,13 @@ class Embedder:
 class MemRLEngine:
     """Retrieval, reward attribution, and consolidation over a VectorStore."""
 
-    def __init__(self, store: VectorStore, embedder: Embedder,
-                 config: MemRLConfig | None = None,
-                 clock: Any = time.time) -> None:
+    def __init__(
+        self,
+        store: VectorStore,
+        embedder: Embedder,
+        config: MemRLConfig | None = None,
+        clock: Any = time.time,
+    ) -> None:
         self.store = store
         self.embedder = embedder
         self.cfg = config or MemRLConfig()
@@ -77,10 +83,16 @@ class MemRLEngine:
 
     # -- write -------------------------------------------------------
 
-    async def remember(self, text: str, *, kind: str = "episode",
-                       metadata: dict[str, Any] | None = None) -> Episode:
-        ep = Episode(id=new_id("ep"), text=text, kind=kind,
-                     created_at=self._clock(), metadata=metadata or {})
+    async def remember(
+        self, text: str, *, kind: str = "episode", metadata: dict[str, Any] | None = None
+    ) -> Episode:
+        ep = Episode(
+            id=new_id("ep"),
+            text=text,
+            kind=kind,
+            created_at=self._clock(),
+            metadata=metadata or {},
+        )
         vec = await self.embedder.embed_one(text)
         await self.store.upsert(ep, vec)
         return ep
@@ -96,9 +108,14 @@ class MemRLEngine:
         """Squash the learned score into 0..1."""
         return 1.0 / (1.0 + math.exp(-ep.score))
 
-    async def recall(self, query: str, *, limit: int = 6,
-                     kind: str | None = None,
-                     mark_retrieved: bool = True) -> list[RankedMemory]:
+    async def recall(
+        self,
+        query: str,
+        *,
+        limit: int = 6,
+        kind: str | None = None,
+        mark_retrieved: bool = True,
+    ) -> list[RankedMemory]:
         vec = await self.embedder.embed_one(query)
         pool = max(limit * self.cfg.candidate_multiplier, limit)
         hits: list[Hit] = await self.store.search(vec, limit=pool, kind=kind)
@@ -109,9 +126,11 @@ class MemRLEngine:
                 continue
             util = self._utility(hit.episode)
             rec = self._recency(hit.episode.created_at)
-            rank = (self.cfg.w_similarity * hit.similarity
-                    + self.cfg.w_utility * util
-                    + self.cfg.w_recency * rec)
+            rank = (
+                self.cfg.w_similarity * hit.similarity
+                + self.cfg.w_utility * util
+                + self.cfg.w_recency * rec
+            )
             ranked.append(RankedMemory(hit.episode, hit.similarity, util, rec, rank))
 
         ranked.sort(key=lambda r: r.rank, reverse=True)
@@ -126,8 +145,9 @@ class MemRLEngine:
 
     # -- learn -------------------------------------------------------
 
-    async def reward(self, episode_id: str, signal: float,
-                     *, selected: bool = True) -> Episode | None:
+    async def reward(
+        self, episode_id: str, signal: float, *, selected: bool = True
+    ) -> Episode | None:
         """Apply a reward in [-1, 1] to one episode's utility score."""
         ep = await self.store.get(episode_id)
         if ep is None:
@@ -183,10 +203,32 @@ class MemRLEngine:
 
 # -- reward signal extraction ----------------------------------------
 
-_POSITIVE = ("thanks", "thank you", "perfect", "correct", "exactly", "works",
-             "great", "danke", "passt", "richtig", "genau")
-_NEGATIVE = ("wrong", "no,", "nope", "incorrect", "broken", "failed", "not what",
-             "falsch", "nein", "kaputt", "geht nicht")
+_POSITIVE = (
+    "thanks",
+    "thank you",
+    "perfect",
+    "correct",
+    "exactly",
+    "works",
+    "great",
+    "danke",
+    "passt",
+    "richtig",
+    "genau",
+)
+_NEGATIVE = (
+    "wrong",
+    "no,",
+    "nope",
+    "incorrect",
+    "broken",
+    "failed",
+    "not what",
+    "falsch",
+    "nein",
+    "kaputt",
+    "geht nicht",
+)
 
 
 def signal_from_text(text: str) -> float:

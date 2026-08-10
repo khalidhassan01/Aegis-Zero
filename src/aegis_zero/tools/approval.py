@@ -1,4 +1,5 @@
 """Human-in-the-loop approval gates."""
+
 from __future__ import annotations
 
 import abc
@@ -41,8 +42,7 @@ class DenyAll(ApprovalGate):
 class CallbackGate(ApprovalGate):
     """Delegates to a sync or async callable, with a timeout."""
 
-    def __init__(self, fn: Any, timeout: float = 300.0,
-                 default: bool = False) -> None:
+    def __init__(self, fn: Any, timeout: float = 300.0, default: bool = False) -> None:
         self.fn = fn
         self.timeout = timeout
         self.default = default

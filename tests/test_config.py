@@ -14,12 +14,14 @@ def test_defaults_are_sane():
 
 
 def test_env_overrides_nested_sections():
-    s = load_settings(env={
-        "AEGIS_PROVIDER__BASE_URL": "http://example:9000/v1",
-        "AEGIS_PROVIDER__TIMEOUT": "42.5",
-        "AEGIS_MODELS__FAST": "tiny",
-        "AEGIS_MAX_STEPS": "7",
-    })
+    s = load_settings(
+        env={
+            "AEGIS_PROVIDER__BASE_URL": "http://example:9000/v1",
+            "AEGIS_PROVIDER__TIMEOUT": "42.5",
+            "AEGIS_MODELS__FAST": "tiny",
+            "AEGIS_MAX_STEPS": "7",
+        }
+    )
     assert s.provider.base_url == "http://example:9000/v1"
     assert s.provider.timeout == 42.5
     assert s.models.fast == "tiny"
@@ -27,10 +29,12 @@ def test_env_overrides_nested_sections():
 
 
 def test_env_parses_tuples_and_bools():
-    s = load_settings(env={
-        "AEGIS_POLICY__DENIED_TOOLS": "shell, write_file",
-        "AEGIS_POLICY__ALLOW_NETWORK": "false",
-    })
+    s = load_settings(
+        env={
+            "AEGIS_POLICY__DENIED_TOOLS": "shell, write_file",
+            "AEGIS_POLICY__ALLOW_NETWORK": "false",
+        }
+    )
     assert s.policy.denied_tools == ("shell", "write_file")
     assert s.policy.allow_network is False
 

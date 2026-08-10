@@ -4,6 +4,7 @@ Tools are plain (async or sync) functions decorated with ``@tool``. The
 schema handed to the model is derived from the signature, so the code and
 the contract cannot drift apart.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -110,21 +111,29 @@ class ToolRegistry:
         self._tools[spec.name] = spec
         return spec
 
-    def tool(self, name: str | None = None, *, description: str = "",
-             risk: Risk = Risk.SAFE, timeout: float = 30.0,
-             tags: tuple[str, ...] = ()) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def tool(
+        self,
+        name: str | None = None,
+        *,
+        description: str = "",
+        risk: Risk = Risk.SAFE,
+        timeout: float = 30.0,
+        tags: tuple[str, ...] = (),
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         """Decorator registering a function as a tool."""
 
         def wrap(fn: Callable[..., Any]) -> Callable[..., Any]:
-            self.register(ToolSpec(
-                name=name or fn.__name__,
-                description=description or (inspect.getdoc(fn) or "").split("\n\n")[0],
-                fn=fn,
-                risk=risk,
-                timeout=timeout,
-                parameters=build_parameters(fn),
-                tags=tags,
-            ))
+            self.register(
+                ToolSpec(
+                    name=name or fn.__name__,
+                    description=description or (inspect.getdoc(fn) or "").split("\n\n")[0],
+                    fn=fn,
+                    risk=risk,
+                    timeout=timeout,
+                    parameters=build_parameters(fn),
+                    tags=tags,
+                )
+            )
             return fn
 
         return wrap
@@ -142,8 +151,9 @@ class ToolRegistry:
         return [self._tools[n] for n in self.names()]
 
     def schemas(self, include: set[str] | None = None) -> list[dict[str, Any]]:
-        return [s.to_openai_schema() for s in self.specs()
-                if include is None or s.name in include]
+        return [
+            s.to_openai_schema() for s in self.specs() if include is None or s.name in include
+        ]
 
     def validate(self, spec: ToolSpec, arguments: dict[str, Any]) -> dict[str, Any]:
         """Check required keys and drop unknown ones."""
@@ -151,12 +161,14 @@ class ToolRegistry:
         props = params.get("properties", {})
         missing = [k for k in params.get("required", []) if k not in arguments]
         if missing:
-            raise ToolValidationError("missing required arguments",
-                                      context={"tool": spec.name, "missing": missing})
+            raise ToolValidationError(
+                "missing required arguments", context={"tool": spec.name, "missing": missing}
+            )
         return {k: v for k, v in arguments.items() if k in props} if props else dict(arguments)
 
-    async def execute(self, name: str, arguments: dict[str, Any],
-                      *, call_id: str | None = None) -> ToolResult:
+    async def execute(
+        self, name: str, arguments: dict[str, Any], *, call_id: str | None = None
+    ) -> ToolResult:
         """Run a tool, never raising: failures come back as ``ToolResult``."""
         started = time.perf_counter()
         try:
@@ -167,13 +179,27 @@ class ToolRegistry:
             else:
                 coro = asyncio.to_thread(lambda: spec.fn(**args))
             output = await asyncio.wait_for(coro, timeout=spec.timeout)
-            return ToolResult(tool=name, ok=True, output=output, call_id=call_id,
-                              duration_ms=(time.perf_counter() - started) * 1000)
+            return ToolResult(
+                tool=name,
+                ok=True,
+                output=output,
+                call_id=call_id,
+                duration_ms=(time.perf_counter() - started) * 1000,
+            )
         except TimeoutError:
             err = ToolTimeout("tool timed out", context={"tool": name})
-            return ToolResult(tool=name, ok=False, error=str(err), call_id=call_id,
-                              duration_ms=(time.perf_counter() - started) * 1000)
+            return ToolResult(
+                tool=name,
+                ok=False,
+                error=str(err),
+                call_id=call_id,
+                duration_ms=(time.perf_counter() - started) * 1000,
+            )
         except Exception as exc:
-            return ToolResult(tool=name, ok=False, error=f"{type(exc).__name__}: {exc}",
-                              call_id=call_id,
-                              duration_ms=(time.perf_counter() - started) * 1000)
+            return ToolResult(
+                tool=name,
+                ok=False,
+                error=f"{type(exc).__name__}: {exc}",
+                call_id=call_id,
+                duration_ms=(time.perf_counter() - started) * 1000,
+            )

@@ -1,4 +1,5 @@
 """Retry + model fallback wrapper around any provider."""
+
 from __future__ import annotations
 
 import asyncio
@@ -20,7 +21,7 @@ class RetryPolicy:
     jitter: float = 0.25
 
     def delay_for(self, attempt: int, rng: random.Random) -> float:
-        raw = min(self.base_delay * (2 ** attempt), self.max_delay)
+        raw = min(self.base_delay * (2**attempt), self.max_delay)
         return raw * (1 + rng.uniform(-self.jitter, self.jitter))
 
 
@@ -45,8 +46,9 @@ class ResilientProvider(LLMProvider):
         self._sleep = sleep
         self._rng = rng or random.Random()
 
-    async def complete(self, messages: Sequence[Message], *, model: str,
-                       **kw: Any) -> Completion:
+    async def complete(
+        self, messages: Sequence[Message], *, model: str, **kw: Any
+    ) -> Completion:
         chain = (model, *[m for m in self.fallback_models if m != model])
         failures: list[str] = []
 
@@ -67,8 +69,9 @@ class ResilientProvider(LLMProvider):
             context={"tried": list(chain), "failures": failures[-4:]},
         )
 
-    async def stream(self, messages: Sequence[Message], *, model: str,
-                     **kw: Any) -> AsyncIterator[str]:
+    async def stream(
+        self, messages: Sequence[Message], *, model: str, **kw: Any
+    ) -> AsyncIterator[str]:
         async for piece in self.inner.stream(messages, model=model, **kw):
             yield piece
 

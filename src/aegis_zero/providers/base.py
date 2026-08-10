@@ -1,4 +1,5 @@
 """Provider abstraction: any chat model behind one async interface."""
+
 from __future__ import annotations
 
 import abc

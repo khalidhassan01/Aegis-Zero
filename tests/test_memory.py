@@ -62,9 +62,11 @@ async def test_reward_on_missing_episode_returns_none(engine):
 
 async def test_ranking_prefers_rewarded_memory():
     store = InMemoryStore()
-    eng = MemRLEngine(store, Embedder(EchoProvider(vector_size=64), "e"),
-                      MemRLConfig(w_similarity=0.0, w_utility=1.0, w_recency=0.0,
-                                  min_similarity=-1.0))
+    eng = MemRLEngine(
+        store,
+        Embedder(EchoProvider(vector_size=64), "e"),
+        MemRLConfig(w_similarity=0.0, w_utility=1.0, w_recency=0.0, min_similarity=-1.0),
+    )
     weak = await eng.remember("alpha")
     strong = await eng.remember("beta")
     await eng.reward(strong.id, 1.0)
@@ -84,8 +86,9 @@ async def test_recency_decays(engine):
 
 async def test_consolidate_prunes_persistent_losers():
     store = InMemoryStore()
-    eng = MemRLEngine(store, Embedder(EchoProvider(vector_size=64), "e"),
-                      MemRLConfig(prune_below=-0.1))
+    eng = MemRLEngine(
+        store, Embedder(EchoProvider(vector_size=64), "e"), MemRLConfig(prune_below=-0.1)
+    )
     ep = await eng.remember("junk")
     await eng.reward(ep.id, -1.0, selected=False)
     stats = await eng.consolidate()
@@ -110,13 +113,16 @@ async def test_health_reports_counts(engine):
     assert health["count"] == 2
 
 
-@pytest.mark.parametrize("text,sign", [
-    ("thanks, that works perfectly", 1),
-    ("no, that is wrong and broken", -1),
-    ("das ist falsch", -1),
-    ("danke, genau richtig", 1),
-    ("what is the weather", 0),
-])
+@pytest.mark.parametrize(
+    "text,sign",
+    [
+        ("thanks, that works perfectly", 1),
+        ("no, that is wrong and broken", -1),
+        ("das ist falsch", -1),
+        ("danke, genau richtig", 1),
+        ("what is the weather", 0),
+    ],
+)
 def test_text_signals(text, sign):
     value = signal_from_text(text)
     assert (value > 0) == (sign > 0)

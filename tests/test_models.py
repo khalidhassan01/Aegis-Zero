@@ -22,8 +22,11 @@ def test_usage_adds():
 
 
 def test_message_wire_roundtrip():
-    msg = Message(role="assistant", content="hi",
-                  tool_calls=(ToolCall(name="calc", arguments={"x": 1}, id="c1"),))
+    msg = Message(
+        role="assistant",
+        content="hi",
+        tool_calls=(ToolCall(name="calc", arguments={"x": 1}, id="c1"),),
+    )
     wire = msg.to_wire()
     assert wire["role"] == "assistant"
     assert wire["tool_calls"][0]["function"]["name"] == "calc"
@@ -34,8 +37,9 @@ def test_tool_call_arguments_serialise_as_json_string():
     """Regression: Ollama and vLLM reject an object for `arguments`."""
     import json as _json
 
-    msg = Message(role="assistant",
-                  tool_calls=(ToolCall(name="f", arguments={"a": 1}, id="c1"),))
+    msg = Message(
+        role="assistant", tool_calls=(ToolCall(name="f", arguments={"a": 1}, id="c1"),)
+    )
     raw = msg.to_wire()["tool_calls"][0]["function"]["arguments"]
     assert isinstance(raw, str)
     assert _json.loads(raw) == {"a": 1}

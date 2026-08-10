@@ -2,6 +2,7 @@
 
 No module-level I/O. Call ``load_settings()`` explicitly.
 """
+
 from __future__ import annotations
 
 import os
@@ -16,7 +17,7 @@ ENV_PREFIX = "AEGIS_"
 
 @dataclass(frozen=True, slots=True)
 class ProviderSettings:
-    kind: str = "openai"                  # openai | ollama | echo
+    kind: str = "openai"  # openai | ollama | echo
     base_url: str = "http://127.0.0.1:8001/v1"
     api_key: str = ""
     timeout: float = 120.0
@@ -34,7 +35,7 @@ class ModelSettings:
 
 @dataclass(frozen=True, slots=True)
 class MemorySettings:
-    backend: str = "memory"               # memory | qdrant
+    backend: str = "memory"  # memory | qdrant
     url: str = "http://127.0.0.1:6333"
     collection: str = "aegis_episodes"
     vector_size: int = 768
@@ -43,7 +44,7 @@ class MemorySettings:
 
 @dataclass(frozen=True, slots=True)
 class PolicySettings:
-    approval_threshold: str = "high"      # min risk tier requiring approval
+    approval_threshold: str = "high"  # min risk tier requiring approval
     allow_network: bool = True
     allowed_roots: tuple[str, ...] = ()
     denied_tools: tuple[str, ...] = ()
@@ -120,7 +121,7 @@ def _from_env(env: dict[str, str]) -> dict[str, dict[str, Any]]:
     for raw_key, value in env.items():
         if not raw_key.startswith(ENV_PREFIX):
             continue
-        body = raw_key[len(ENV_PREFIX):].lower()
+        body = raw_key[len(ENV_PREFIX) :].lower()
         if "__" in body:
             section, _, field_name = body.partition("__")
         else:
@@ -129,8 +130,9 @@ def _from_env(env: dict[str, str]) -> dict[str, dict[str, Any]]:
     return out
 
 
-def load_settings(path: str | Path | None = None,
-                  env: dict[str, str] | None = None) -> Settings:
+def load_settings(
+    path: str | Path | None = None, env: dict[str, str] | None = None
+) -> Settings:
     """Build Settings from defaults, an optional YAML file, then environment."""
     env = os.environ.copy() if env is None else dict(env)
     data: dict[str, Any] = {}

@@ -68,8 +68,7 @@ def test_cli_tools_command(capsys, monkeypatch):
 
 def test_cli_run_with_echo_provider(capsys, monkeypatch):
     monkeypatch.setenv("AEGIS_PROVIDER__KIND", "echo")
-    code = main(["run", "hello there", "--approve", "auto",
-                 "--no-memory", "--json"])
+    code = main(["run", "hello there", "--approve", "auto", "--no-memory", "--json"])
     payload = json.loads(capsys.readouterr().out)
     assert "answer" in payload and "run_id" in payload
     assert code in (0, 1)

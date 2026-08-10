@@ -5,6 +5,7 @@ strongest part of the original codebase. Additions: IPv6 and encoded-host
 SSRF checks, symlink-aware path containment, per-tier approval routing,
 and structured decisions instead of booleans.
 """
+
 from __future__ import annotations
 
 import ipaddress
@@ -35,10 +36,19 @@ _DESTRUCTIVE = re.compile(
 )
 
 # Keys that look sensitive but are ordinary telemetry. Checked first.
-_SAFE_KEYS = frozenset({
-    "tokens", "token_count", "max_tokens", "prompt_tokens", "total_tokens",
-    "completion_tokens", "token_budget", "tokenizer", "n_tokens",
-})
+_SAFE_KEYS = frozenset(
+    {
+        "tokens",
+        "token_count",
+        "max_tokens",
+        "prompt_tokens",
+        "total_tokens",
+        "completion_tokens",
+        "token_budget",
+        "tokenizer",
+        "n_tokens",
+    }
+)
 
 # A key is sensitive when a secret word appears as a whole word or as a
 # separator-delimited part. "tokens" (a count) must not match "token".
@@ -59,8 +69,14 @@ _SECRET_VALUE = re.compile(
 REDACTED = "[REDACTED]"
 
 _PROTECTED_PATHS = (
-    "/etc/shadow", "/etc/gshadow", "/etc/sudoers", "/etc/sudoers.d",
-    "/root/.ssh", "/dev/mem", "/dev/kmem", "/sys/kernel",
+    "/etc/shadow",
+    "/etc/gshadow",
+    "/etc/sudoers",
+    "/etc/sudoers.d",
+    "/root/.ssh",
+    "/dev/mem",
+    "/dev/kmem",
+    "/sys/kernel",
 )
 
 _PROC_ENV = re.compile(r"^/proc/([0-9]+|self|thread-self)/(environ|mem|maps)$")
@@ -71,7 +87,7 @@ class PolicyRule:
     risk: Risk = Risk.SAFE
     action: Decision = Decision.ALLOW
     reason: str = ""
-    max_calls_per_run: int = 0        # 0 = unlimited
+    max_calls_per_run: int = 0  # 0 = unlimited
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,14 +104,14 @@ class PolicyVerdict:
 
 
 DEFAULT_RULES: dict[str, PolicyRule] = {
-    "read_file":     PolicyRule(Risk.LOW,      Decision.SANITIZE),
-    "list_dir":      PolicyRule(Risk.LOW,      Decision.ALLOW),
-    "search":        PolicyRule(Risk.LOW,      Decision.ALLOW),
-    "http_fetch":    PolicyRule(Risk.MEDIUM,   Decision.SANITIZE),
-    "write_file":    PolicyRule(Risk.HIGH,     Decision.APPROVE, "writes to disk"),
-    "delete_file":   PolicyRule(Risk.CRITICAL, Decision.APPROVE, "irreversible"),
-    "shell":         PolicyRule(Risk.CRITICAL, Decision.APPROVE, "arbitrary execution"),
-    "send_message":  PolicyRule(Risk.HIGH,     Decision.APPROVE, "external side effect"),
+    "read_file": PolicyRule(Risk.LOW, Decision.SANITIZE),
+    "list_dir": PolicyRule(Risk.LOW, Decision.ALLOW),
+    "search": PolicyRule(Risk.LOW, Decision.ALLOW),
+    "http_fetch": PolicyRule(Risk.MEDIUM, Decision.SANITIZE),
+    "write_file": PolicyRule(Risk.HIGH, Decision.APPROVE, "writes to disk"),
+    "delete_file": PolicyRule(Risk.CRITICAL, Decision.APPROVE, "irreversible"),
+    "shell": PolicyRule(Risk.CRITICAL, Decision.APPROVE, "arbitrary execution"),
+    "send_message": PolicyRule(Risk.HIGH, Decision.APPROVE, "external side effect"),
 }
 
 _THRESHOLDS = {r.value: r for r in Risk}
@@ -116,12 +132,13 @@ class PolicyEngine:
         resolve_host: Any = None,
     ) -> None:
         self.rules = {**DEFAULT_RULES, **(rules or {})}
-        self.threshold = (_THRESHOLDS[approval_threshold]
-                          if isinstance(approval_threshold, str)
-                          else approval_threshold)
+        self.threshold = (
+            _THRESHOLDS[approval_threshold]
+            if isinstance(approval_threshold, str)
+            else approval_threshold
+        )
         self.allow_network = allow_network
-        self.allowed_roots = tuple(str(Path(r).expanduser().resolve())
-                                   for r in allowed_roots)
+        self.allowed_roots = tuple(str(Path(r).expanduser().resolve()) for r in allowed_roots)
         self.denied_tools = set(denied_tools)
         self.default_risk = default_risk
         self._resolve_host = resolve_host or _default_resolve
@@ -130,11 +147,13 @@ class PolicyEngine:
     def reset(self) -> None:
         self._counts.clear()
 
-    def decide(self, tool: str, arguments: dict[str, Any],
-               *, risk_hint: Risk | None = None) -> PolicyVerdict:
+    def decide(
+        self, tool: str, arguments: dict[str, Any], *, risk_hint: Risk | None = None
+    ) -> PolicyVerdict:
         if tool in self.denied_tools:
-            return PolicyVerdict(Decision.DENY, Risk.CRITICAL,
-                                 "tool explicitly denied by configuration")
+            return PolicyVerdict(
+                Decision.DENY, Risk.CRITICAL, "tool explicitly denied by configuration"
+            )
 
         rule = self.rules.get(tool)
         risk = rule.risk if rule else (risk_hint or self.default_risk)
@@ -143,8 +162,11 @@ class PolicyEngine:
         if rule and rule.max_calls_per_run:
             used = self._counts.get(tool, 0)
             if used >= rule.max_calls_per_run:
-                return PolicyVerdict(Decision.DENY, risk,
-                                     f"per-run call limit reached ({rule.max_calls_per_run})")
+                return PolicyVerdict(
+                    Decision.DENY,
+                    risk,
+                    f"per-run call limit reached ({rule.max_calls_per_run})",
+                )
 
         guard = self._guard_arguments(tool, arguments)
         if guard is not None:
@@ -180,8 +202,9 @@ class PolicyEngine:
                 if not ok:
                     return PolicyVerdict(Decision.DENY, Risk.CRITICAL, why)
             if low in ("command", "cmd", "script", "shell") and _DESTRUCTIVE.search(value):
-                return PolicyVerdict(Decision.DENY, Risk.CRITICAL,
-                                     "command matches destructive pattern")
+                return PolicyVerdict(
+                    Decision.DENY, Risk.CRITICAL, "command matches destructive pattern"
+                )
         return None
 
     def check_url(self, url: str) -> tuple[bool, str]:
@@ -204,8 +227,14 @@ class PolicyEngine:
                 ip = ipaddress.ip_address(addr)
             except ValueError:
                 return False, f"unresolvable host: {host}"
-            if (ip.is_private or ip.is_loopback or ip.is_link_local
-                    or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_reserved
+                or ip.is_multicast
+                or ip.is_unspecified
+            ):
                 return False, f"host resolves to non-public address ({ip})"
         return True, ""
 

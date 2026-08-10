@@ -1,5 +1,6 @@
 """A small, safe built-in toolset. Everything routes through the policy
 engine, so these are deliberately narrow and side-effect explicit."""
+
 from __future__ import annotations
 
 import asyncio
@@ -14,17 +15,29 @@ from .registry import ToolRegistry
 MAX_READ_BYTES = 200_000
 
 
-def register_builtins(registry: ToolRegistry, *,
-                      enable_http: bool = True) -> ToolRegistry:
+def register_builtins(registry: ToolRegistry, *, enable_http: bool = True) -> ToolRegistry:
     """Attach the default tools to a registry."""
 
     @registry.tool(risk=Risk.SAFE, description="Evaluate an arithmetic expression.")
     def calculate(expression: str) -> str:
         """Evaluate a arithmetic expression using a restricted namespace."""
         allowed: dict[str, Any] = {
-            k: getattr(math, k) for k in
-            ("sqrt", "pow", "log", "log10", "exp", "sin", "cos", "tan", "pi", "e",
-             "floor", "ceil", "fabs")
+            k: getattr(math, k)
+            for k in (
+                "sqrt",
+                "pow",
+                "log",
+                "log10",
+                "exp",
+                "sin",
+                "cos",
+                "tan",
+                "pi",
+                "e",
+                "floor",
+                "ceil",
+                "fabs",
+            )
         }
         allowed.update({"abs": abs, "round": round, "min": min, "max": max, "sum": sum})
         if any(tok in expression for tok in ("__", "import", "open", "eval", "exec")):
@@ -49,8 +62,9 @@ def register_builtins(registry: ToolRegistry, *,
         p = Path(path).expanduser()
 
         def _list() -> list[str]:
-            return sorted(x.name + ("/" if x.is_dir() else "")
-                          for x in list(p.iterdir())[:limit])
+            return sorted(
+                x.name + ("/" if x.is_dir() else "") for x in list(p.iterdir())[:limit]
+            )
 
         return await asyncio.to_thread(_list)
 
@@ -67,8 +81,12 @@ def register_builtins(registry: ToolRegistry, *,
         return await asyncio.to_thread(_write)
 
     if enable_http:
-        @registry.tool(risk=Risk.MEDIUM, timeout=30.0,
-                       description="HTTP GET a public URL and return the body.")
+
+        @registry.tool(
+            risk=Risk.MEDIUM,
+            timeout=30.0,
+            description="HTTP GET a public URL and return the body.",
+        )
         async def http_fetch(url: str, max_chars: int = 20_000) -> str:
             """Fetch a URL over HTTP(S) and return the truncated response body."""
             import httpx

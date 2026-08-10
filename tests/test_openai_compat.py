@@ -1,5 +1,6 @@
 """Transport-level tests for the OpenAI-compatible provider, using a fake
 httpx client so no network is touched."""
+
 from __future__ import annotations
 
 import json
@@ -22,16 +23,18 @@ MSGS = [Message(role="user", content="hi")]
 def provider_with(handler) -> OpenAICompatProvider:
     transport = httpx.MockTransport(handler)
     client = httpx.AsyncClient(transport=transport)
-    return OpenAICompatProvider(base_url="http://test/v1", api_key="k",
-                                client=client)
+    return OpenAICompatProvider(base_url="http://test/v1", api_key="k", client=client)
 
 
 def chat_body(content="hello", tool_calls=None, model="m"):
     msg = {"role": "assistant", "content": content}
     if tool_calls:
         msg["tool_calls"] = tool_calls
-    return {"model": model, "choices": [{"message": msg, "finish_reason": "stop"}],
-            "usage": {"prompt_tokens": 3, "completion_tokens": 4}}
+    return {
+        "model": model,
+        "choices": [{"message": msg, "finish_reason": "stop"}],
+        "usage": {"prompt_tokens": 3, "completion_tokens": 4},
+    }
 
 
 async def test_completion_is_parsed():
@@ -67,23 +70,32 @@ async def test_tools_are_forwarded_in_payload():
 
 
 async def test_tool_calls_are_parsed_from_response():
-    body = chat_body(content="", tool_calls=[
-        {"id": "c1", "type": "function",
-         "function": {"name": "calc", "arguments": '{"x": 2}'}}
-    ])
+    body = chat_body(
+        content="",
+        tool_calls=[
+            {
+                "id": "c1",
+                "type": "function",
+                "function": {"name": "calc", "arguments": '{"x": 2}'},
+            }
+        ],
+    )
     p = provider_with(lambda r: httpx.Response(200, json=body))
     out = await p.complete(MSGS, model="m")
     assert out.tool_calls[0].name == "calc"
     assert out.tool_calls[0].arguments == {"x": 2}
 
 
-@pytest.mark.parametrize("status,exc", [
-    (429, ProviderRateLimited),
-    (500, ProviderUnavailable),
-    (503, ProviderUnavailable),
-    (400, ProviderError),
-    (404, ProviderError),
-])
+@pytest.mark.parametrize(
+    "status,exc",
+    [
+        (429, ProviderRateLimited),
+        (500, ProviderUnavailable),
+        (503, ProviderUnavailable),
+        (400, ProviderError),
+        (404, ProviderError),
+    ],
+)
 async def test_status_codes_map_to_typed_errors(status, exc):
     p = provider_with(lambda r: httpx.Response(status, json={"e": 1}))
     with pytest.raises(exc):
@@ -131,8 +143,7 @@ async def test_empty_choices_is_an_error():
 
 
 async def test_embeddings_preserve_input_order():
-    body = {"data": [{"index": 1, "embedding": [0.2]},
-                     {"index": 0, "embedding": [0.1]}]}
+    body = {"data": [{"index": 1, "embedding": [0.2]}, {"index": 0, "embedding": [0.1]}]}
     p = provider_with(lambda r: httpx.Response(200, json=body))
     assert await p.embed(["a", "b"], model="e") == [[0.1], [0.2]]
 
@@ -141,8 +152,8 @@ async def test_streaming_yields_deltas():
     sse = (
         'data: {"choices":[{"delta":{"content":"Hel"}}]}\n'
         'data: {"choices":[{"delta":{"content":"lo"}}]}\n'
-        'data: garbage-not-json\n'
-        'data: [DONE]\n'
+        "data: garbage-not-json\n"
+        "data: [DONE]\n"
     )
     p = provider_with(lambda r: httpx.Response(200, text=sse))
     chunks = [c async for c in p.stream(MSGS, model="m")]

@@ -48,8 +48,7 @@ async def test_echo_embeddings_are_deterministic_and_normalised():
 
 async def test_retry_recovers_from_transient_failures():
     inner = Flaky(fails=2)
-    r = ResilientProvider(inner, retry=RetryPolicy(attempts=3),
-                          sleep=_nosleep)
+    r = ResilientProvider(inner, retry=RetryPolicy(attempts=3), sleep=_nosleep)
     assert (await r.complete(MSGS, model="m")).text == "ok"
     assert inner.attempts == 3
 
@@ -69,14 +68,19 @@ async def test_falls_back_to_next_model():
                 raise ProviderRateLimited("nope")
             return Completion(text="from backup", model=model)
 
-    r = ResilientProvider(OnlyBackup(), retry=RetryPolicy(attempts=1),
-                          fallback_models=("backup",), sleep=_nosleep)
+    r = ResilientProvider(
+        OnlyBackup(), retry=RetryPolicy(attempts=1), fallback_models=("backup",), sleep=_nosleep
+    )
     assert (await r.complete(MSGS, model="primary")).text == "from backup"
 
 
 async def test_all_exhausted_reports_what_was_tried():
-    r = ResilientProvider(Flaky(fails=99), retry=RetryPolicy(attempts=1),
-                          fallback_models=("b", "c"), sleep=_nosleep)
+    r = ResilientProvider(
+        Flaky(fails=99),
+        retry=RetryPolicy(attempts=1),
+        fallback_models=("b", "c"),
+        sleep=_nosleep,
+    )
     with pytest.raises(AllProvidersFailed) as exc:
         await r.complete(MSGS, model="a")
     assert exc.value.context["tried"] == ["a", "b", "c"]
@@ -85,6 +89,7 @@ async def test_all_exhausted_reports_what_was_tried():
 async def test_backoff_is_bounded_and_increasing():
     policy = RetryPolicy(base_delay=1.0, max_delay=4.0, jitter=0.0)
     import random
+
     rng = random.Random(0)
     delays = [policy.delay_for(i, rng) for i in range(5)]
     assert delays[0] == 1.0 and delays[1] == 2.0
@@ -92,16 +97,16 @@ async def test_backoff_is_bounded_and_increasing():
 
 
 def test_tool_call_parsing_handles_json_string_arguments():
-    calls = _parse_tool_calls([
-        {"id": "c1", "function": {"name": "f", "arguments": '{"a": 1}'}}
-    ])
+    calls = _parse_tool_calls(
+        [{"id": "c1", "function": {"name": "f", "arguments": '{"a": 1}'}}]
+    )
     assert calls[0].name == "f" and calls[0].arguments == {"a": 1}
 
 
 def test_tool_call_parsing_survives_malformed_arguments():
-    calls = _parse_tool_calls([
-        {"id": "c1", "function": {"name": "f", "arguments": "not json"}}
-    ])
+    calls = _parse_tool_calls(
+        [{"id": "c1", "function": {"name": "f", "arguments": "not json"}}]
+    )
     assert calls[0].arguments["_raw"] == "not json"
 
 

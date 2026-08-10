@@ -93,6 +93,7 @@ def test_trace_recorder_writes_jsonl(tmp_path):
 
 def test_json_logging_redacts_secrets(caplog):
     import io
+
     stream = io.StringIO()
     log = configure_logging("INFO", json_format=True, stream=stream)
     log.info("key is sk-abcdefghijklmnopqrstuv here")

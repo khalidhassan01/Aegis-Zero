@@ -11,6 +11,7 @@ Execution model
 
 Everything is async, cancellable, budget-bounded, and emits events.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -83,11 +84,16 @@ class AgentResult:
         return self.critique.confidence if self.critique else 0.0
 
     def summary(self) -> dict[str, Any]:
-        return {"run_id": self.run_id, "ok": self.ok, "steps": self.steps,
-                "revisions": self.revisions, "tokens": self.usage.total_tokens,
-                "tool_calls": len(self.tool_results),
-                "confidence": round(self.confidence, 3),
-                "elapsed_s": round(self.elapsed_s, 2)}
+        return {
+            "run_id": self.run_id,
+            "ok": self.ok,
+            "steps": self.steps,
+            "revisions": self.revisions,
+            "tokens": self.usage.total_tokens,
+            "tool_calls": len(self.tool_results),
+            "confidence": round(self.confidence, 3),
+            "elapsed_s": round(self.elapsed_s, 2),
+        }
 
 
 @dataclass(slots=True)
@@ -132,8 +138,9 @@ class AgentEngine:
 
     # -- public API --------------------------------------------------
 
-    async def run(self, goal: str, *, history: Sequence[Message] = (),
-                  budget: Budget | None = None) -> AgentResult:
+    async def run(
+        self, goal: str, *, history: Sequence[Message] = (), budget: Budget | None = None
+    ) -> AgentResult:
         state = RunState(goal=goal)
         budget = budget or self.cfg.budget
         result = AgentResult(run_id=state.run_id, goal=goal, answer="")
@@ -166,15 +173,22 @@ class AgentEngine:
 
     # -- pipeline ----------------------------------------------------
 
-    async def _execute(self, goal: str, history: Sequence[Message],
-                       state: RunState, budget: Budget,
-                       result: AgentResult) -> AgentResult:
+    async def _execute(
+        self,
+        goal: str,
+        history: Sequence[Message],
+        state: RunState,
+        budget: Budget,
+        result: AgentResult,
+    ) -> AgentResult:
         plan = await self._plan(goal, state, budget)
         result.plan = plan
 
         recon = ""
-        if self.cfg.enable_scout and plan.complexity in (Complexity.MODERATE,
-                                                         Complexity.COMPLEX):
+        if self.cfg.enable_scout and plan.complexity in (
+            Complexity.MODERATE,
+            Complexity.COMPLEX,
+        ):
             recon = await self._scout(goal, state, budget)
 
         outputs = await self._run_subtasks(plan, recon, history, state, budget, result)
@@ -193,21 +207,28 @@ class AgentEngine:
 
     async def _plan(self, goal: str, state: RunState, budget: Budget) -> Plan:
         cheap = heuristic_complexity(goal)
-        if not self.cfg.enable_planning or cheap in (Complexity.TRIVIAL,
-                                                     Complexity.SIMPLE):
+        if not self.cfg.enable_planning or cheap in (Complexity.TRIVIAL, Complexity.SIMPLE):
             return Plan(cheap, False, (Subtask("s1", goal),))
-        completion = await self._call(planner_prompt(goal), state, budget,
-                                      model=self.cfg.fast_model, step="plan")
+        completion = await self._call(
+            planner_prompt(goal), state, budget, model=self.cfg.fast_model, step="plan"
+        )
         return parse_plan(completion, goal)
 
     async def _scout(self, goal: str, state: RunState, budget: Budget) -> str:
-        completion = await self._call(scout_prompt(goal), state, budget,
-                                      model=self.cfg.fast_model, step="scout")
+        completion = await self._call(
+            scout_prompt(goal), state, budget, model=self.cfg.fast_model, step="scout"
+        )
         return completion.text
 
-    async def _run_subtasks(self, plan: Plan, recon: str,
-                            history: Sequence[Message], state: RunState,
-                            budget: Budget, result: AgentResult) -> list[str]:
+    async def _run_subtasks(
+        self,
+        plan: Plan,
+        recon: str,
+        history: Sequence[Message],
+        state: RunState,
+        budget: Budget,
+        result: AgentResult,
+    ) -> list[str]:
         waves = _topological_waves(plan.subtasks)
         outputs: dict[str, str] = {}
         sem = asyncio.Semaphore(self.cfg.max_parallel)
@@ -216,10 +237,10 @@ class AgentEngine:
             async with sem:
                 upstream = "\n\n".join(
                     f"[{dep} result]\n{outputs[dep]}"
-                    for dep in task.depends_on if dep in outputs
+                    for dep in task.depends_on
+                    if dep in outputs
                 )
-                text = await self._forge(task, recon, upstream, history,
-                                         state, budget, result)
+                text = await self._forge(task, recon, upstream, history, state, budget, result)
                 return task.id, text
 
         for wave in waves:
@@ -234,130 +255,204 @@ class AgentEngine:
 
         return [outputs[t.id] for t in plan.subtasks if t.id in outputs]
 
-    async def _forge(self, task: Subtask, recon: str, upstream: str,
-                     history: Sequence[Message], state: RunState,
-                     budget: Budget, result: AgentResult) -> str:
+    async def _forge(
+        self,
+        task: Subtask,
+        recon: str,
+        upstream: str,
+        history: Sequence[Message],
+        state: RunState,
+        budget: Budget,
+        result: AgentResult,
+    ) -> str:
         extra: dict[str, Any] = {}
         if recon:
             extra["reconnaissance"] = recon[:2000]
         if upstream:
             extra["upstream results"] = upstream[:4000]
 
-        packet = await self.context.build(task.goal, history,
-                                          system=FORGE_SYSTEM, extra=extra)
+        packet = await self.context.build(task.goal, history, system=FORGE_SYSTEM, extra=extra)
         messages = [*packet.to_messages(), Message(role="user", content=task.goal)]
         result.memory_ids.extend(packet.memory_ids)
 
         schemas = self.registry.schemas() or None
         for _ in range(self.cfg.max_tool_iterations):
             self._check(state, budget)
-            completion = await self._call(messages, state, budget,
-                                          model=self.cfg.deep_model,
-                                          step=f"forge:{task.id}", tools=schemas)
+            completion = await self._call(
+                messages,
+                state,
+                budget,
+                model=self.cfg.deep_model,
+                step=f"forge:{task.id}",
+                tools=schemas,
+            )
             if not completion.tool_calls:
                 return completion.text
 
-            messages.append(Message(role="assistant", content=completion.text,
-                                    tool_calls=completion.tool_calls))
+            messages.append(
+                Message(
+                    role="assistant", content=completion.text, tool_calls=completion.tool_calls
+                )
+            )
             results = await self._invoke_tools(completion.tool_calls, state, budget)
             result.tool_results.extend(results)
             messages.extend(r.as_message() for r in results)
 
         # Tool budget exhausted: ask for a final answer with no tools.
-        messages.append(Message(role="user",
-                                content="Tool budget reached. Give your best final "
-                                        "answer now using what you have."))
-        final = await self._call(messages, state, budget,
-                                 model=self.cfg.deep_model,
-                                 step=f"forge:{task.id}:final")
+        messages.append(
+            Message(
+                role="user",
+                content="Tool budget reached. Give your best final "
+                "answer now using what you have.",
+            )
+        )
+        final = await self._call(
+            messages, state, budget, model=self.cfg.deep_model, step=f"forge:{task.id}:final"
+        )
         return final.text
 
-    async def _invoke_tools(self, calls: Sequence[ToolCall], state: RunState,
-                            budget: Budget) -> list[ToolResult]:
+    async def _invoke_tools(
+        self, calls: Sequence[ToolCall], state: RunState, budget: Budget
+    ) -> list[ToolResult]:
         async def run_one(call: ToolCall) -> ToolResult:
             state.tool_calls += 1
             if state.tool_calls > budget.max_tool_calls:
-                return ToolResult(tool=call.name, ok=False, call_id=call.id,
-                                  error="tool-call budget exhausted")
+                return ToolResult(
+                    tool=call.name,
+                    ok=False,
+                    call_id=call.id,
+                    error="tool-call budget exhausted",
+                )
 
             verdict = self.policy.decide(call.name, call.arguments)
-            await self._emit(EventType.POLICY_DECISION, state, {
-                "tool": call.name, "decision": verdict.decision.value,
-                "risk": verdict.risk.value, "reason": verdict.reason,
-            })
+            await self._emit(
+                EventType.POLICY_DECISION,
+                state,
+                {
+                    "tool": call.name,
+                    "decision": verdict.decision.value,
+                    "risk": verdict.risk.value,
+                    "reason": verdict.reason,
+                },
+            )
 
             if verdict.decision is Decision.DENY:
-                return ToolResult(tool=call.name, ok=False, call_id=call.id,
-                                  decision=Decision.DENY,
-                                  error=f"policy denied: {verdict.reason}")
+                return ToolResult(
+                    tool=call.name,
+                    ok=False,
+                    call_id=call.id,
+                    decision=Decision.DENY,
+                    error=f"policy denied: {verdict.reason}",
+                )
 
             if verdict.decision is Decision.APPROVE:
-                req = ApprovalRequest(state.run_id, call.name, verdict.risk,
-                                      verdict.reason, verdict.arguments)
-                await self._emit(EventType.APPROVAL_REQUEST, state,
-                                 {"tool": call.name, "risk": verdict.risk.value})
+                req = ApprovalRequest(
+                    state.run_id, call.name, verdict.risk, verdict.reason, verdict.arguments
+                )
+                await self._emit(
+                    EventType.APPROVAL_REQUEST,
+                    state,
+                    {"tool": call.name, "risk": verdict.risk.value},
+                )
                 granted = await self.approval.request(req)
-                await self._emit(EventType.APPROVAL_RESULT, state,
-                                 {"tool": call.name, "granted": granted})
+                await self._emit(
+                    EventType.APPROVAL_RESULT, state, {"tool": call.name, "granted": granted}
+                )
                 if not granted:
-                    return ToolResult(tool=call.name, ok=False, call_id=call.id,
-                                      decision=Decision.DENY,
-                                      error="human approval denied")
+                    return ToolResult(
+                        tool=call.name,
+                        ok=False,
+                        call_id=call.id,
+                        decision=Decision.DENY,
+                        error="human approval denied",
+                    )
 
-            args = verdict.arguments if verdict.decision is Decision.SANITIZE \
-                else call.arguments
+            args = (
+                verdict.arguments if verdict.decision is Decision.SANITIZE else call.arguments
+            )
             await self._emit(EventType.TOOL_START, state, {"tool": call.name})
             out = await self.registry.execute(call.name, args, call_id=call.id)
-            await self._emit(EventType.TOOL_END, state, {
-                "tool": call.name, "ok": out.ok,
-                "duration_ms": round(out.duration_ms, 1),
-                "error": redact(out.error) if out.error else None,
-            })
+            await self._emit(
+                EventType.TOOL_END,
+                state,
+                {
+                    "tool": call.name,
+                    "ok": out.ok,
+                    "duration_ms": round(out.duration_ms, 1),
+                    "error": redact(out.error) if out.error else None,
+                },
+            )
             return out
 
         return list(await asyncio.gather(*(run_one(c) for c in calls)))
 
-    async def _synthesize(self, goal: str, plan: Plan, outputs: Sequence[str],
-                          state: RunState, budget: Budget) -> str:
+    async def _synthesize(
+        self, goal: str, plan: Plan, outputs: Sequence[str], state: RunState, budget: Budget
+    ) -> str:
         if not outputs:
             return "No subtask produced a result."
         if len(outputs) == 1:
             return outputs[0]
-        joined = "\n\n".join(f"### Result {i + 1}\n{o}"
-                              for i, o in enumerate(outputs))
-        completion = await self._call([
-            Message(role="system", content=SYNTHESIS_SYSTEM),
-            Message(role="user", content=f"GOAL:\n{goal}\n\nRESULTS:\n{joined}"),
-        ], state, budget, model=self.cfg.deep_model, step="synthesize")
+        joined = "\n\n".join(f"### Result {i + 1}\n{o}" for i, o in enumerate(outputs))
+        completion = await self._call(
+            [
+                Message(role="system", content=SYNTHESIS_SYSTEM),
+                Message(role="user", content=f"GOAL:\n{goal}\n\nRESULTS:\n{joined}"),
+            ],
+            state,
+            budget,
+            model=self.cfg.deep_model,
+            step="synthesize",
+        )
         return completion.text
 
-    async def _critique_loop(self, goal: str, answer: str, recon: str,
-                             state: RunState,
-                             budget: Budget) -> tuple[str, Critique, int]:
+    async def _critique_loop(
+        self, goal: str, answer: str, recon: str, state: RunState, budget: Budget
+    ) -> tuple[str, Critique, int]:
         critique = parse_critique(
-            await self._call(auditor_prompt(goal, answer), state, budget,
-                             model=self.cfg.fast_model, step="audit")
+            await self._call(
+                auditor_prompt(goal, answer),
+                state,
+                budget,
+                model=self.cfg.fast_model,
+                step="audit",
+            )
         )
         revisions = 0
-        while (revisions < self.cfg.max_revisions
-               and not critique.passed
-               and critique.verdict != "fail"):
+        while (
+            revisions < self.cfg.max_revisions
+            and not critique.passed
+            and critique.verdict != "fail"
+        ):
             revisions += 1
             issues = "\n".join(f"- {i}" for i in critique.issues) or "- (unspecified)"
-            completion = await self._call([
-                Message(role="system", content=FORGE_SYSTEM),
-                Message(role="user", content=(
-                    f"GOAL:\n{goal}\n\nPREVIOUS ANSWER:\n{answer}\n\n"
-                    f"AUDITOR ISSUES:\n{issues}\n\n"
-                    f"SUGGESTION: {critique.suggestion}\n\n"
-                    "Produce a corrected, complete answer."
-                )),
-            ], state, budget, model=self.cfg.deep_model, step=f"revise:{revisions}")
+            completion = await self._call(
+                [
+                    Message(role="system", content=FORGE_SYSTEM),
+                    Message(
+                        role="user",
+                        content=(
+                            f"GOAL:\n{goal}\n\nPREVIOUS ANSWER:\n{answer}\n\n"
+                            f"AUDITOR ISSUES:\n{issues}\n\n"
+                            f"SUGGESTION: {critique.suggestion}\n\n"
+                            "Produce a corrected, complete answer."
+                        ),
+                    ),
+                ],
+                state,
+                budget,
+                model=self.cfg.deep_model,
+                step=f"revise:{revisions}",
+            )
             answer = completion.text
             critique = parse_critique(
-                await self._call(auditor_prompt(goal, answer), state, budget,
-                                 model=self.cfg.fast_model,
-                                 step=f"audit:{revisions}")
+                await self._call(
+                    auditor_prompt(goal, answer),
+                    state,
+                    budget,
+                    model=self.cfg.fast_model,
+                    step=f"audit:{revisions}",
+                )
             )
         return answer, critique, revisions
 
@@ -368,9 +463,7 @@ class AgentEngine:
         if result.memory_ids:
             signal = signal_from_outcome(success=result.ok, confidence=confidence)
             with contextlib.suppress(Exception):
-                await self.memory.reward_many(
-                    list(dict.fromkeys(result.memory_ids)), signal
-                )
+                await self.memory.reward_many(list(dict.fromkeys(result.memory_ids)), signal)
         if self.cfg.enable_memory_write and result.ok and confidence >= self.cfg.min_confidence:
             with contextlib.suppress(Exception):
                 await self.memory.remember(
@@ -381,9 +474,16 @@ class AgentEngine:
 
     # -- primitives --------------------------------------------------
 
-    async def _call(self, messages: Sequence[Message], state: RunState,
-                    budget: Budget, *, model: str, step: str,
-                    tools: list[dict[str, Any]] | None = None):
+    async def _call(
+        self,
+        messages: Sequence[Message],
+        state: RunState,
+        budget: Budget,
+        *,
+        model: str,
+        step: str,
+        tools: list[dict[str, Any]] | None = None,
+    ):
         self._check(state, budget)
         state.steps += 1
         await self._emit(EventType.LLM_START, state, {"step": step, "model": model})
@@ -392,29 +492,34 @@ class AgentEngine:
             messages, model=model, tools=tools, temperature=self.cfg.temperature
         )
         state.usage = state.usage + completion.usage
-        await self._emit(EventType.LLM_END, state, {
-            "step": step, "model": completion.model,
-            "tokens": completion.usage.total_tokens,
-            "latency_ms": round((time.perf_counter() - started) * 1000, 1),
-            "tool_calls": len(completion.tool_calls),
-        })
+        await self._emit(
+            EventType.LLM_END,
+            state,
+            {
+                "step": step,
+                "model": completion.model,
+                "tokens": completion.usage.total_tokens,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 1),
+                "tool_calls": len(completion.tool_calls),
+            },
+        )
         return completion
 
     def _check(self, state: RunState, budget: Budget) -> None:
         if state.cancelled:
             raise Cancelled("run cancelled", context={"run_id": state.run_id})
         if state.steps >= budget.max_steps:
-            raise BudgetExceeded("step budget exhausted",
-                                 context={"steps": state.steps})
+            raise BudgetExceeded("step budget exhausted", context={"steps": state.steps})
         if state.usage.total_tokens >= budget.max_tokens:
-            raise BudgetExceeded("token budget exhausted",
-                                 context={"tokens": state.usage.total_tokens})
+            raise BudgetExceeded(
+                "token budget exhausted", context={"tokens": state.usage.total_tokens}
+            )
         if state.elapsed >= budget.max_seconds:
-            raise BudgetExceeded("time budget exhausted",
-                                 context={"elapsed": round(state.elapsed, 1)})
+            raise BudgetExceeded(
+                "time budget exhausted", context={"elapsed": round(state.elapsed, 1)}
+            )
 
-    async def _emit(self, kind: EventType, state: RunState,
-                    data: dict[str, Any]) -> None:
+    async def _emit(self, kind: EventType, state: RunState, data: dict[str, Any]) -> None:
         await self.bus.publish(Event(type=kind, run_id=state.run_id, data=data))
 
 
@@ -425,8 +530,11 @@ def _topological_waves(subtasks: Sequence[Subtask]) -> list[list[Subtask]]:
     waves: list[list[Subtask]] = []
 
     while pending:
-        wave = [t for t in pending.values()
-                if all(d in done or d not in pending for d in t.depends_on)]
+        wave = [
+            t
+            for t in pending.values()
+            if all(d in done or d not in pending for d in t.depends_on)
+        ]
         if not wave:  # dependency cycle: run the remainder sequentially
             wave = [next(iter(pending.values()))]
         waves.append(wave)

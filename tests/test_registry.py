@@ -10,8 +10,13 @@ from aegis_zero.tools.registry import ToolRegistry, build_parameters
 
 
 def test_schema_derived_from_signature():
-    def fn(name: str, count: int = 3, ratio: float = 1.0,
-           flag: bool = False, tags: list[str] | None = None) -> str:
+    def fn(
+        name: str,
+        count: int = 3,
+        ratio: float = 1.0,
+        flag: bool = False,
+        tags: list[str] | None = None,
+    ) -> str:
         """Docstring first line."""
         return name
 
@@ -43,6 +48,7 @@ def test_duplicate_registration_rejected():
     r = ToolRegistry()
     r.tool()(lambda: None.__class__)
     with pytest.raises(ToolError):
+
         @r.tool(name="<lambda>")
         def other():
             return 1

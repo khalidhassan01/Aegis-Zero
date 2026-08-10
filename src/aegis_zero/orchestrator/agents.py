@@ -1,4 +1,5 @@
 """Specialist agents. Each is a focused role over the shared runtime."""
+
 from __future__ import annotations
 
 import json
@@ -75,8 +76,7 @@ def extract_json(text: str) -> dict[str, Any]:
         return {}
     stripped = text.strip()
     if stripped.startswith("```"):
-        stripped = re.sub(r"^```(?:json)?|```$", "", stripped,
-                          flags=re.MULTILINE).strip()
+        stripped = re.sub(r"^```(?:json)?|```$", "", stripped, flags=re.MULTILINE).strip()
     try:
         parsed = json.loads(stripped)
         return parsed if isinstance(parsed, dict) else {}
@@ -102,11 +102,13 @@ def parse_plan(completion: Completion, goal: str) -> Plan:
         sub_goal = str(item.get("goal") or "").strip()
         if not sub_goal:
             continue
-        tasks.append(Subtask(
-            id=str(item.get("id") or f"s{i + 1}"),
-            goal=sub_goal,
-            depends_on=tuple(str(d) for d in (item.get("depends_on") or [])),
-        ))
+        tasks.append(
+            Subtask(
+                id=str(item.get("id") or f"s{i + 1}"),
+                goal=sub_goal,
+                depends_on=tuple(str(d) for d in (item.get("depends_on") or [])),
+            )
+        )
     if not tasks:
         tasks = [Subtask(id="s1", goal=goal)]
 
@@ -115,9 +117,11 @@ def parse_plan(completion: Completion, goal: str) -> Plan:
     except ValueError:
         complexity = Complexity.MODERATE
 
-    return Plan(complexity=complexity,
-                parallel=bool(data.get("parallel", len(tasks) > 1)),
-                subtasks=tuple(tasks))
+    return Plan(
+        complexity=complexity,
+        parallel=bool(data.get("parallel", len(tasks) > 1)),
+        subtasks=tuple(tasks),
+    )
 
 
 def parse_critique(completion: Completion) -> Critique:
@@ -132,16 +136,18 @@ def parse_critique(completion: Completion) -> Critique:
     except (TypeError, ValueError):
         confidence = 0.5
     issues = tuple(str(i) for i in (data.get("issues") or []) if str(i).strip())
-    return Critique(verdict, max(0.0, min(1.0, confidence)), issues,
-                    str(data.get("suggestion") or ""))
+    return Critique(
+        verdict, max(0.0, min(1.0, confidence)), issues, str(data.get("suggestion") or "")
+    )
 
 
 def heuristic_complexity(goal: str) -> Complexity:
     """Cheap fallback classifier used when the planner is skipped."""
     text = goal.lower()
     words = len(text.split())
-    signals = sum(text.count(t) for t in
-                  (" and ", " then ", " also ", " after ", ";", "\n-", "1.", "2."))
+    signals = sum(
+        text.count(t) for t in (" and ", " then ", " also ", " after ", ";", "\n-", "1.", "2.")
+    )
     if words <= 5 and signals == 0:
         return Complexity.TRIVIAL
     if words <= 30 and signals <= 1:
@@ -152,18 +158,17 @@ def heuristic_complexity(goal: str) -> Complexity:
 
 
 def scout_prompt(goal: str) -> list[Message]:
-    return [Message(role="system", content=SCOUT_SYSTEM),
-            Message(role="user", content=goal)]
+    return [Message(role="system", content=SCOUT_SYSTEM), Message(role="user", content=goal)]
 
 
 def auditor_prompt(goal: str, answer: str) -> list[Message]:
     return [
         Message(role="system", content=AUDITOR_SYSTEM),
-        Message(role="user",
-                content=f"ORIGINAL REQUEST:\n{goal}\n\nCANDIDATE ANSWER:\n{answer}"),
+        Message(
+            role="user", content=f"ORIGINAL REQUEST:\n{goal}\n\nCANDIDATE ANSWER:\n{answer}"
+        ),
     ]
 
 
 def planner_prompt(goal: str) -> list[Message]:
-    return [Message(role="system", content=PLANNER_SYSTEM),
-            Message(role="user", content=goal)]
+    return [Message(role="system", content=PLANNER_SYSTEM), Message(role="user", content=goal)]

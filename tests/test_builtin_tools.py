@@ -18,11 +18,14 @@ async def test_calculate_supports_math(reg):
     assert (await reg.execute("calculate", {"expression": "sqrt(16)"})).output == "4.0"
 
 
-@pytest.mark.parametrize("expr", [
-    "__import__('os').system('ls')",
-    "open('/etc/passwd').read()",
-    "eval('1+1')",
-])
+@pytest.mark.parametrize(
+    "expr",
+    [
+        "__import__('os').system('ls')",
+        "open('/etc/passwd').read()",
+        "eval('1+1')",
+    ],
+)
 async def test_calculate_blocks_escapes(reg, expr):
     res = await reg.execute("calculate", {"expression": expr})
     assert not res.ok

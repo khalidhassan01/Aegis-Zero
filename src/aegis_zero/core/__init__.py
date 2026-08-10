@@ -1,4 +1,5 @@
 """Core primitives: config, errors, events, models."""
+
 from .config import (
     MemorySettings,
     ModelSettings,

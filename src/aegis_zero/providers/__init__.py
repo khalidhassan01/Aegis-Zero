@@ -1,4 +1,5 @@
 """LLM provider implementations."""
+
 from __future__ import annotations
 
 from ..core.config import ProviderSettings
@@ -19,8 +20,9 @@ __all__ = [
 ]
 
 
-def build_provider(settings: ProviderSettings,
-                   fallback_models: tuple[str, ...] = ()) -> LLMProvider:
+def build_provider(
+    settings: ProviderSettings, fallback_models: tuple[str, ...] = ()
+) -> LLMProvider:
     """Construct the configured provider wrapped in resilience."""
     kind = settings.kind.lower()
     if kind == "echo":

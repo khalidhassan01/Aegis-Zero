@@ -1,4 +1,5 @@
 """Composition root: build a fully wired agent from Settings."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -28,8 +29,9 @@ class Aegis:
     registry: ToolRegistry
     memory: MemRLEngine | None = None
 
-    async def ask(self, goal: str, *, history: tuple[Message, ...] = (),
-                  budget: Budget | None = None) -> AgentResult:
+    async def ask(
+        self, goal: str, *, history: tuple[Message, ...] = (), budget: Budget | None = None
+    ) -> AgentResult:
         return await self.engine.run(goal, history=history, budget=budget)
 
     async def aclose(self) -> None:
@@ -74,8 +76,9 @@ def build_agent(
         )
 
     bus = EventBus()
-    metrics = instrument(bus, trace_path=settings.trace_dir + "/trace.jsonl"
-                         if settings.trace_dir else None)
+    metrics = instrument(
+        bus, trace_path=settings.trace_dir + "/trace.jsonl" if settings.trace_dir else None
+    )
 
     engine = AgentEngine(
         provider,
@@ -88,11 +91,20 @@ def build_agent(
         config=EngineConfig(
             fast_model=settings.models.fast,
             deep_model=settings.models.deep,
-            budget=Budget(max_steps=settings.max_steps,
-                          max_tokens=settings.max_tokens,
-                          max_seconds=settings.max_seconds),
+            budget=Budget(
+                max_steps=settings.max_steps,
+                max_tokens=settings.max_tokens,
+                max_seconds=settings.max_seconds,
+            ),
         ),
     )
 
-    return Aegis(engine=engine, settings=settings, bus=bus, metrics=metrics,
-                 provider=provider, registry=tools, memory=memory)
+    return Aegis(
+        engine=engine,
+        settings=settings,
+        bus=bus,
+        metrics=metrics,
+        provider=provider,
+        registry=tools,
+        memory=memory,
+    )
