@@ -421,7 +421,8 @@ asyncio.<span class="f">run</span>(main())</pre>
     var items = document.querySelectorAll('#proven .item');
     function apply(cat) {
       items.forEach(function (it) {
-        var show = cat === 'all' || it.classList.contains(cat);
+        var isOpen = it.classList.contains('open');
+        var show = cat === 'all' || (cat === 'open' ? isOpen : !isOpen);
         it.classList.toggle('hidden', !show);
       });
     }
