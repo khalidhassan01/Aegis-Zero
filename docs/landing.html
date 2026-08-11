@@ -123,9 +123,16 @@
   /* proven / not */
   .tabs{display:flex;gap:10px;margin-bottom:22px}
   .tab{font-family:var(--mono);font-size:12px;letter-spacing:1px;padding:9px 16px;
-    border-radius:8px;border:1px solid var(--line);color:var(--mut);cursor:default;background:transparent}
-  .tab.done{border-color:var(--teal-dim);color:var(--teal)}
-  .tab.open{border-color:var(--rose);color:var(--rose)}
+    border-radius:8px;border:1px solid var(--line);color:var(--mut);cursor:pointer;
+    background:transparent;transition:.18s;user-select:none}
+  .tab:hover{color:var(--ink)}
+  .tab[data-cat="done"]{border-color:var(--teal-dim)}
+  .tab[data-cat="open"]{border-color:var(--rose)}
+  .tab.active[data-cat="done"]{background:rgba(0,255,204,.12);color:var(--teal);
+    box-shadow:0 0 18px rgba(0,255,204,.18)}
+  .tab.active[data-cat="open"]{background:rgba(251,113,133,.12);color:var(--rose);
+    box-shadow:0 0 18px rgba(251,113,133,.18)}
+  .item.hidden{display:none}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .item{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--card)}
   .item .tag{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
@@ -336,8 +343,8 @@
         seeds, pass^k alongside pass@1, and an honest baseline. No claim without it.</p>
     </div>
     <div class="tabs">
-      <span class="tab done">Shipped &amp; tested</span>
-      <span class="tab open">Open / deliberately omitted</span>
+      <button class="tab active" data-cat="done">Shipped &amp; tested</button>
+      <button class="tab" data-cat="open">Open / deliberately omitted</button>
     </div>
     <div class="grid2">
       <div class="item"><div class="tag">P1 · Shipped</div><h4>Grounded verifier</h4>
@@ -407,5 +414,25 @@ asyncio.<span class="f">run</span>(main())</pre>
     <div>MIT licensed · Evidence-graded · <a href="https://github.com/khalidhassan01/Aegis-Zero">GitHub</a></div>
   </div>
 </footer>
+<script>
+  // Proven / not filter — the tabs are real, not decoration.
+  (function () {
+    var tabs = document.querySelectorAll('#proven .tab');
+    var items = document.querySelectorAll('#proven .item');
+    function apply(cat) {
+      items.forEach(function (it) {
+        var show = cat === 'all' || it.classList.contains(cat);
+        it.classList.toggle('hidden', !show);
+      });
+    }
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        tabs.forEach(function (x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        apply(t.dataset.cat);
+      });
+    });
+  })();
+</script>
 </body>
 </html>
