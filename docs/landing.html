@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aegis Zero — A state-of-the-art agentic runtime</title>
+<meta name="description" content="Async orchestration, policy-governed tools, reinforcement-weighted memory, and grounded verification. Nothing executes unreviewed.">
+<style>
+  :root{
+    --bg:#020806; --bg2:#04110f; --ink:#e6fffb; --mut:#8aa39c;
+    --teal:#00ffcc; --teal-dim:#5eead4; --gold:#ffd700; --gold-dim:#e8c84a;
+    --rose:#fb7185; --line:#0c3b34; --card:rgba(0,255,204,0.04);
+    --mono:'JetBrains Mono',ui-monospace,'Courier New',monospace;
+    --serif:Georgia,'Times New Roman',serif;
+    --maxw:1120px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{color:var(--gold)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .mono-cap{font-family:var(--mono);text-transform:uppercase;letter-spacing:3px;
+    font-size:11px;color:var(--teal-dim)}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);
+    background:rgba(2,8,6,0.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--serif);
+    font-weight:900;letter-spacing:4px;font-size:19px;color:#fff}
+  .brand svg{width:26px;height:26px}
+  .navlinks{display:flex;gap:26px;font-size:12px;letter-spacing:1px}
+  .navlinks a{color:var(--mut)}
+  .navlinks a:hover{color:var(--teal)}
+  .github{font-size:12px;letter-spacing:1px;border:1px solid var(--teal);
+    color:var(--teal);padding:7px 14px;border-radius:7px;transition:.18s}
+  .github:hover{background:var(--teal);color:#021;box-shadow:0 0 22px rgba(0,255,204,.35)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:78px 0 56px;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(620px 420px at 22% 30%,rgba(0,255,204,.16),transparent 60%),
+               radial-gradient(500px 360px at 88% 70%,rgba(255,215,0,.07),transparent 60%);
+    pointer-events:none}
+  .hero-grid{position:absolute;inset:0;opacity:.5;pointer-events:none;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),
+                     linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:48px 48px;mask:radial-gradient(circle at 50% 30%,#000,transparent 78%)}
+  .hero .wrap{position:relative;display:grid;grid-template-columns:1.15fr .85fr;
+    gap:48px;align-items:center}
+  .kicker{margin-bottom:18px}
+  h1{font-family:var(--serif);font-weight:900;font-size:clamp(40px,6vw,76px);
+    line-height:1.02;letter-spacing:6px;color:#fff}
+  h1 .zero{color:transparent;-webkit-text-stroke:2px var(--teal);
+    text-shadow:0 0 26px rgba(0,255,204,.35)}
+  .lead{margin:22px 0 30px;color:#cbd5e1;font-size:16px;max-width:46ch}
+  .lead b{color:var(--ink)}
+  .cta{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:1px;padding:13px 22px;
+    border-radius:9px;cursor:pointer;transition:.2s;border:1px solid transparent}
+  .btn-primary{background:var(--teal);color:#021;font-weight:700}
+  .btn-primary:hover{box-shadow:0 0 30px rgba(0,255,204,.4);transform:translateY(-1px)}
+  .btn-ghost{border-color:var(--line);color:var(--teal-dim)}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+
+  /* shield emblem (animated, standalone page only) */
+  .emblem{justify-self:center;filter:drop-shadow(0 0 30px rgba(0,255,204,.18))}
+  .emblem svg{width:min(360px,80vw);height:auto}
+  .spin-cw{transform-origin:300px 320px;animation:spin 26s linear infinite}
+  .spin-ccw{transform-origin:300px 320px;animation:spin 18s linear infinite reverse}
+  .orb-a{transform-origin:300px 320px;animation:spin 9s linear infinite}
+  .orb-b{transform-origin:300px 320px;animation:spin 9s linear infinite reverse}
+  .pulse{animation:pulse 4s ease-in-out infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.spin-cw,.spin-ccw,.orb-a,.orb-b,.pulse{animation:none}}
+
+  /* ---------- stats ---------- */
+  .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(0,255,204,.03),transparent)}
+  .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:1px}
+  .stat{padding:30px 18px;text-align:center}
+  .stat .n{font-family:var(--serif);font-size:38px;font-weight:900;color:var(--teal)}
+  .stat .l{font-size:11px;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase;margin-top:4px}
+
+  /* ---------- sections ---------- */
+  section{padding:72px 0}
+  .sec-head{margin-bottom:38px;max-width:62ch}
+  .sec-head h2{font-family:var(--serif);font-size:clamp(28px,4vw,42px);
+    color:#fff;letter-spacing:2px;margin:10px 0 14px}
+  .sec-head p{color:var(--mut);font-size:15px}
+
+  /* pillars */
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .pillar{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:26px;transition:.2s;position:relative;overflow:hidden}
+  .pillar::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;
+    background:linear-gradient(90deg,var(--teal),transparent)}
+  .pillar:hover{border-color:var(--teal-dim);transform:translateY(-3px);
+    box-shadow:0 12px 40px rgba(0,255,204,.06)}
+  .pillar .idx{font-family:var(--serif);font-size:13px;color:var(--gold);letter-spacing:2px}
+  .pillar h3{font-size:18px;color:#fff;margin:12px 0 10px;letter-spacing:.5px}
+  .pillar p{color:var(--mut);font-size:13.5px}
+
+  /* diagram */
+  .diagram-card{background:rgba(2,8,6,.6);border:1px solid var(--line);border-radius:16px;
+    padding:18px;overflow:auto}
+  .diagram-card img{width:100%;display:block;border-radius:8px}
+
+  /* comparison */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .cmp{border:1px solid var(--line);border-radius:14px;padding:24px;background:var(--card)}
+  .cmp h3{font-family:var(--serif);font-size:20px;margin-bottom:16px;letter-spacing:1px}
+  .cmp.zero h3{color:var(--teal)} .cmp.typ h3{color:var(--mut)}
+  .cmp ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+  .cmp li{font-size:13.5px;display:flex;gap:10px;align-items:flex-start;color:#cbd5e1}
+  .cmp li::before{content:"";flex:0 0 auto;width:7px;height:7px;margin-top:7px;border-radius:50%}
+  .cmp.zero li::before{background:var(--teal);box-shadow:0 0 10px var(--teal)}
+  .cmp.typ li::before{background:#33473f}
+
+  /* proven / not */
+  .tabs{display:flex;gap:10px;margin-bottom:22px}
+  .tab{font-family:var(--mono);font-size:12px;letter-spacing:1px;padding:9px 16px;
+    border-radius:8px;border:1px solid var(--line);color:var(--mut);cursor:default;background:transparent}
+  .tab.done{border-color:var(--teal-dim);color:var(--teal)}
+  .tab.open{border-color:var(--rose);color:var(--rose)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .item{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--card)}
+  .item .tag{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
+  .item.open .tag{color:var(--rose)}
+  .item h4{font-size:15px;color:#fff;margin:8px 0 6px;letter-spacing:.5px}
+  .item p{font-size:13px;color:var(--mut)}
+
+  /* code */
+  pre{background:#02110d;border:1px solid var(--line);border-radius:12px;
+    padding:22px;overflow:auto;font-size:13px;line-height:1.7;color:#bfeede}
+  pre .c{color:#5b7a72} pre .k{color:var(--gold)} pre .s{color:var(--teal-dim)}
+  pre .f{color:#fff} pre .p{color:var(--mut)}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:40px 0;color:var(--mut);font-size:12px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+  footer .brand{font-size:15px}
+
+  @media (max-width:880px){
+    .hero .wrap{grid-template-columns:1fr;text-align:left}
+    .emblem{order:-1}
+    .pillars,.compare,.grid2{grid-template-columns:1fr}
+    .stats .wrap{grid-template-columns:repeat(2,1fr)}
+    .navlinks{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 600 340" aria-hidden="true">
+        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"
+          fill="none" stroke="#00ffcc" stroke-width="2.5" filter="drop-shadow(0 0 6px #00ffcc)"/>
+        <text x="300" y="186" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="900"
+          fill="none" stroke="#00ffcc" stroke-width="2.5">0</text>
+      </svg>
+      AEGIS
+    </div>
+    <div class="navlinks">
+      <a href="#pillars">Principles</a>
+      <a href="#how">Architecture</a>
+      <a href="#proven">Honesty</a>
+      <a href="#start">Quick start</a>
+    </div>
+    <a class="github" href="https://github.com/khalidhassan01/Aegis-Zero">GitHub ★</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="wrap">
+    <div>
+      <div class="kicker mono-cap">A state-of-the-art agentic runtime</div>
+      <h1>AEGIS<span class="zero">0</span></h1>
+      <p class="lead">Async orchestration. <b>Policy-governed tools.</b> Memory that learns.
+        Verification before trust. Nothing executes unreviewed.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#start">Get started</a>
+        <a class="btn btn-ghost" href="https://github.com/khalidhassan01/Aegis-Zero">View source</a>
+      </div>
+    </div>
+    <div class="emblem">
+      <svg viewBox="0 0 600 640" aria-hidden="true">
+        <defs>
+          <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00ffcc" stop-opacity=".16"/>
+            <stop offset="100%" stop-color="#00ffcc" stop-opacity=".02"/></linearGradient>
+          <linearGradient id="ss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00ffcc"/><stop offset="100%" stop-color="#00ffcc" stop-opacity=".35"/></linearGradient>
+          <clipPath id="sc">
+            <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z"/></clipPath>
+        </defs>
+        <g class="spin-cw">
+          <circle cx="300" cy="419" r="196" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity=".10"/>
+          <circle cx="300" cy="419" r="150" fill="none" stroke="#00ffcc" stroke-width="1.4" stroke-opacity=".55"
+            stroke-dasharray="10 6"/>
+          <g stroke="#00ffcc" stroke-width="2" stroke-opacity=".85">
+            <line x1="300" y1="223" x2="300" y2="245"/>
+            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(90 300 419)"/>
+            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(180 300 419)"/>
+            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(270 300 419)"/>
+          </g>
+        </g>
+        <g class="spin-ccw">
+          <circle cx="300" cy="419" r="112" fill="none" stroke="#ffd700" stroke-width="1" stroke-opacity=".28"
+            stroke-dasharray="3 22"/>
+        </g>
+        <g class="orb-a"><circle cx="300" cy="223" r="4" fill="#00ffcc" transform="rotate(45 300 419)"/></g>
+        <g class="orb-b"><circle cx="300" cy="223" r="3" fill="#ffd700" transform="rotate(225 300 419)"/></g>
+        <g class="pulse">
+          <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z" fill="url(#sf)"/>
+          <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width=".5" stroke-opacity=".16">
+            <line x1="170" y1="330" x2="430" y2="330"/><line x1="170" y1="380" x2="430" y2="380"/>
+            <line x1="170" y1="430" x2="430" y2="430"/><line x1="170" y1="480" x2="430" y2="480"/>
+            <line x1="170" y1="530" x2="430" y2="530"/>
+            <line x1="215" y1="250" x2="215" y2="588"/><line x1="260" y1="250" x2="260" y2="588"/>
+            <line x1="300" y1="250" x2="300" y2="588"/><line x1="340" y1="250" x2="340" y2="588"/>
+            <line x1="385" y1="250" x2="385" y2="588"/>
+          </g>
+          <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z"
+            fill="none" stroke="url(#ss)" stroke-width="3"/>
+          <line x1="214" y1="290" x2="386" y2="290" stroke="#ffd700" stroke-width="2" stroke-opacity=".85"/>
+          <text x="300" y="452" text-anchor="middle" font-family="Georgia,serif" font-size="150" font-weight="900"
+            fill="none" stroke="#00ffcc" stroke-width="3" opacity=".95">0</text>
+          <circle cx="300" cy="586" r="5" fill="#ffd700"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><div class="n">3.11+</div><div class="l">Python</div></div>
+    <div class="stat"><div class="n">290+</div><div class="l">Tests</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Deps · httpx · yaml</div></div>
+    <div class="stat"><div class="n">P1–P6.5</div><div class="l">Roadmap</div></div>
+  </div>
+</div>
+
+<section id="pillars">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="mono-cap">Three commitments</div>
+      <h2>Enforced in code, not promised in prose</h2>
+      <p>Every claim here is backed by a test or a cited source. The audit reproduces
+        defects before fixing them; the roadmap grades evidence before adopting it.</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="idx">01</div>
+        <h3>Nothing executes unreviewed</h3>
+        <p>Every tool call passes a policy engine: allow, sanitize, approve, or deny.
+          SSRF and destructive commands are blocked; secrets are redacted before a tool
+          or a log ever sees them.</p>
+      </div>
+      <div class="pillar">
+        <div class="idx">02</div>
+        <h3>Memory learns — and is held to the truth</h3>
+        <p>Recollections are scored by whether they helped. Winners surface; losers decay.
+          Stale or contradicted facts are tombstoned when a verifier proves them false.</p>
+      </div>
+      <div class="pillar">
+        <div class="idx">03</div>
+        <h3>Failures are typed, never swallowed</h3>
+        <p>Specific exceptions with structured context. Hard budgets. And an auditor
+          grounded in external checks — because the model grading its own answer doesn't work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="mono-cap">Runtime topology</div>
+      <h2>Goal in. Plan. Execute. Verify. Learn.</h2>
+      <p>Independent subtasks run as parallel dependency waves. Each forge loop is
+        policy-gated; the auditor is forced by deterministic checks.</p>
+    </div>
+    <div class="diagram-card">
+      <img src="architecture.svg" alt="Aegis Zero runtime topology diagram">
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="mono-cap">Why different</div>
+      <h2>The honest contrast</h2>
+    </div>
+    <div class="compare">
+      <div class="cmp zero">
+        <h3>Aegis Zero</h3>
+        <ul>
+          <li>Policy-gated tools: allow / sanitize / approve / deny</li>
+          <li>Context budget enforced <b>per model</b></li>
+          <li>Verifier-forced revisions, not introspection</li>
+          <li>Retries + fail-fast model degradation</li>
+          <li>Reinforcement-weighted, temporal, explorative memory</li>
+          <li><b>pass^k</b> reported with a confidence interval</li>
+        </ul>
+      </div>
+      <div class="cmp typ">
+        <h3>Typical agent loop</h3>
+        <ul>
+          <li>A single <code>try/except</code> around the tool</li>
+          <li>One global token constant for every model</li>
+          <li>"Review your own answer"</li>
+          <li>Hope the API stays up</li>
+          <li>Append-only vector store</li>
+          <li>"It worked once"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="proven">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="mono-cap">Proven · and not</div>
+      <h2>What we have shipped — and what we have not</h2>
+      <p>We hold ourselves to the roadmap's measurement bar: fixed held-out set, fixed
+        seeds, pass^k alongside pass@1, and an honest baseline. No claim without it.</p>
+    </div>
+    <div class="tabs">
+      <span class="tab done">Shipped &amp; tested</span>
+      <span class="tab open">Open / deliberately omitted</span>
+    </div>
+    <div class="grid2">
+      <div class="item"><div class="tag">P1 · Shipped</div><h4>Grounded verifier</h4>
+        <p>Auditor forced by deterministic external checks — schema, execution, arithmetic,
+          citation, tool-consistency — not the model grading itself.</p></div>
+      <div class="item"><div class="tag">P5 · Shipped</div><h4>Per-model context windows</h4>
+        <p>Prompt budget derived from each model's own window (audit #13). No more one
+          global constant wrong for every model.</p></div>
+      <div class="item"><div class="tag">P4 · Shipped</div><h4>pass^k reliability</h4>
+        <p>Aegis.reliability() runs a goal n times, reports pass@k with a 95% Wilson
+          interval and mean cost per run.</p></div>
+      <div class="item"><div class="tag">Shipped</div><h4>Fail-fast degradation</h4>
+        <p>ResilientProvider drops to a smaller fallback after one failed primary attempt
+          instead of burning slow retries on an OOMing 7b.</p></div>
+      <div class="item"><div class="tag">P6.5 · Shipped</div><h4>Temporal memory validity</h4>
+        <p>Stale and contradicted facts tombstoned, not deleted — reversible and auditable.</p></div>
+      <div class="item open"><div class="tag">P6 · Open</div><h4>Coarse credit assignment</h4>
+        <p>Every memory in a successful run is still rewarded, including irrelevant ones.
+          Needs per-memory attribution.</p></div>
+      <div class="item open"><div class="tag">Documented</div><h4>Command denylist</h4>
+        <p>Not a security boundary — a shell expresses the same command infinitely many ways.
+          Containment is the honest fix.</p></div>
+      <div class="item open"><div class="tag">Omitted</div><h4>Debate / self-modify / tree search</h4>
+        <p>Deliberately left out, with the evidence in the roadmap. Gains vanish against a
+          well-tuned single agent given the same budget.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="mono-cap">Quick start</div>
+      <h2>From install to a verified run</h2>
+    </div>
+    <pre><span class="c"># install (Python 3.11+) — only httpx + PyYAML required at runtime</span>
+<span class="f">pip install -e</span> <span class="s">".[dev]"</span>
+
+<span class="c"># run a goal</span>
+<span class="f">aegis run</span> <span class="s">"Summarise the CAP theorem"</span> <span class="p">--stats -v</span>
+
+<span class="c"># report reliability: pass^k over n runs</span>
+<span class="f">aegis reliability</span> <span class="s">"Deploy the service"</span> <span class="p">-n 5 -k 3</span>
+
+<span class="c"># in code</span>
+<span class="k">import</span> asyncio
+<span class="k">from</span> aegis_zero <span class="k">import</span> build_agent
+<span class="k">from</span> aegis_zero.tools <span class="k">import</span> ConsoleGate
+
+<span class="k">async def</span> <span class="f">main</span>():
+    <span class="k">async with</span> build_agent(approval=ConsoleGate()) <span class="k">as</span> agent:
+        result = <span class="k">await</span> agent.<span class="f">ask</span>(<span class="s">"What is 2^16, and why does it matter?"</span>)
+        <span class="f">print</span>(result.answer)
+
+asyncio.<span class="f">run</span>(main())</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 600 340" aria-hidden="true" style="width:20px;height:20px">
+        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"
+          fill="none" stroke="#00ffcc" stroke-width="3"/>
+      </svg> AEGIS ZERO
+    </div>
+    <div>MIT licensed · Evidence-graded · <a href="https://github.com/khalidhassan01/Aegis-Zero">GitHub</a></div>
+  </div>
+</footer>
+</body>
+</html>
