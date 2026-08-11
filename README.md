@@ -1,27 +1,56 @@
-# Aegis Zero
+<p align="center">
+  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%">
+</p>
 
-**A state-of-the-art agentic runtime.** Async orchestration, policy-governed
-tool use, and reinforcement-weighted memory — in a single dependency-light
-Python package.
+<p align="center">
+  <b>A state-of-the-art agentic runtime.</b><br>
+  Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.
+</p>
 
-[![CI](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg)](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+<p align="center">
+  <a href="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml"><img src="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+  <img src="https://img.shields.io/badge/dependencies-httpx%20%7C%20PyYAML-8a2be2" alt="Dependencies">
+</p>
 
 ---
 
-## Why Aegis Zero
-
-Most agent frameworks give you a prompt loop and hope for the best. Aegis Zero
-is built around three commitments:
+Most agent frameworks give you a prompt loop and hope for the best. **Aegis Zero**
+is built around three commitments, each enforced in code rather than promised
+in prose:
 
 1. **Nothing executes unreviewed.** Every tool call passes a policy engine that
    classifies risk, blocks SSRF and destructive commands, contains filesystem
    access, redacts secrets, and routes high-risk actions to a human.
-2. **Memory learns.** Retrieved memories are scored by whether they actually
-   helped. Useful recollections surface more often; misleading ones decay away.
+2. **Memory learns — and is held to the truth.** Retrieved memories are scored by
+   whether they actually helped. Useful recollections surface more often;
+   misleading ones decay and are tombstoned when a verifier proves them false.
 3. **Failures are typed, never swallowed.** Every error is a specific exception
-   with structured context. Budgets are hard limits, not suggestions.
+   with structured context. Budgets are hard limits, not suggestions. And the
+   auditor is **grounded in external checks**, because intrinsic self-correction
+   is known not to work (Huang et al., ICLR 2024).
+
+<p align="center">
+  <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%">
+</p>
+
+## Why Aegis Zero is different
+
+This project treats its own claims as hypotheses to be falsified. The
+[architecture audit](docs/AUDIT.md) reproduced every defect with an executable
+probe before fixing it, and the [roadmap](docs/ROADMAP.md) cites peer-reviewed
+sources for every recommendation — and corrects two research claims that did not
+hold up under measurement. What follows is what that discipline produced.
+
+| | Aegis Zero | Typical agent loop |
+|---|---|---|
+| Tool execution | policy-gated: allow / sanitize / approve / deny | a single `try/except` |
+| Context budget | enforced per *model* (P5) | one global constant |
+| Self-correction | verifier-forced revisions, not introspection | "review your own answer" |
+| Resilience | retries + fail-fast model degradation | hope the API stays up |
+| Memory | reinforcement-weighted, temporal, explorative | append-only vector store |
+| Reliability | `pass^k` reported with a confidence interval (P4) | "it worked once" |
 
 ## Install
 
@@ -80,22 +109,24 @@ aegis health                              # check provider and memory
                         └──────┬──────┘
                                │
                         ┌──────▼──────┐
-                        │   Auditor   │  adversarial review ──┐
-                        └──────┬──────┘                       │ revise
-                               │  pass                        │
-                        ┌──────▼──────┐                       │
-                        │   MemRL     │<──────────────────────┘
+                        │  Auditor +  │  grounded verification ──┐
+                        │  Verifier   │                          │ revise
+                        └──────┬──────┘                          │
+                               │  pass                          │
+                        ┌──────▼──────┐                         │
+                        │   MemRL     │<────────────────────────┘
                         └─────────────┘  reward what helped
 ```
 
-Every tool call in every Forge loop is intercepted:
+Every tool call in every Forge loop is intercepted by the `PolicyEngine`
+before it ever touches a model or a system:
 
 ```
-tool call ──> PolicyEngine ──> allow ─────────────> execute
+tool call ──> PolicyEngine ──> allow ──────────────> execute
                     │
                     ├────────> sanitize ──────────> execute (redacted args)
                     ├────────> approve ──> human ─> execute or refuse
-                    └────────> deny ─────────────> error returned to model
+                    └────────> deny ──────────────> error returned to model
 ```
 
 ### Package layout
@@ -103,10 +134,10 @@ tool call ──> PolicyEngine ──> allow ───────────�
 ```
 src/aegis_zero/
 ├── core/            models, typed errors, layered config, event bus
-├── providers/       async LLM abstraction, OpenAI-compat, retry + fallback
+├── providers/       async LLM abstraction, OpenAI-compat, retry + fail-fast fallback
 ├── tools/           registry with derived schemas, policy engine, approvals
-├── memory/          vector stores, MemRL reinforcement retrieval
-├── orchestrator/    planning, context assembly, the agent engine
+├── memory/          vector stores, MemRL reinforcement retrieval, Continual Harness
+├── orchestrator/    planning, context assembly, the agent engine, reliability
 ├── observability/   structured logging, metrics, JSONL tracing
 ├── app.py           composition root
 └── cli.py           command-line interface
@@ -149,6 +180,11 @@ traversal escapes from allowed roots, and a broad set of destructive shell
 patterns. Secret-looking keys and values are redacted before a tool ever sees
 them — and before anything reaches a log or trace.
 
+> The SSRF defences hold against every probe we threw at them (decimal, hex,
+> octal, IPv6, trailing-dot DNS). The command denylist does **not** — a shell
+> has unbounded ways to express the same command. See [SECURITY_MODEL.md](docs/SECURITY_MODEL.md)
+> for the honest accounting and the containment-based fix.
+
 ### Memory that learns
 
 ```python
@@ -166,6 +202,10 @@ Ranking blends similarity, learned utility, and recency:
 rank = 0.60 * similarity + 0.30 * utility + 0.10 * recency
 ```
 
+An exploration bonus (UCB1-style) keeps a lucky winner from starving better
+alternatives, and a temporal-validity gate deprecates facts that have gone
+stale or been contradicted.
+
 ### Budgets are enforced
 
 ```python
@@ -179,13 +219,27 @@ result = await agent.ask(goal, budget=Budget(
 Exceeding any limit raises `BudgetExceeded`, which the engine converts into a
 failed-but-reported result rather than an unbounded spend.
 
-The prompt budget is derived per model: each model in `ModelSettings.context_windows`
-has its own context window, and the prompt is trimmed to that window minus a
-generation reserve. A model not in the registry falls back to a conservative
-default, so a 1.5b and a 32k-window model are no longer forced to share one
-global number.
+The prompt budget is derived **per model**: each model in
+`ModelSettings.context_windows` has its own context window, and the prompt is
+trimmed to that window minus a generation reserve. A model not in the registry
+falls back to a conservative default, so a 1.5b and a 32k-window model are no
+longer forced to share one global number.
 
-### Reliability is reported, not assumed
+### Reliability is measured, not claimed
+
+An agent that passes once can still be unreliable. `reliability()` runs a goal
+`n` times and reports `pass@k` — the probability it succeeds `k` times in a row
+— with a 95% Wilson interval and the mean tokens/seconds/revisions per run, so
+an "improvement" that is really just more compute is visible:
+
+```python
+report = await agent.reliability("Deploy the service", n=5, k=3)
+print(report.summary())
+# {'n': 5, 'k': 3, 'pass@1': 1.0, 'pass@3': 1.0,
+#  'pass@k_lower': 0.23, 'pass@k_upper': 1.0, ...}
+```
+
+### Observability
 
 ```python
 agent.bus.subscribe(lambda e: print(e.type.value, e.data))
@@ -195,20 +249,6 @@ print(agent.metrics.snapshot())
 ```
 
 Set `trace_dir` in config to write a JSONL trace of every event.
-
-### Reliability is measured, not claimed
-
-An agent that passes once can still be unreliable. `reliability()` runs a
-goal `n` times and reports `pass@k` — the probability it succeeds `k` times
-in a row — with a 95% Wilson interval and the mean tokens/seconds/revisions
-per run, so an "improvement" that is really just more compute is visible:
-
-```python
-report = await agent.reliability("Deploy the service", n=5, k=3)
-print(report.summary())
-# {'n': 5, 'k': 3, 'pass@1': 1.0, 'pass@3': 1.0,
-#  'pass@k_lower': 0.23, 'pass@k_upper': 1.0, ...}
-```
 
 ## Configuration
 
@@ -221,10 +261,11 @@ export AEGIS_POLICY__APPROVAL_THRESHOLD=medium
 export AEGIS_MAX_STEPS=12
 ```
 
-See [`aegis.example.yaml`](aegis.example.yaml) for every option.
-
 Any OpenAI-compatible endpoint works: OpenAI, Ollama's `/v1` shim, vLLM,
-LiteLLM, or a local router.
+LiteLLM, or a local router. If the primary model OOMs or errors, the provider
+degrades to a smaller fallback after a single attempt instead of failing.
+
+See [`aegis.example.yaml`](aegis.example.yaml) for every option.
 
 ## Testing without a model
 
@@ -243,10 +284,36 @@ provider = EchoProvider(script=[
 
 See [`examples/offline_testing.py`](examples/offline_testing.py).
 
+## What we have proven — and what we have not
+
+We hold ourselves to the bar in the roadmap's measurement section: a fixed
+held-out set, fixed seeds, `pass^k` alongside `pass@1`, and an honest baseline.
+That discipline produced these shipped, test-backed improvements:
+
+- **Grounded verifier (P1).** The auditor is forced by deterministic external
+  checks (schema, execution, arithmetic, citation, tool-consistency), not by the
+  model grading its own answer.
+- **Per-model context windows (P5, audit #13).** Prompt budget derived per model.
+- **pass^k reliability (P4, τ-bench).** `Aegis.reliability()` with a Wilson interval.
+- **Fail-fast model degradation.** `ResilientProvider` drops to a smaller model
+  after one failed primary attempt.
+- **Temporal memory validity (P6.5).** Stale and contradicted facts are
+  tombstoned, not deleted.
+- **Winner-take-all retrieval fixed.** A UCB1 exploration bonus breaks the
+  popularity spiral.
+
+We have **not** solved — and say so plainly:
+- **Coarse memory credit assignment (P6).** Still open; every memory in a
+  successful run is rewarded, including irrelevant ones.
+- **The command denylist.** Documented as not a security boundary; containment
+  is the honest fix.
+- **Self-modifying agents, multi-agent debate-by-default, tree search in the
+  main loop.** Deliberately omitted, with the evidence in the roadmap.
+
 ## Development
 
 ```bash
-pytest --cov              # 167 tests
+pytest --cov              # 290+ tests
 ruff check src tests      # lint
 mypy                      # type check
 ```
@@ -270,6 +337,14 @@ v1 modules are preserved under [`legacy/`](legacy/) for reference. The mapping:
 
 The principal change is that everything is `async`, and subtasks that don't
 depend on each other now run concurrently.
+
+## Documentation
+
+- [Architecture audit](docs/AUDIT.md) — defects reproduced before fixing
+- [Roadmap](docs/ROADMAP.md) — evidence-graded improvements, what we did and why
+- [Security model](docs/SECURITY_MODEL.md) — what is and isn't a boundary
+- [Integration guide](docs/AEGIS_INTEGRATION_GUIDE.md)
+- [Research foundation](docs/AEGIS_ZERO_RESEARCH_FOUNDATION.md)
 
 ## License
 

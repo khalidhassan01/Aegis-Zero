@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#04110f"/>
+      <stop offset="55%" stop-color="#020806"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="26%" cy="42%" r="42%">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shieldFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.02"/>
+    </linearGradient>
+    <linearGradient id="shieldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.35"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0 L0 0 0 48" fill="none" stroke="#0c3b34" stroke-width="0.6" opacity="0.5"/>
+    </pattern>
+    <clipPath id="sc">
+      <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+
+  <!-- Shield emblem (left) -->
+  <g>
+    <circle cx="300" cy="419" r="196" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.10"/>
+    <circle cx="300" cy="419" r="150" fill="none" stroke="#00ffcc" stroke-width="1.2" stroke-opacity="0.55" stroke-dasharray="10 6"/>
+    <circle cx="300" cy="419" r="112" fill="none" stroke="#ffd700" stroke-width="0.8" stroke-opacity="0.22" stroke-dasharray="3 22"/>
+    <!-- shield body -->
+    <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z" fill="url(#shieldFill)"/>
+    <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width="0.5" stroke-opacity="0.16">
+      <line x1="170" y1="330" x2="430" y2="330"/>
+      <line x1="170" y1="380" x2="430" y2="380"/>
+      <line x1="170" y1="430" x2="430" y2="430"/>
+      <line x1="170" y1="480" x2="430" y2="480"/>
+      <line x1="170" y1="530" x2="430" y2="530"/>
+      <line x1="215" y1="250" x2="215" y2="588"/>
+      <line x1="260" y1="250" x2="260" y2="588"/>
+      <line x1="300" y1="250" x2="300" y2="588"/>
+      <line x1="340" y1="250" x2="340" y2="588"/>
+      <line x1="385" y1="250" x2="385" y2="588"/>
+    </g>
+    <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z" fill="none" stroke="url(#shieldStroke)" stroke-width="3"/>
+    <path d="M300 268 L414 284 L414 412 C414 498 300 570 300 570 C300 570 186 498 186 412 L186 284 Z" fill="none" stroke="#00ffcc" stroke-width="0.7" stroke-opacity="0.3"/>
+    <line x1="214" y1="290" x2="386" y2="290" stroke="#ffd700" stroke-width="2" stroke-opacity="0.85"/>
+    <text x="300" y="452" text-anchor="middle" font-size="150" font-weight="900" fill="none" stroke="#00ffcc" stroke-width="3" opacity="0.95">0</text>
+    <circle cx="300" cy="586" r="5" fill="#ffd700"/>
+  </g>
+
+  <!-- Wordmark + tagline (right) -->
+  <text x="640" y="300" font-size="92" font-weight="900" fill="#ffffff" letter-spacing="14">AEGIS</text>
+  <line x1="642" y1="324" x2="900" y2="324" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="644" y="358" font-family="'Courier New', monospace" font-size="22" fill="#00ffcc" letter-spacing="12">Z E R O</text>
+  <text x="644" y="430" font-family="'Courier New', monospace" font-size="20" fill="#cbd5e1">A state-of-the-art agentic runtime.</text>
+  <text x="644" y="462" font-family="'Courier New', monospace" font-size="20" fill="#cbd5e1">Policy-governed tools. Memory that learns.</text>
+  <text x="644" y="494" font-family="'Courier New', monospace" font-size="20" fill="#cbd5e1">Verification before trust.</text>
+
+  <!-- bottom feature chips -->
+  <g font-family="'Courier New', monospace" font-size="16" fill="#94a3b8">
+    <rect x="644" y="540" width="150" height="34" rx="6" fill="#00ffcc" fill-opacity="0.06" stroke="#00ffcc" stroke-opacity="0.4"/>
+    <text x="664" y="562">async runtime</text>
+    <rect x="806" y="540" width="180" height="34" rx="6" fill="#ffd700" fill-opacity="0.06" stroke="#ffd700" stroke-opacity="0.4"/>
+    <text x="826" y="562">grounded verifier</text>
+    <rect x="998" y="540" width="220" height="34" rx="6" fill="#00ffcc" fill-opacity="0.06" stroke="#00ffcc" stroke-opacity="0.4"/>
+    <text x="1018" y="562">fail-fast degradation</text>
+  </g>
+</svg>
