@@ -11,6 +11,7 @@ from .agents import (
 )
 from .context import ContextBuilder, ContextPacket, estimate_tokens
 from .engine import AgentEngine, AgentResult, EngineConfig
+from .reliability import ReliabilityReport, reliability_report
 
 __all__ = [
     "AgentEngine",
@@ -20,10 +21,12 @@ __all__ = [
     "Critique",
     "EngineConfig",
     "Plan",
+    "ReliabilityReport",
     "Subtask",
     "estimate_tokens",
     "extract_json",
     "heuristic_complexity",
     "parse_critique",
     "parse_plan",
+    "reliability_report",
 ]

@@ -103,23 +103,31 @@ and optimize offline — not a runtime dependency.
 - Agrawal et al., *GEPA*, arXiv:2507.19457 (preprint — reports beating RL on
   some tasks; treat the magnitude as unconfirmed)
 
-## P4 — Report reliability, not just success  *(complexity: S)*
+## P4 — Report reliability, not just success  *(complexity: S)* — **DONE**
 
 τ-bench's contribution is the metric: **pass^k**, the probability that an
 agent succeeds *k* times in a row. Agents that look strong at pass@1 collapse
 under pass^k — they are unreliable rather than incapable.
 
-Make the engine able to run a goal *k* times and report the consistency
-rate. This is a small change with outsized diagnostic value, and it is the
-only honest way to claim the framework improved.
+The engine can now run a goal *k* times and report the consistency rate,
+along with a 95% Wilson interval on pass^k so a small sample does not
+masquerade as precision, and the mean tokens / seconds / revisions per run.
+Implemented as `Aegis.reliability()` (async, bounded concurrency) and the
+`aegis reliability` CLI command.
 
 - Yao et al., *τ-bench*, arXiv:2406.12045
 
-## P5 — Per-model context windows  *(complexity: S)*
+## P5 — Per-model context windows  *(complexity: S)* — **DONE**
 
-`max_tokens` is one global constant. Every model has a different window, so
-the budget is wrong for all but one. Add a per-model registry with a
-conservative default and derive the context budget from it.
+`max_tokens` was one global constant. Every model has a different window, so
+the prompt budget was wrong for all but one. `ModelSettings` now carries a
+per-model `context_windows` registry; the prompt budget for each call is
+derived from that model's own window minus a generation reserve, and the
+`ContextBuilder` resolves the budget per model at build time. An unknown
+model falls back to a conservative `default_context_window`. This closes
+audit item #13.
+
+- Reflexion's gains come from an external evaluator, not introspection —
 
 ## P6 — Fine-grained memory credit assignment  *(complexity: L)*
 

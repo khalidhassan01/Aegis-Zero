@@ -4,6 +4,35 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Continuation of the v2.0.0 rebuild. Three test-backed improvements landed on
+top of the audit fixes, each tied to the roadmap (P1/P6.5 already shipped):
+
+### Added
+
+- **Per-model context windows (P5 / audit #13).** `ModelSettings` carries a
+  `context_windows` registry; the prompt budget for each call is now derived
+  from that model's own window minus a generation reserve, resolved per model
+  in `ContextBuilder` instead of one global `max_tokens`. Unknown models fall
+  back to a conservative `default_context_window`.
+- **pass^k reliability reporting (P4 / τ-bench).** `Aegis.reliability(goal, n, k)`
+  runs a goal `n` times and returns `pass@1`, `pass@k` with a 95% Wilson
+  interval, and mean tokens/seconds/revisions per run. CLI: `aegis reliability`.
+- **Fail-fast model degradation.** `ResilientProvider` gains `primary_attempts`
+  so a failing primary (e.g. an OOMing 7b on a single-model Ollama box) drops
+  to a smaller fallback after one retry instead of burning several slow
+  attempts. Wired through `ModelSettings.primary_fallback_attempts`.
+- 13 new regression tests (`test_context_windows.py`, `test_reliability.py`,
+  `test_resilient_fallback.py`).
+
+### Fixed
+
+- Config coercion: `dict[str, int]` fields (e.g. `context_windows`) are now
+  parsed correctly instead of being mis-coerced as `int` by a greedy substring
+  match in `_resolve_type`.
+
+
 ## [2.0.0] - 2026-08-10
 
 Complete architectural rebuild. v1 modules are preserved under `legacy/`.

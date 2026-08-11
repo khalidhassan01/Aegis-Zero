@@ -286,7 +286,9 @@ class AgentEngine:
         if upstream:
             extra["upstream results"] = upstream[:4000]
 
-        packet = await self.context.build(task.goal, history, system=FORGE_SYSTEM, extra=extra)
+        packet = await self.context.build(
+            task.goal, history, system=FORGE_SYSTEM, extra=extra, model=self.cfg.deep_model
+        )
         messages = [*packet.to_messages(), Message(role="user", content=task.goal)]
         result.memory_ids.extend(packet.memory_ids)
 

@@ -21,6 +21,12 @@ models:
   # Retries on the *primary* model before degrading (low = fail fast to a
   # smaller model rather than burning slow attempts on an OOMing 7b).
   primary_fallback_attempts: 1
+  # Per-model context windows (audit #13). The prompt budget for each call is
+  # derived from the model's own window minus a generation reserve, so a small
+  # model is not forced to share one global max_tokens. Add your models here.
+  context_windows: {"qwen2.5:7b": 32768, "qwen2.5-coder:7b": 32768, "qwen2.5:3b": 32768, "qwen2.5:1.5b": 32768}
+  default_context_window: 8192   # conservative fallback for unknown models
+  generation_reserve: 4096       # tokens reserved for the answer when deriving the budget
 
 memory:
   backend: memory         # memory | qdrant

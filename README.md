@@ -53,6 +53,7 @@ From the command line:
 ```bash
 aegis run "Summarise the CAP theorem"     # run a goal
 aegis run "..." --stats -v                # with metrics and live events
+aegis reliability "..." -n 5 -k 3         # run N times; report pass^k
 aegis tools                               # list tools + policy verdicts
 aegis config                              # show effective configuration
 aegis health                              # check provider and memory
@@ -178,7 +179,13 @@ result = await agent.ask(goal, budget=Budget(
 Exceeding any limit raises `BudgetExceeded`, which the engine converts into a
 failed-but-reported result rather than an unbounded spend.
 
-### Observability
+The prompt budget is derived per model: each model in `ModelSettings.context_windows`
+has its own context window, and the prompt is trimmed to that window minus a
+generation reserve. A model not in the registry falls back to a conservative
+default, so a 1.5b and a 32k-window model are no longer forced to share one
+global number.
+
+### Reliability is reported, not assumed
 
 ```python
 agent.bus.subscribe(lambda e: print(e.type.value, e.data))
@@ -188,6 +195,20 @@ print(agent.metrics.snapshot())
 ```
 
 Set `trace_dir` in config to write a JSONL trace of every event.
+
+### Reliability is measured, not claimed
+
+An agent that passes once can still be unreliable. `reliability()` runs a
+goal `n` times and reports `pass@k` — the probability it succeeds `k` times
+in a row — with a 95% Wilson interval and the mean tokens/seconds/revisions
+per run, so an "improvement" that is really just more compute is visible:
+
+```python
+report = await agent.reliability("Deploy the service", n=5, k=3)
+print(report.summary())
+# {'n': 5, 'k': 3, 'pass@1': 1.0, 'pass@3': 1.0,
+#  'pass@k_lower': 0.23, 'pass@k_upper': 1.0, ...}
+```
 
 ## Configuration
 

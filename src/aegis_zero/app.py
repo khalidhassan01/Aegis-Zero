@@ -11,6 +11,7 @@ from .core.models import Budget, Message
 from .memory import Embedder, MemRLEngine, build_store
 from .observability import Metrics, configure_logging, instrument
 from .orchestrator import AgentEngine, AgentResult, ContextBuilder, EngineConfig
+from .orchestrator.reliability import ReliabilityReport, reliability_report
 from .providers import build_provider
 from .providers.base import LLMProvider
 from .tools import ApprovalGate, DenyAll, PolicyEngine, default_registry
@@ -33,6 +34,34 @@ class Aegis:
         self, goal: str, *, history: tuple[Message, ...] = (), budget: Budget | None = None
     ) -> AgentResult:
         return await self.engine.run(goal, history=history, budget=budget)
+
+    async def reliability(
+        self, goal: str, *, n: int = 5, k: int = 3, budget: Budget | None = None
+    ) -> ReliabilityReport:
+        """Run ``goal`` ``n`` times and report consistency (P4 / pass^k).
+
+        Agents that pass pass@1 but fail pass^k are unreliable rather than
+        incapable. This runs the goal repeatedly (bounded concurrency so a
+        large ``n`` cannot exhaust the event loop) and aggregates the
+        success rate, the pass^k streak probability, and the mean cost per
+        run — the honest baseline for claiming any improvement.
+        """
+        import asyncio
+
+        sem = asyncio.Semaphore(max(1, min(n, 8)))
+
+        async def one() -> AgentResult:
+            async with sem:
+                return await self.engine.run(goal, budget=budget)
+
+        results = await asyncio.gather(*(one() for _ in range(max(1, n))))
+        return reliability_report(
+            outcomes=[r.ok for r in results],
+            k=k,
+            tokens=[float(r.usage.total_tokens) for r in results],
+            seconds=[r.elapsed_s for r in results],
+            revisions=[float(r.revisions) for r in results],
+        )
 
     async def aclose(self) -> None:
         self.bus.close()
@@ -90,7 +119,12 @@ def build_agent(
         policy=policy,
         approval=approval or DenyAll(),
         memory=memory,
-        context=ContextBuilder(memory, memory_limit=settings.memory.top_k, harness_path=_harness_path(settings)),
+        context=ContextBuilder(
+            memory,
+            memory_limit=settings.memory.top_k,
+            harness_path=_harness_path(settings),
+            prompt_budget_for=settings.models.prompt_budget,
+        ),
         bus=bus,
         config=EngineConfig(
             fast_model=settings.models.fast,

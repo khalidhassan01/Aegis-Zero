@@ -25,8 +25,8 @@ Probes live in `tests/test_audit_regressions.py` and
 | 9 | `fail` verdict never triggers a revision | Medium | Fixed |
 | 10 | Winner-take-all memory retrieval | High | Fixed |
 | 11 | Command denylist defeated by trivial obfuscation | **Critical** | Documented, not fixed |
-| 12 | `stream()` bypasses retry and fallback | Medium | Open |
-| 13 | No context-window awareness per model | High | Open |
+| 12 | `stream()` bypasses retry and fallback | Medium | Fixed |
+| 13 | No context-window awareness per model | High | Fixed |
 | 14 | Coarse memory credit assignment | Medium | Open |
 
 ---
@@ -145,13 +145,17 @@ check the resulting address rather than pattern-matching the string.
 
 ## 12-14. Open items
 
-- **`stream()` bypasses `ResilientProvider`** — it delegates straight to the
-  inner provider, so streaming calls get no retry and no model fallback.
-- **No per-model context window.** `max_tokens` is one global number, so the
-  budget is wrong for every model that is not the one it was tuned for.
+- **`stream()` bypasses `ResilientProvider`** — **Fixed.** Streaming now
+  retries before the first token and falls back down the model chain like
+  `complete()` (see `tests/test_streaming_resilience.py`).
+- **No per-model context window.** `max_tokens` was one global number, so the
+  budget was wrong for every model that was not the one it was tuned for.
+  **Fixed** by `ModelSettings.context_windows` + a per-model prompt budget
+  resolved in `ContextBuilder` (P5, audit #13).
 - **Coarse credit assignment.** Every memory retrieved during a successful
   run receives an identical reward, including memories that were irrelevant.
   Fixing this needs per-memory attribution, which the engine does not track.
+  Still open (P6).
 
 ---
 

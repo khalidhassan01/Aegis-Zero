@@ -32,6 +32,37 @@ class ModelSettings:
     embed: str = "nomic-embed-text"
     fallback_chain: tuple[str, ...] = ("qwen2.5:3b", "qwen2.5:1.5b")
     primary_fallback_attempts: int = 1  # retries on the primary before degrading
+    # Per-model context windows (audit #13): ``max_tokens`` was a single
+    # global constant, so the prompt budget was wrong for every model that
+    # was not the one it was tuned for. Each model reports a different
+    # window, and the prompt budget is now derived per model. Names match
+    # the model id sent to the provider; an unknown model falls back to
+    # ``default_context_window`` (kept conservative on purpose).
+    context_windows: dict[str, int] = field(
+        default_factory=lambda: {
+            "qwen2.5:1.5b": 32_768,
+            "qwen2.5:3b": 32_768,
+            "qwen2.5:7b": 32_768,
+            "qwen2.5-coder:7b": 32_768,
+        }
+    )
+    default_context_window: int = 8_192
+    # Tokens reserved for the model's own generation when deriving the
+    # prompt budget from a context window.
+    generation_reserve: int = 4_096
+
+    def context_window(self, model: str) -> int:
+        """The context window for ``model`` (or a conservative default)."""
+        return self.context_windows.get(model, self.default_context_window)
+
+    def prompt_budget(self, model: str) -> int:
+        """How many prompt tokens a single call to ``model`` may use.
+
+        Derived from that model's own window minus a reserve for the
+        answer, never below the reserve (so a tiny window never yields a
+        negative prompt budget).
+        """
+        return max(self.context_window(model) - self.generation_reserve, 512)
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,6 +121,14 @@ def _coerce(target_type: Any, raw: Any) -> Any:
         if isinstance(raw, str):
             return tuple(p.strip() for p in raw.split(",") if p.strip())
         return tuple(raw)
+    if target_type is dict or getattr(target_type, "__origin__", None) is dict:
+        if isinstance(raw, dict):
+            return raw
+        if isinstance(raw, str):
+            import json
+
+            return json.loads(raw)
+        return dict(raw)
     return str(raw)
 
 
@@ -104,16 +143,23 @@ def _build(cls: Any, data: dict[str, Any]) -> Any:
 
 
 def _resolve_type(hint: Any) -> Any:
-    """Map a (possibly string) annotation to a coercion target."""
+    """Map a (possibly string) annotation to a coercion target.
+
+    Container generics are checked before scalars on purpose: a substring
+    match like ``"int"`` inside ``"dict[str, int]"`` must not win, so the
+    container type is resolved first.
+    """
     text = hint if isinstance(hint, str) else getattr(hint, "__name__", str(hint))
+    if "dict" in text:
+        return dict
+    if "tuple" in text:
+        return tuple
     if "bool" in text:
         return bool
     if "int" in text:
         return int
     if "float" in text:
         return float
-    if "tuple" in text:
-        return tuple
     return str
 
 

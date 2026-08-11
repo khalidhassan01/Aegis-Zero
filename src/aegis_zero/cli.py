@@ -64,6 +64,39 @@ async def cmd_run(args: argparse.Namespace) -> int:
         return 0 if result.ok else 1
 
 
+async def cmd_reliability(args: argparse.Namespace) -> int:
+    """Run a goal N times and report pass^k consistency (P4 / τ-bench)."""
+    settings = load_settings(args.config)
+    if args.model:
+        settings = settings.with_overrides(
+            models=replace(settings.models, fast=args.model, deep=args.model)
+        )
+    agent = build_agent(
+        settings, approval=_gate(args.approve), enable_memory=not args.no_memory
+    )
+    async with agent:
+        report = await agent.reliability(
+            args.goal,
+            n=args.runs,
+            k=args.streak,
+            budget=Budget(max_steps=args.max_steps, max_seconds=args.timeout),
+        )
+    out = report.summary()
+    k = out["k"]
+    if args.json:
+        print(json.dumps(out, indent=2, ensure_ascii=False))
+    else:
+        print(f"runs={out['n']}  pass@1={out['pass@1']}  pass@{k}={out[f'pass@{k}']}")
+        print(f"pass@k 95% CI = [{out['pass@k_lower']}, {out['pass@k_upper']}]")
+        print(
+            f"mean: tokens={out['mean_tokens']}  seconds={out['mean_seconds']}  "
+            f"revisions={out['mean_revisions']}"
+        )
+    # Exit non-zero if the agent did not reliably succeed: less than `streak`
+    # consecutive successes is the reliability bar.
+    return 0 if report.pass_at_k >= 1.0 else 1
+
+
 async def cmd_tools(args: argparse.Namespace) -> int:
     agent = build_agent(load_settings(args.config), enable_memory=False)
     async with agent:
@@ -215,6 +248,23 @@ def build_parser() -> argparse.ArgumentParser:
 
     health = sub.add_parser("health", help="check provider and memory health")
     health.set_defaults(fn=cmd_health)
+
+    rel = sub.add_parser("reliability", help="run a goal N times; report pass^k")
+    rel.add_argument("goal")
+    rel.add_argument("-n", "--runs", type=int, default=5, help="how many runs")
+    rel.add_argument("-k", "--streak", type=int, default=3, help="streak length for pass^k")
+    rel.add_argument("-m", "--model", help="override fast and deep models")
+    rel.add_argument(
+        "--approve",
+        choices=("console", "auto", "deny"),
+        default="console",
+        help="approval gate for risky tools",
+    )
+    rel.add_argument("--max-steps", type=int, default=24)
+    rel.add_argument("--timeout", type=float, default=600.0)
+    rel.add_argument("--no-memory", action="store_true")
+    rel.add_argument("--json", action="store_true")
+    rel.set_defaults(fn=cmd_reliability)
 
     harness = sub.add_parser("harness", help="inspect and manage the Continual Harness")
     harness_sub = harness.add_subparsers(dest="harness_command", required=True)

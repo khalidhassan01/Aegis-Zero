@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
 from typing import Any
 
@@ -67,12 +67,24 @@ class ContextBuilder:
         memory_limit: int = 6,
         keep_recent: int = 8,
         harness_path: str | None = None,
+        prompt_budget_for: Callable[[str], int] | None = None,
     ) -> None:
         self.memory = memory
         self.max_tokens = max_tokens
         self.memory_limit = memory_limit
         self.keep_recent = keep_recent
         self.harness_path = harness_path
+        # Optional resolver: given a model id, returns the prompt budget for
+        # that model (P5 / audit #13). When set, it overrides the static
+        # ``max_tokens`` per call, so the budget matches the model actually
+        # being used rather than a single global constant. Falls back to
+        # ``max_tokens`` for any model the resolver does not know.
+        self.prompt_budget_for = prompt_budget_for
+
+    def budget_for(self, model: str) -> int:
+        if self.prompt_budget_for is None:
+            return self.max_tokens
+        return self.prompt_budget_for(model)
 
     async def build(
         self,
@@ -82,7 +94,9 @@ class ContextBuilder:
         system: str,
         recall: bool = True,
         extra: dict[str, Any] | None = None,
+        model: str = "",
     ) -> ContextPacket:
+        budget = self.budget_for(model)
         memories: list[RankedMemory] = []
         if recall and self.memory is not None:
             try:
@@ -117,7 +131,7 @@ class ContextBuilder:
 
         # The system block alone can exceed the budget (many or long
         # memories). Drop memory blocks before sacrificing conversation.
-        while estimate_tokens(system_text) > self.max_tokens and memories:
+        while estimate_tokens(system_text) > budget and memories:
             memories = memories[:-1]
             rebuilt = [system]
             if memories:
@@ -135,13 +149,13 @@ class ContextBuilder:
                 rebuilt.append(f"## Run context\n{details}")
             system_text = "\n\n".join(rebuilt)
 
-        trimmed = self._trim(list(history), estimate_tokens(system_text))
+        trimmed = self._trim(list(history), estimate_tokens(system_text), budget)
         total = estimate_tokens(system_text) + sum(estimate_tokens(m.content) for m in trimmed)
         return ContextPacket(
             system=system_text, messages=trimmed, memories=memories, tokens=total
         )
 
-    def _trim(self, history: list[Message], used: int) -> list[Message]:
+    def _trim(self, history: list[Message], used: int, budget: int) -> list[Message]:
         """Fit history into the remaining budget.
 
         The budget is a hard limit, not a hint. ``keep_recent`` is a
@@ -150,7 +164,7 @@ class ContextBuilder:
         content is truncated. Callers rely on the returned packet fitting
         the model's context window.
         """
-        budget = self.max_tokens - used
+        budget = budget - used
         if not history:
             return []
         if budget <= 0:
