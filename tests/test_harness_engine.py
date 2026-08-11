@@ -12,7 +12,6 @@ from __future__ import annotations
 import pytest
 
 from aegis_zero.core.events import EventBus
-from aegis_zero.core.models import Budget
 from aegis_zero.memory import Embedder, InMemoryStore, MemRLEngine
 from aegis_zero.memory.harness import HarnessController
 from aegis_zero.orchestrator import AgentEngine
@@ -41,7 +40,11 @@ async def test_context_builder_injects_harness_supplementally(tmp_path, memory):
             summary="s",
             rationale="r",
             expected_outcome="o",
-            edits=[RefinementEdit(action="create", kind="memory", title="pref", content="Be terse.")],
+            edits=[
+                RefinementEdit(
+                    action="create", kind="memory", title="pref", content="Be terse."
+                )
+            ],
         ),
         scope="global",
     )
@@ -67,13 +70,18 @@ async def test_engine_auto_refines_on_verified_run(tmp_path, provider, memory):
         memory=memory,
         context=ContextBuilder(memory, harness_path=str(harness_path), memory_limit=4),
         bus=EventBus(),
-        config=__import__("aegis_zero.orchestrator.engine", fromlist=["EngineConfig"]).EngineConfig(
-            enable_planning=False, enable_critique=False, enable_scout=False, enable_memory_write=False
+        config=__import__(
+            "aegis_zero.orchestrator.engine", fromlist=["EngineConfig"]
+        ).EngineConfig(
+            enable_planning=False,
+            enable_critique=False,
+            enable_scout=False,
+            enable_memory_write=False,
         ),
     )
     # EchoProvider returns the goal as the answer, so the run "succeeds" and
     # passes the (empty) verifier -> grounded extraction should fire.
-    result = await engine.run("Summarize the deploy run")
+    await engine.run("Summarize the deploy run")
     # A grounded lesson was persisted.
     ctrl = HarnessController(harness_path)
     memories = ctrl.state.entries["memory"]

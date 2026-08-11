@@ -57,7 +57,7 @@ from .agents import (
     scout_prompt,
 )
 from .context import ContextBuilder
-from .verifier import run_default_checks
+from .verifier import Verification, run_default_checks
 
 SYNTHESIS_SYSTEM = """You are the Synthesizer in Aegis Zero. Merge the
 subtask results into one coherent answer for the user. Resolve conflicts
@@ -79,6 +79,11 @@ class AgentResult:
     elapsed_s: float = 0.0
     error: str | None = None
     memory_ids: list[str] = field(default_factory=list)
+    #: Recalled memories a verifier hard-failure later proved fed a wrong
+    #: claim. They are tombstoned (P6.5) and must NOT receive the success
+    #: reward below -- rewarding a memory that the verifier just invalidated
+    #: would be self-contradictory credit assignment (P6).
+    invalidated_memory_ids: set[str] = field(default_factory=set)
 
     @property
     def confidence(self) -> float:
@@ -203,7 +208,7 @@ class AgentEngine:
         outputs = await self._run_subtasks(plan, recon, history, state, budget, result)
         answer = await self._synthesize(goal, plan, outputs, state, budget)
 
-        verification = None
+        verification: Verification | None = None
         if self.cfg.enable_critique:
             answer, critique, revisions, verification = await self._critique_loop(
                 goal, answer, recon, state, budget
@@ -214,6 +219,12 @@ class AgentEngine:
             # they stop ranking highly, rather than poisoning future runs.
             if verification.hard_failures and self.memory and result.memory_ids:
                 await self.memory.invalidate_by_ids(result.memory_ids, reason="failed verifier")
+                # The run produced a verifier-proven wrong answer, so the
+                # recalled memories did not help. Exclude every recalled id
+                # from the success reward below -- rewarding a memory the
+                # verifier just tombstoned would be self-contradictory credit
+                # assignment (P6).
+                result.invalidated_memory_ids.update(result.memory_ids)
 
         result.answer = answer
         result.ok = result.critique is None or result.critique.verdict != "fail"
@@ -426,7 +437,7 @@ class AgentEngine:
 
     async def _critique_loop(
         self, goal: str, answer: str, recon: str, state: RunState, budget: Budget
-    ) -> tuple[str, Critique, int]:
+    ) -> tuple[str, Critique, int, Verification]:
         # Deterministic verification runs BEFORE the LLM auditor. A hard
         # check failure (e.g. a wrong arithmetic total) forces a revision
         # regardless of what the model says about its own answer -- this is
@@ -507,9 +518,22 @@ class AgentEngine:
             return
         confidence = result.confidence or 0.5
         if result.memory_ids:
-            signal = signal_from_outcome(success=result.ok, confidence=confidence)
-            with contextlib.suppress(Exception):
-                await self.memory.reward_many(list(dict.fromkeys(result.memory_ids)), signal)
+            # P6 -- fine-grained credit assignment. Coarse reward (every
+            # recalled memory rewarded equally on success) is the open gap
+            # the roadmap names. We at least exclude the memories a verifier
+            # hard-failure just tombstoned: rewarding them would contradict
+            # the tombstone. The remaining coarse reward is the honest
+            # baseline the roadmap documents; finer attribution (which
+            # specific memory each Forge step cited) is tracked as P6 work.
+            rewarded = [
+                mid
+                for mid in dict.fromkeys(result.memory_ids)
+                if mid not in result.invalidated_memory_ids
+            ]
+            if rewarded:
+                signal = signal_from_outcome(success=result.ok, confidence=confidence)
+                with contextlib.suppress(Exception):
+                    await self.memory.reward_many(rewarded, signal)
         if self.cfg.enable_memory_write and result.ok and confidence >= self.cfg.min_confidence:
             with contextlib.suppress(Exception):
                 await self.memory.remember(

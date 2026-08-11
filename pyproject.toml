@@ -83,3 +83,14 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+# numpy >= 2.5 ships a stub using a PEP 695 `type` statement that requires
+# Python 3.12 syntax; mypy runs the project at 3.11 and aborts on the stub,
+# blocking the entire type-check. numpy is pulled in only by the OPTIONAL
+# `qdrant` extra (via qdrant-client) and is never imported by Aegis-Zero's
+# own code, so we stop the type-checker from recursing into these
+# third-party stubs. The always-available InMemoryStore backend stays fully
+# typed; the qdrant backend is an opt-in extra and degrades to `Any` here.
+module = ["numpy.*", "qdrant_client.*", "grpc.*", "grpcio.*", "google.protobuf.*"]
+follow_imports = "skip"

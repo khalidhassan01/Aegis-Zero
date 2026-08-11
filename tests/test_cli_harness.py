@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import json
 
 from aegis_zero.cli import build_parser
 from aegis_zero.memory.harness import HarnessController, RefinementEdit, RefinementProposal
@@ -16,7 +15,9 @@ def _seed(path):
             summary="add lesson",
             rationale="verified run",
             expected_outcome="reuse",
-            edits=[RefinementEdit(action="create", kind="memory", title="port", content="8100")],
+            edits=[
+                RefinementEdit(action="create", kind="memory", title="port", content="8100")
+            ],
         ),
         scope="global",
     )
@@ -38,7 +39,7 @@ def test_harness_inspect_lists_entries_and_history(tmp_path, capsys):
 
 def test_harness_rollback_reverts_last_refinement(tmp_path, capsys):
     path = tmp_path / "harness_state.json"
-    ctrl, res = _seed(path)
+    _, res = _seed(path)
 
     args = build_parser().parse_args(
         ["harness", "rollback", "--path", str(path), "--refinement", res.id]

@@ -15,7 +15,7 @@ from .core.config import load_settings
 from .core.errors import AegisError
 from .core.events import EventType
 from .core.models import Budget
-from .memory.harness import HarnessController, HarnessEntry, load_harness_state
+from .memory.harness import HarnessController, HarnessEntry
 from .tools.approval import AutoApprove, ConsoleGate, DenyAll
 
 
@@ -181,16 +181,16 @@ async def cmd_harness_rollback(args: argparse.Namespace) -> int:
                     action=d.get("action", "create"),
                     kind=d.get("kind", "memory"),
                     id=d.get("id", ""),
-                    title=d.get("title"),
-                    content=d.get("content"),
-                    path=d.get("path"),
-                    reference=d.get("reference"),
-                    arguments=d.get("arguments"),
-                    metadata=d.get("metadata"),
-                    reason=d.get("reason"),
+                    title=d.get("title") or "",
+                    content=d.get("content") or "",
+                    path=d.get("path") or "general",
+                    reference=d.get("reference") or {},
+                    arguments=d.get("arguments") or {},
+                    metadata=d.get("metadata") or {},
+                    reason=d.get("reason") or "",
                     applied=bool(d.get("applied", True)),
-                    before=_entry_from_dict(d.get("before")) if d.get("before") else None,
-                    after=_entry_from_dict(d.get("after")) if d.get("after") else None,
+                    before=_entry_from_dict(d["before"]) if d.get("before") else None,
+                    after=_entry_from_dict(d["after"]) if d.get("after") else None,
                     error=d.get("error"),
                 )
                 for d in ev.detail

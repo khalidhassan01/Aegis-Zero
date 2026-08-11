@@ -10,14 +10,14 @@ from aegis_zero.memory.harness import (
     RefinementProposal,
     apply_refinement_proposal,
     empty_harness_state,
-    format_harness_state_for_prompt,
     load_harness_state,
     rollback_proposal,
-    save_harness_state,
 )
 
 
-def _proposal(*edits: RefinementEdit, grounded: bool = False, evidence: str = "") -> RefinementProposal:
+def _proposal(
+    *edits: RefinementEdit, grounded: bool = False, evidence: str = ""
+) -> RefinementProposal:
     return RefinementProposal(
         summary="test refinement",
         rationale="tracer",
@@ -34,7 +34,12 @@ def test_apply_create_persists_entry_and_reads_back(tmp_path):
 
     result = ctrl.apply(
         _proposal(
-            RefinementEdit(action="create", kind="memory", title="deploy port", content="Use 8100 for chroma.")
+            RefinementEdit(
+                action="create",
+                kind="memory",
+                title="deploy port",
+                content="Use 8100 for chroma.",
+            )
         ),
         scope="local",
     )
@@ -59,7 +64,11 @@ def test_update_bumps_version_and_records_before(tmp_path):
         scope="global",
     )
     result = ctrl.apply(
-        _proposal(RefinementEdit(action="update", kind="memory", id="port", title="port", content="8200")),
+        _proposal(
+            RefinementEdit(
+                action="update", kind="memory", id="port", title="port", content="8200"
+            )
+        ),
         scope="global",
     )
     edit = result.applied_edits[0]
@@ -76,12 +85,16 @@ def test_update_bumps_version_and_records_before(tmp_path):
 def test_rollback_restores_prior_state(tmp_path):
     path = tmp_path / "harness_state.json"
     ctrl = HarnessController(path)
-    created = ctrl.apply(
+    ctrl.apply(
         _proposal(RefinementEdit(action="create", kind="memory", title="port", content="8100")),
         scope="local",
     )
     updated = ctrl.apply(
-        _proposal(RefinementEdit(action="update", kind="memory", id="port", title="port", content="8200")),
+        _proposal(
+            RefinementEdit(
+                action="update", kind="memory", id="port", title="port", content="8200"
+            )
+        ),
         scope="local",
     )
     rolled = ctrl.rollback(updated)
@@ -97,9 +110,13 @@ def test_rollback_restores_prior_state(tmp_path):
 
 def test_create_over_existing_is_rejected(tmp_path):
     ctrl = HarnessController(tmp_path / "h.json")
-    ctrl.apply(_proposal(RefinementEdit(action="create", kind="memory", title="dup", content="x")), scope="local")
+    ctrl.apply(
+        _proposal(RefinementEdit(action="create", kind="memory", title="dup", content="x")),
+        scope="local",
+    )
     result = ctrl.apply(
-        _proposal(RefinementEdit(action="create", kind="memory", title="dup", content="y")), scope="local"
+        _proposal(RefinementEdit(action="create", kind="memory", title="dup", content="y")),
+        scope="local",
     )
     assert result.applied_edits[0].applied is False
     assert "already exists" in (result.applied_edits[0].error or "")
@@ -120,7 +137,11 @@ def test_base_system_prompt_is_not_editable():
     state = empty_harness_state()
     result = apply_refinement_proposal(
         state,
-        _proposal(RefinementEdit(action="update", kind="prompt", id="base_system_prompt", title="x", content="y")),
+        _proposal(
+            RefinementEdit(
+                action="update", kind="prompt", id="base_system_prompt", title="x", content="y"
+            )
+        ),
         options={"id": "ref_2", "scope": "global"},
     )
     assert result.applied_edits[0].applied is False
@@ -130,8 +151,16 @@ def test_base_system_prompt_is_not_editable():
 def test_local_and_global_are_isolated_scopes(tmp_path):
     path = tmp_path / "h.json"
     ctrl = HarnessController(path)
-    ctrl.apply(_proposal(RefinementEdit(action="create", kind="memory", title="a", content="local-a")), scope="local")
-    ctrl.apply(_proposal(RefinementEdit(action="create", kind="memory", title="a", content="global-a")), scope="global")
+    ctrl.apply(
+        _proposal(RefinementEdit(action="create", kind="memory", title="a", content="local-a")),
+        scope="local",
+    )
+    ctrl.apply(
+        _proposal(
+            RefinementEdit(action="create", kind="memory", title="a", content="global-a")
+        ),
+        scope="global",
+    )
     # Same slug in two scopes must coexist, distinguished by scope, not id.
     local = ctrl.state.entries["memory"]["a"]
     assert local is not None
@@ -145,7 +174,13 @@ def test_skill_requires_python_reference_contract():
     result = apply_refinement_proposal(
         state,
         _proposal(
-            RefinementEdit(action="create", kind="skill", title="fmt", content="format code", arguments={"x": "str"})
+            RefinementEdit(
+                action="create",
+                kind="skill",
+                title="fmt",
+                content="format code",
+                arguments={"x": "str"},
+            )
         ),
         options={"id": "ref_3", "scope": "global"},
     )
@@ -179,7 +214,12 @@ def test_corrupt_state_file_degrades_to_empty(tmp_path):
 def test_atomic_save_survives_interruption(tmp_path):
     path = tmp_path / "h.json"
     ctrl = HarnessController(path)
-    ctrl.apply(_proposal(RefinementEdit(action="create", kind="prompt", title="note", content="be terse")), scope="local")
+    ctrl.apply(
+        _proposal(
+            RefinementEdit(action="create", kind="prompt", title="note", content="be terse")
+        ),
+        scope="local",
+    )
     # File present and valid JSON, even though write uses temp+rename.
     raw = json.loads(path.read_text())
     assert raw["entries"]["prompt"]["note"]["content"] == "be terse"
@@ -189,7 +229,9 @@ def test_format_for_prompt_marks_grounded_refinements(tmp_path):
     ctrl = HarnessController(tmp_path / "h.json")
     ctrl.apply(
         _proposal(
-            RefinementEdit(action="create", kind="memory", title="lesson", content="always pin versions"),
+            RefinementEdit(
+                action="create", kind="memory", title="lesson", content="always pin versions"
+            ),
             grounded=True,
             evidence="verifier passed on run r1",
         ),

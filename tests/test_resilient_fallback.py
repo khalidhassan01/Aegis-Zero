@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 
 import pytest
 
-from aegis_zero.core.errors import ProviderUnavailable
+from aegis_zero.core.errors import AllProvidersFailed, ProviderUnavailable
 from aegis_zero.core.models import Completion, Message
 from aegis_zero.providers.base import LLMProvider
 from aegis_zero.providers.resilient import ResilientProvider, RetryPolicy
@@ -28,9 +28,7 @@ class FlakyProvider(LLMProvider):
         self.calls: list[_Call] = []
         self.used_models: list[str] = []
 
-    async def complete(
-        self, messages: Sequence[Message], *, model: str, **kw
-    ) -> Completion:
+    async def complete(self, messages: Sequence[Message], *, model: str, **kw) -> Completion:
         self.calls.append(_Call(model))
         self.used_models.append(model)
         remaining = self.fail_first.get(model, 0)
@@ -85,5 +83,5 @@ async def test_fail_fast_primary_avoids_repeated_primary_attempts() -> None:
 async def test_all_models_exhausted_raises() -> None:
     inner = FlakyProvider(fail_first={"big": 99, "small": 99})
     rp = ResilientProvider(inner, fallback_models=("small",), primary_attempts=1)
-    with pytest.raises(Exception):
+    with pytest.raises(AllProvidersFailed):
         await rp.complete([Message(role="user", content="hi")], model="big")

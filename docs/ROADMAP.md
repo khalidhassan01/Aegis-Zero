@@ -129,12 +129,22 @@ audit item #13.
 
 - Reflexion's gains come from an external evaluator, not introspection —
 
-## P6 — Fine-grained memory credit assignment  *(complexity: L)*
+## P6 — Fine-grained memory credit assignment  *(complexity: L)* — **PARTIAL**
 
-Currently every memory retrieved during a successful run receives the same
-reward, including ones that were never used. Attribution requires tracking
-which memories were actually referenced — for example by asking the Forge
-step to cite the memory ids it used, and rewarding only those.
+Originally every memory retrieved during a successful run received the same
+reward, including ones that were never used. The worst incoherence — a memory
+the verifier just tombstoned as wrong being *rewarded in the same run* — is
+now closed: `AgentResult.invalidated_memory_ids` records which recalled
+memories a hard verifier failure disproved, and `_learn` excludes them from
+the success reward (see `tests/test_p6_credit_assignment.py`). Rewarding a
+memory the verifier just proved fed a wrong claim would be self-contradictory
+credit assignment.
+
+What remains open is **cite-level** attribution: every recalled memory that
+survives is still rewarded equally, rather than only those a Forge step
+actually cited. That needs the Forge step to emit the memory ids it used
+(which is the original P6 proposal) and is still TODO — the roadmap's
+"still open" line below is accurate for that narrower claim.
 
 Do this after P1, because the reward signal is only as good as the verifier
 that produces it.

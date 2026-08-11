@@ -9,11 +9,10 @@ left behind a durable lesson worth persisting.
 from __future__ import annotations
 
 from aegis_zero.memory.harness_extraction import (
-    ExtractionDecision,
     decide_extraction,
     propose_from_outcome,
 )
-from aegis_zero.orchestrator.verifier import Verification, CheckResult
+from aegis_zero.orchestrator.verifier import CheckResult, Verification
 
 
 def _verification(ok: bool) -> Verification:

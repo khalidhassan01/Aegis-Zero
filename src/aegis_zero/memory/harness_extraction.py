@@ -19,9 +19,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .harness import RefinementEdit, RefinementProposal
 from ..orchestrator.verifier import Verification
-
+from .harness import RefinementEdit, RefinementProposal
 
 # Below this confidence we do not trust the run enough to generalize a lesson.
 _MIN_CONFIDENCE = 0.6
@@ -52,7 +51,9 @@ def decide_extraction(
     if verification.hard_failures:
         return ExtractionDecision(False, False, "verifier hard check failed")
     if confidence < _MIN_CONFIDENCE:
-        return ExtractionDecision(False, False, f"confidence {confidence:.2f} below floor {_MIN_CONFIDENCE}")
+        return ExtractionDecision(
+            False, False, f"confidence {confidence:.2f} below floor {_MIN_CONFIDENCE}"
+        )
     return ExtractionDecision(True, True, "verified success; lesson eligible for extraction")
 
 

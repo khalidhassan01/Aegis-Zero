@@ -301,10 +301,14 @@ That discipline produced these shipped, test-backed improvements:
   tombstoned, not deleted.
 - **Winner-take-all retrieval fixed.** A UCB1 exploration bonus breaks the
   popularity spiral.
+- **Coherent memory credit (P6, partial).** A memory a verifier hard-failure
+  just tombstoned is never rewarded — the run-end learner excludes
+  `invalidated_memory_ids`. Cite-level attribution (reward only the memories a
+  Forge step actually used) is still open.
 
 We have **not** solved — and say so plainly:
-- **Coarse memory credit assignment (P6).** Still open; every memory in a
-  successful run is rewarded, including irrelevant ones.
+- **Cite-level memory credit assignment (P6, residual).** Surviving recalled
+  memories are still rewarded equally; per-citation attribution is TODO.
 - **The command denylist.** Documented as not a security boundary; containment
   is the honest fix.
 - **Self-modifying agents, multi-agent debate-by-default, tree search in the

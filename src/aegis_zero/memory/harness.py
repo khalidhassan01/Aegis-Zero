@@ -21,6 +21,7 @@ biggest weakness -- a refinement is "good" there because the model said so.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import time
@@ -77,7 +78,9 @@ class HarnessRefinementEvent:
     outcome: str
     created_at: str
     grounded: bool = False
-    detail: list[dict[str, Any]] = field(default_factory=list)  # serialized applied edits for exact rollback
+    detail: list[dict[str, Any]] = field(
+        default_factory=list
+    )  # serialized applied edits for exact rollback
 
 
 @dataclass(slots=True)
@@ -184,7 +187,9 @@ def apply_refinement_proposal(
     modified_keys: set[str] = set()
 
     for edit in proposal.edits:
-        computed_id = edit.id or (_slug(edit.title or edit.kind, edit.kind) if edit.action == "create" else "")
+        computed_id = edit.id or (
+            _slug(edit.title or edit.kind, edit.kind) if edit.action == "create" else ""
+        )
         err = _validate_edit(edit, computed_id)
         if err:
             applied.append(_rejected(edit, computed_id, err))
@@ -212,7 +217,11 @@ def apply_refinement_proposal(
                 continue
             del records[computed_id]
             modified_keys.add(key)
-            applied.append(AppliedRefinementEdit(**_base_fields(edit, computed_id), before=before, applied=True))
+            applied.append(
+                AppliedRefinementEdit(
+                    **_base_fields(edit, computed_id), before=before, applied=True
+                )
+            )
             continue
 
         if edit.action == "create" and before is not None:
@@ -229,9 +238,15 @@ def apply_refinement_proposal(
             content=edit.content or (before.content if before else ""),
             scope=before.scope if before else scope,
             path=edit.path or (before.path if before else "general"),
-            reference=edit.reference if edit.reference is not None else (before.reference if before else {}),
-            arguments=edit.arguments if edit.arguments is not None else (before.arguments if before else {}),
-            metadata=edit.metadata if edit.metadata is not None else (before.metadata if before else {}),
+            reference=edit.reference
+            if edit.reference is not None
+            else (before.reference if before else {}),
+            arguments=edit.arguments
+            if edit.arguments is not None
+            else (before.arguments if before else {}),
+            metadata=edit.metadata
+            if edit.metadata is not None
+            else (before.metadata if before else {}),
             source="refine",
             created_at=before.created_at if before else _now(),
             updated_at=_now(),
@@ -240,7 +255,12 @@ def apply_refinement_proposal(
         records[computed_id] = after
         modified_keys.add(key)
         applied.append(
-            AppliedRefinementEdit(**_base_fields(edit, computed_id), before=before, after=_clone(after), applied=True)
+            AppliedRefinementEdit(
+                **_base_fields(edit, computed_id),
+                before=before,
+                after=_clone(after),
+                applied=True,
+            )
         )
 
     changes = [f"{e.action} {e.kind}:{e.id}" for e in applied if e.applied]
@@ -274,7 +294,7 @@ def rollback_proposal(target: RefinementResult) -> RefinementProposal:
     """Build the inverse proposal that undoes a prior refinement."""
     edits: list[RefinementEdit] = []
     for edit in reversed(target.applied_edits):
-        if not edit.applied or edit.after is None and edit.before is None:
+        if not edit.applied or (edit.after is None and edit.before is None):
             continue
         if edit.before is None:
             # Was a create -> revert by deleting.
@@ -327,7 +347,9 @@ def _validate_edit(edit: RefinementEdit, computed_id: str) -> str | None:
         return f"unsupported action {edit.action!r}"
     if edit.kind not in ("prompt", "memory", "skill", "subagent"):
         return f"unsupported kind {edit.kind!r}"
-    if (edit.kind == "prompt" or computed_id == _IMMUTABLE_BASE_ID) and computed_id == _IMMUTABLE_BASE_ID:
+    if (
+        edit.kind == "prompt" or computed_id == _IMMUTABLE_BASE_ID
+    ) and computed_id == _IMMUTABLE_BASE_ID:
         return "base system prompt is not editable"
     if edit.action != "create" and not edit.id:
         return f"{edit.action} requires id"
@@ -360,7 +382,13 @@ class HarnessController:
         self.path = path
         self.state = load_harness_state(str(path))
 
-    def apply(self, proposal: RefinementProposal, *, scope: HarnessScope = "local", rollback_of: str | None = None) -> RefinementResult:
+    def apply(
+        self,
+        proposal: RefinementProposal,
+        *,
+        scope: HarnessScope = "local",
+        rollback_of: str | None = None,
+    ) -> RefinementResult:
         result = apply_refinement_proposal(
             self.state,
             proposal,
@@ -378,7 +406,13 @@ class HarnessController:
     def _save(self) -> None:
         save_harness_state(str(self.path), self.state)
 
-    def format_for_prompt(self, *, max_entries_per_kind: int = _DEFAULT_OVERVIEW_LIMIT, max_refinements: int = _DEFAULT_REFINEMENT_LIMIT, max_content: int = _DEFAULT_CONTENT_LIMIT) -> str:
+    def format_for_prompt(
+        self,
+        *,
+        max_entries_per_kind: int = _DEFAULT_OVERVIEW_LIMIT,
+        max_refinements: int = _DEFAULT_REFINEMENT_LIMIT,
+        max_content: int = _DEFAULT_CONTENT_LIMIT,
+    ) -> str:
         return format_harness_state_for_prompt(
             self.state,
             max_entries_per_kind=max_entries_per_kind,
@@ -388,7 +422,11 @@ class HarnessController:
 
 
 def empty_harness_state() -> HarnessState:
-    return HarnessState(schema=HARNESS_SCHEMA, entries={k: {} for k in ("prompt", "memory", "skill", "subagent")}, refinements=[])
+    return HarnessState(
+        schema=HARNESS_SCHEMA,
+        entries={k: {} for k in ("prompt", "memory", "skill", "subagent")},
+        refinements=[],
+    )
 
 
 def load_harness_state(path: str) -> HarnessState:
@@ -417,9 +455,9 @@ def load_harness_state(path: str) -> HarnessState:
                 continue
             try:
                 entry = HarnessEntry(
-                    id=raw_entry.get("id", eid),
+                    id=raw_entry.get("id", eid) or eid,
                     kind=raw_entry.get("kind", kind),
-                    title=raw_entry.get("title", eid),
+                    title=raw_entry.get("title", eid) or eid,
                     content=raw_entry.get("content", ""),
                     scope=_coerce_scope(raw_entry.get("scope")),
                     path=raw_entry.get("path", "general"),
@@ -471,10 +509,8 @@ def save_harness_state(path: str, state: HarnessState) -> None:
         os.replace(tmp, path)
     finally:
         if os.path.exists(tmp):
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp)
-            except OSError:
-                pass
 
 
 def _coerce_scope(value: Any) -> HarnessScope:
@@ -518,7 +554,8 @@ def format_harness_state_for_prompt(
                 args = f" args={json.dumps(entry.arguments)[:max_content_length]}"
             content = entry.content.replace("\n", " ").strip()[:max_content_length]
             lines.append(
-                f"- [{entry.scope}:{entry.id}] {entry.title} (v{entry.version}){ref}{args}: {content}"
+                f"- [{entry.scope}:{entry.id}] {entry.title} "
+                f"(v{entry.version}){ref}{args}: {content}"
             )
         overflow = len(entries) - min(len(entries), max_entries_per_kind)
         if overflow > 0:
