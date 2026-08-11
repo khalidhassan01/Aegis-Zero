@@ -15,7 +15,12 @@ models:
   deep: qwen2.5:7b        # execution and synthesis
   code: qwen2.5-coder:7b
   embed: nomic-embed-text
-  fallback_chain: []      # e.g. ["qwen2.5:3b", "llama3.2:1b"]
+  # Auto-degrade chain: if the 7b model OOMs or the upstream errors, Aegis
+  # transparently falls back to a model that fits in RAM instead of failing.
+  fallback_chain: ["qwen2.5:3b", "qwen2.5:1.5b"]
+  # Retries on the *primary* model before degrading (low = fail fast to a
+  # smaller model rather than burning slow attempts on an OOMing 7b).
+  primary_fallback_attempts: 1
 
 memory:
   backend: memory         # memory | qdrant

@@ -30,7 +30,8 @@ class ModelSettings:
     deep: str = "qwen2.5:7b"
     code: str = "qwen2.5-coder:7b"
     embed: str = "nomic-embed-text"
-    fallback_chain: tuple[str, ...] = ()
+    fallback_chain: tuple[str, ...] = ("qwen2.5:3b", "qwen2.5:1.5b")
+    primary_fallback_attempts: int = 1  # retries on the primary before degrading
 
 
 @dataclass(frozen=True, slots=True)

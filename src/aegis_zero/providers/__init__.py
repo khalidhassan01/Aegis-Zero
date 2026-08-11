@@ -21,7 +21,9 @@ __all__ = [
 
 
 def build_provider(
-    settings: ProviderSettings, fallback_models: tuple[str, ...] = ()
+    settings: ProviderSettings,
+    fallback_models: tuple[str, ...] = (),
+    primary_attempts: int | None = None,
 ) -> LLMProvider:
     """Construct the configured provider wrapped in resilience."""
     kind = settings.kind.lower()
@@ -40,4 +42,5 @@ def build_provider(
         inner,
         retry=RetryPolicy(attempts=settings.max_retries),
         fallback_models=fallback_models,
+        primary_attempts=primary_attempts,
     )

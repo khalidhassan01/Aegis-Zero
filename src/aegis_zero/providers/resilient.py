@@ -37,32 +37,56 @@ class ResilientProvider(LLMProvider):
         *,
         retry: RetryPolicy | None = None,
         fallback_models: Sequence[str] = (),
+        primary_attempts: int | None = None,
         sleep: Any = asyncio.sleep,
         rng: random.Random | None = None,
     ) -> None:
         self.inner = inner
         self.retry = retry or RetryPolicy()
         self.fallback_models = tuple(fallback_models)
+        # How many times to retry the *primary* model before giving up and
+        # walking the fallback chain. Defaults to `retry.attempts` (same as
+        # every candidate). Setting it low (e.g. 1) fails fast to a smaller
+        # model instead of burning multiple slow attempts on an OOMing 7b.
+        self.primary_attempts = primary_attempts
         self._sleep = sleep
         self._rng = rng or random.Random()
 
     async def complete(
         self, messages: Sequence[Message], *, model: str, **kw: Any
     ) -> Completion:
+        import logging
+
+        log = logging.getLogger("aegis.providers.resilient")
         chain = (model, *[m for m in self.fallback_models if m != model])
         failures: list[str] = []
+        primary = True
 
         for candidate in chain:
-            for attempt in range(self.retry.attempts):
+            attempts = (
+                (self.primary_attempts or self.retry.attempts)
+                if primary
+                else self.retry.attempts
+            )
+            primary = False
+            for attempt in range(attempts):
                 try:
                     return await self.inner.complete(messages, model=candidate, **kw)
                 except AegisError as exc:
                     failures.append(f"{candidate}: {exc}")
                     if not getattr(exc, "retryable", False):
                         break
-                    if attempt == self.retry.attempts - 1:
+                    if attempt == attempts - 1:
                         break
                     await self._sleep(self.retry.delay_for(attempt, self._rng))
+            # Inner loop ended without returning -> this candidate failed.
+            # Walk to the next candidate, logging the degradation.
+            if candidate != chain[-1]:
+                log.warning(
+                    "model %s failed; falling back to %s",
+                    candidate,
+                    chain[chain.index(candidate) + 1],
+                )
 
         raise AllProvidersFailed(
             "all models exhausted",

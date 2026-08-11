@@ -58,7 +58,11 @@ def build_agent(
     settings = settings or load_settings(config_path)
     configure_logging(settings.log_level)
 
-    provider = build_provider(settings.provider, settings.models.fallback_chain)
+    provider = build_provider(
+        settings.provider,
+        settings.models.fallback_chain,
+        primary_attempts=settings.models.primary_fallback_attempts,
+    )
     tools = registry or default_registry(enable_http=enable_http_tool)
 
     policy = PolicyEngine(
