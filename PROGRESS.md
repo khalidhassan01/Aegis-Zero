@@ -1,7 +1,7 @@
 # Aegis-Zero — Progress Snapshot (RESUMABLE)
 Generated: 2026-08-13 09:29 UTC
 Branch: v2-rebuild   HEAD: b185405d8b2aa1c0bb6147c4647ebd01f5a0729e
-Pushed to origin/v2-rebuild: NO  (1 commit ahead; NOT pushed by request)
+Pushed to origin/v2-rebuild: YES (last push fa3625f..392054a; update this line after each push)
 Quality gate (run fresh this session): ruff check OK · ruff format OK · mypy OK (31 src files) · pytest 293 passed · coverage 88%
 
 ================================================================
