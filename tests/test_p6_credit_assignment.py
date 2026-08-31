@@ -82,8 +82,14 @@ async def test_invalidated_memory_is_not_rewarded(tmp_path, provider, memory):
     )
 
 
-async def test_successful_run_rewards_recalled_memory(tmp_path, provider, memory):
-    """Sanity: a clean answer with no verifier failure still rewards memory."""
+async def test_successful_run_rewards_cited_memory(tmp_path, provider, memory):
+    """Sanity: a clean answer that *cites* the memory still rewards it.
+
+    Under cite-level attribution (P6) the reward follows the citation
+    protocol: the reply ends with ``MEMORIES USED: m1`` and the recalled
+    memory is credited. An uncited, ungrounded reply earns nothing -- that
+    inversion is pinned in test_cite_level_attribution.py.
+    """
     # Seed a memory whose text equals the run goal, so it is recalled.
     ep = await memory.remember(
         "What is 2 + 2?",
@@ -91,12 +97,14 @@ async def test_successful_run_rewards_recalled_memory(tmp_path, provider, memory
     )
     before = (await memory.store.get(ep.id)).score
 
-    # A verifier-clean answer (no arithmetic claim, so the verifier passes).
-    await _run_with_answer(provider, memory, "I will break this down step by step for you.")
+    # A verifier-clean answer (no arithmetic claim) that cites the memory.
+    await _run_with_answer(
+        provider, memory, "I will break this down step by step.\nMEMORIES USED: m1"
+    )
 
     after = (await memory.store.get(ep.id)).score
     assert after > before, (
-        f"a successful run should reward the recalled memory (after={after}, before={before})"
+        f"a successful run should reward the cited memory (after={after}, before={before})"
     )
 
 

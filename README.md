@@ -301,14 +301,19 @@ That discipline produced these shipped, test-backed improvements:
   tombstoned, not deleted.
 - **Winner-take-all retrieval fixed.** A UCB1 exploration bonus breaks the
   popularity spiral.
-- **Coherent memory credit (P6, partial).** A memory a verifier hard-failure
-  just tombstoned is never rewarded — the run-end learner excludes
-  `invalidated_memory_ids`. Cite-level attribution (reward only the memories a
-  Forge step actually used) is still open.
+- **Cite-level memory credit assignment (P6).** Memories are rendered into
+  the prompt with stable tags (`[m1]`, `[m2]`, …) and rewarded only on
+  evidence: a declared citation (`MEMORIES USED: m1, …` line) earns the full
+  run signal, a verbatim reuse the model forgot to declare earns half, and a
+  recalled-but-unevidenced memory earns nothing — not punished, just not
+  credited. Verifier-invalidated memories are excluded from both channels.
+  `EngineConfig.citation_protocol=False` restores the legacy coarse reward
+  as an A/B ablation switch. The declared channel depends on the model's
+  honesty and the grounding channel only detects verbatim reuse, not
+  paraphrase — both limits are pinned in tests, not hidden
+  (`tests/test_cite_level_attribution.py`).
 
 We have **not** solved — and say so plainly:
-- **Cite-level memory credit assignment (P6, residual).** Surviving recalled
-  memories are still rewarded equally; per-citation attribution is TODO.
 - **The command denylist.** Documented as not a security boundary; containment
   is the honest fix.
 - **Self-modifying agents, multi-agent debate-by-default, tree search in the
@@ -317,7 +322,7 @@ We have **not** solved — and say so plainly:
 ## Development
 
 ```bash
-pytest --cov              # 290+ tests
+pytest --cov              # 310+ tests
 ruff check src tests      # lint
 mypy                      # type check
 ```

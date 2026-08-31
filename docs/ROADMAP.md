@@ -129,22 +129,45 @@ audit item #13.
 
 - Reflexion's gains come from an external evaluator, not introspection —
 
-## P6 — Fine-grained memory credit assignment  *(complexity: L)* — **PARTIAL**
+## P6 — Fine-grained memory credit assignment  *(complexity: L)* — **DONE**
 
 Originally every memory retrieved during a successful run received the same
-reward, including ones that were never used. The worst incoherence — a memory
-the verifier just tombstoned as wrong being *rewarded in the same run* — is
-now closed: `AgentResult.invalidated_memory_ids` records which recalled
-memories a hard verifier failure disproved, and `_learn` excludes them from
-the success reward (see `tests/test_p6_credit_assignment.py`). Rewarding a
-memory the verifier just proved fed a wrong claim would be self-contradictory
-credit assignment.
+reward, including ones that were never used. This is now closed at two
+levels:
 
-What remains open is **cite-level** attribution: every recalled memory that
-survives is still rewarded equally, rather than only those a Forge step
-actually cited. That needs the Forge step to emit the memory ids it used
-(which is the original P6 proposal) and is still TODO — the roadmap's
-"still open" line below is accurate for that narrower claim.
+1. **Tombstone coherence.** `AgentResult.invalidated_memory_ids` records
+   which recalled memories a hard verifier failure disproved, and the
+   learner excludes them from the reward (see
+   `tests/test_p6_credit_assignment.py`). Rewarding a memory the verifier
+   just proved fed a wrong claim would be self-contradictory credit
+   assignment.
+2. **Cite-level attribution** (the original P6 proposal). Memories are
+   rendered into the Forge prompt with stable tags (`[m1]`, `[m2]`, …) and
+   credited only on evidence, via two deterministic channels
+   (`src/aegis_zero/orchestrator/citations.py`):
+   - **Declared:** the reply ends with `MEMORIES USED: m1, m3`; the line is
+     parsed leniently, stripped before the answer flows downstream, and
+     tags map back to episode ids through the packet. A declared citation
+     earns the full run signal.
+   - **Grounded:** a memory whose *rendered* text reappears verbatim in the
+     reply (6-word n-gram overlap) demonstrably influenced the output even
+     when the model forgot to cite it. Undeclared reuse earns half the
+     signal.
+   - A recalled memory that is neither declared nor grounded earns nothing —
+     absence of use is not evidence of harm, so it is not punished either.
+     Tombstoned memories are excluded from both channels. Every run with
+     recalled memories emits a `memory.credit` event (including the
+     zero-credit cases the P6 fine-grained-attribution metric needs).
+   - `EngineConfig.citation_protocol=False` restores the legacy coarse
+     reward as an ablation switch, so the two policies can be A/B-measured
+     rather than asserted (see `tests/test_cite_level_attribution.py`,
+     23 tests).
+
+**Honest limits, pinned by tests:** the declared channel trusts the model's
+own report (a model that never cites disables the channel, and a lying model
+weakens it — the grounding channel is the backstop, not a replacement), and
+grounding detects verbatim reuse only, not paraphrase. Reward quality is
+still bounded by the verifier that produces the signal, hence P1 first.
 
 Do this after P1, because the reward signal is only as good as the verifier
 that produces it.
@@ -192,9 +215,10 @@ code and the running system, and are **not** accurate as applied here:
   is self-limiting: 500 consecutive `+1` rewards reach `2.64`, and `pytest`
   pins this. There is no divergence and no saturation dead zone in practice.
 
-The sub-report's valid, unaddressed findings are the ones captured above:
-coarse credit assignment (P6), popularity bias (fixed in AUDIT-10), and
-temporal validity (P6.5). Its suggestion to *learn* the ranking weights via
+The sub-report's valid findings — coarse credit assignment (P6, since
+closed at cite level), popularity bias (fixed in AUDIT-10), and temporal
+validity (P6.5) — are the ones captured above. Its suggestion to *learn*
+the ranking weights via
 a pointwise model is reasonable but premature until P1/P6 give a trustworthy
 label signal.
 

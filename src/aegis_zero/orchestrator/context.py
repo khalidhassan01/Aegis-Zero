@@ -9,6 +9,7 @@ from typing import Any
 from ..core.models import Message
 from ..memory.harness import HarnessController
 from ..memory.memrl import MemRLEngine, RankedMemory
+from .citations import memory_tag
 
 #: Never emit a tail message shorter than this, or the model sees nothing useful.
 _MIN_TAIL_TOKENS = 64
@@ -46,6 +47,11 @@ class ContextPacket:
     messages: list[Message] = field(default_factory=list)
     memories: list[RankedMemory] = field(default_factory=list)
     tokens: int = 0
+    #: Citation tags for this packet: ``m1`` → episode id (P6). Tags are
+    #: assigned in ranked order and are only meaningful together with
+    #: ``memories``; the engine maps a Forge reply's citations back to
+    #: episode ids through this mapping.
+    memory_tags: dict[str, str] = field(default_factory=dict)
 
     def to_messages(self) -> list[Message]:
         return [Message(role="system", content=self.system), *self.messages]
@@ -53,6 +59,31 @@ class ContextPacket:
     @property
     def memory_ids(self) -> list[str]:
         return [m.episode.id for m in self.memories]
+
+
+#: Header for the memory block. The citation protocol is part of the block
+#: (not of FORGE_SYSTEM) so it costs no tokens when nothing is recalled and
+#: can never drift from the tag render below.
+_MEMORY_HEADER = (
+    "## Relevant prior knowledge\n"
+    "Treat these as recollections, not ground truth. Verify before relying "
+    "on them. Each recollection is tagged [m1], [m2], … . If your final "
+    "reply relies on any of them, end the reply with one last line exactly "
+    "of the form:\nMEMORIES USED: m1, m3\n"
+    "listing only the tags you actually used. If you used none, omit the "
+    "line entirely.\n"
+)
+
+
+def _render_memories(memories: list[RankedMemory]) -> tuple[str, dict[str, str]]:
+    """Render the memory block and its tag → episode-id mapping."""
+    rendered = "\n".join(
+        f"- [{memory_tag(i)}] [{m.episode.kind}] {m.episode.text.strip()[:400]} "
+        f"(rank {m.rank:.2f})"
+        for i, m in enumerate(memories)
+    )
+    tags = {memory_tag(i): m.episode.id for i, m in enumerate(memories)}
+    return f"{_MEMORY_HEADER}{rendered}", tags
 
 
 class ContextBuilder:
@@ -105,16 +136,10 @@ class ContextBuilder:
                 memories = []
 
         blocks = [system]
+        tags: dict[str, str] = {}
         if memories:
-            rendered = "\n".join(
-                f"- [{m.episode.kind}] {m.episode.text.strip()[:400]} (rank {m.rank:.2f})"
-                for m in memories
-            )
-            blocks.append(
-                "## Relevant prior knowledge\n"
-                "Treat these as recollections, not ground truth. Verify before relying "
-                f"on them.\n{rendered}"
-            )
+            block, tags = _render_memories(memories)
+            blocks.append(block)
         if self.harness_path:
             try:
                 harness_text = HarnessController(self.harness_path).format_for_prompt()
@@ -131,19 +156,16 @@ class ContextBuilder:
 
         # The system block alone can exceed the budget (many or long
         # memories). Drop memory blocks before sacrificing conversation.
+        # Tags are re-derived on every drop so they always match the
+        # memories that actually remain in the prompt.
         while estimate_tokens(system_text) > budget and memories:
             memories = memories[:-1]
             rebuilt = [system]
             if memories:
-                rendered = "\n".join(
-                    f"- [{m.episode.kind}] {m.episode.text.strip()[:400]} (rank {m.rank:.2f})"
-                    for m in memories
-                )
-                rebuilt.append(
-                    "## Relevant prior knowledge\n"
-                    "Treat these as recollections, not ground truth. Verify before relying "
-                    f"on them.\n{rendered}"
-                )
+                block, tags = _render_memories(memories)
+                rebuilt.append(block)
+            else:
+                tags = {}
             if extra:
                 details = "\n".join(f"- {k}: {v}" for k, v in extra.items())
                 rebuilt.append(f"## Run context\n{details}")
@@ -152,7 +174,11 @@ class ContextBuilder:
         trimmed = self._trim(list(history), estimate_tokens(system_text), budget)
         total = estimate_tokens(system_text) + sum(estimate_tokens(m.content) for m in trimmed)
         return ContextPacket(
-            system=system_text, messages=trimmed, memories=memories, tokens=total
+            system=system_text,
+            messages=trimmed,
+            memories=memories,
+            tokens=total,
+            memory_tags=tags,
         )
 
     def _trim(self, history: list[Message], used: int, budget: int) -> list[Message]:

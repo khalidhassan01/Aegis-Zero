@@ -9,6 +9,7 @@ from .agents import (
     parse_critique,
     parse_plan,
 )
+from .citations import CitationReport, grounded_ids, parse_citations
 from .context import ContextBuilder, ContextPacket, estimate_tokens
 from .engine import AgentEngine, AgentResult, EngineConfig
 from .reliability import ReliabilityReport, reliability_report
@@ -16,6 +17,7 @@ from .reliability import ReliabilityReport, reliability_report
 __all__ = [
     "AgentEngine",
     "AgentResult",
+    "CitationReport",
     "ContextBuilder",
     "ContextPacket",
     "Critique",
@@ -25,7 +27,9 @@ __all__ = [
     "Subtask",
     "estimate_tokens",
     "extract_json",
+    "grounded_ids",
     "heuristic_complexity",
+    "parse_citations",
     "parse_critique",
     "parse_plan",
     "reliability_report",

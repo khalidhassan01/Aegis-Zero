@@ -30,6 +30,9 @@ class EventType(str, Enum):
     APPROVAL_RESULT = "approval.result"
     MEMORY_READ = "memory.read"
     MEMORY_WRITE = "memory.write"
+    #: P6 cite-level attribution: which memories earned reward weight and
+    #: how much, emitted once per run from the learner.
+    MEMORY_CREDIT = "memory.credit"
     BUDGET_WARNING = "budget.warning"
 
 

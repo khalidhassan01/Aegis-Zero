@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import math
 import time
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -273,6 +273,20 @@ class MemRLEngine:
     async def reward_many(self, episode_ids: Sequence[str], signal: float) -> int:
         count = 0
         for eid in episode_ids:
+            if await self.reward(eid, signal) is not None:
+                count += 1
+        return count
+
+    async def reward_attributed(self, attributions: Iterable[tuple[str, float]]) -> int:
+        """Apply per-memory reward weights (P6 cite-level attribution).
+
+        ``attributions`` yields ``(episode_id, signal)`` pairs. Each signal
+        is clipped to [-1, 1] independently, so one run can weight a
+        declared citation at full strength and a grounded-but-undeclared
+        reuse at half, while unevidenced memories get no call at all.
+        """
+        count = 0
+        for eid, signal in attributions:
             if await self.reward(eid, signal) is not None:
                 count += 1
         return count

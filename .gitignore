@@ -132,6 +132,7 @@ dist/
 build/
 *.egg-info/
 .venv/
+uv.lock
 .coverage
 coverage.xml
 .pytest_cache/

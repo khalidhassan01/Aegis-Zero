@@ -56,7 +56,8 @@ from .agents import (
     planner_prompt,
     scout_prompt,
 )
-from .context import ContextBuilder
+from .citations import citation_summary, grounded_ids, parse_citations
+from .context import ContextBuilder, ContextPacket
 from .verifier import Verification, run_default_checks
 
 SYNTHESIS_SYSTEM = """You are the Synthesizer in Aegis Zero. Merge the
@@ -84,6 +85,15 @@ class AgentResult:
     #: reward below -- rewarding a memory that the verifier just invalidated
     #: would be self-contradictory credit assignment (P6).
     invalidated_memory_ids: set[str] = field(default_factory=set)
+    #: Memories a Forge step *declared* it used via the citation protocol
+    #: (P6, cite-level attribution): the ``MEMORIES USED: m1, …`` line.
+    cited_memory_ids: list[str] = field(default_factory=list)
+    #: Memories whose rendered text reappeared verbatim in a Forge reply
+    #: (grounded reuse) even though the model did not declare them.
+    grounded_memory_ids: set[str] = field(default_factory=set)
+    #: Whether every Forge step that had memories in context emitted the
+    #: citation line. ``None`` when nothing was recalled at all.
+    citation_protocol_followed: bool | None = None
 
     @property
     def confidence(self) -> float:
@@ -99,6 +109,9 @@ class AgentResult:
             "tool_calls": len(self.tool_results),
             "confidence": round(self.confidence, 3),
             "elapsed_s": round(self.elapsed_s, 2),
+            "memories_recalled": len(set(self.memory_ids)),
+            "memories_credited": len(set(self.cited_memory_ids) | self.grounded_memory_ids),
+            "citation_protocol": self.citation_protocol_followed,
         }
 
 
@@ -122,6 +135,12 @@ class EngineConfig:
     #: A "fail" verdict gets at most this many attempts, regardless of
     #: ``max_revisions``, so one harsh verdict cannot exhaust the budget.
     max_fail_revisions: int = 1
+    #: Cite-level attribution (P6). When True (default), only memories a
+    #: Forge step declared (citation line) or demonstrably reused (verbatim
+    #: span) receive reward weight. When False, the legacy coarse reward
+    #: (every surviving recalled memory equally) applies -- kept as an
+    #: ablation switch so the two policies can be A/B measured.
+    citation_protocol: bool = True
 
 
 class AgentEngine:
@@ -315,7 +334,7 @@ class AgentEngine:
                 tools=schemas,
             )
             if not completion.tool_calls:
-                return completion.text
+                return self._attribute_citations(completion.text, packet, result)
 
             messages.append(
                 Message(
@@ -337,7 +356,30 @@ class AgentEngine:
         final = await self._call(
             messages, state, budget, model=self.cfg.deep_model, step=f"forge:{task.id}:final"
         )
-        return final.text
+        return self._attribute_citations(final.text, packet, result)
+
+    def _attribute_citations(
+        self, text: str, packet: ContextPacket, result: AgentResult
+    ) -> str:
+        """Apply the memory citation protocol to one Forge reply (P6).
+
+        Strips the ``MEMORIES USED`` line so it never reaches the
+        synthesizer, the verifier, or the user; records declared citations
+        and grounded reuse on the result; returns the clean text. Steps with
+        no memories in context are vacuous and change nothing.
+        """
+        if not self.cfg.citation_protocol or not packet.memory_tags:
+            return text
+        report = parse_citations(text, packet.memory_tags)
+        result.cited_memory_ids.extend(report.cited_ids)
+        result.grounded_memory_ids.update(grounded_ids(report.clean_text, packet.memories))
+        if result.citation_protocol_followed is None:
+            result.citation_protocol_followed = report.followed
+        else:
+            result.citation_protocol_followed = result.citation_protocol_followed and (
+                report.followed
+            )
+        return report.clean_text
 
     async def _invoke_tools(
         self, calls: Sequence[ToolCall], state: RunState, budget: Budget
@@ -511,6 +553,28 @@ class AgentEngine:
             return min(self.cfg.max_fail_revisions, self.cfg.max_revisions)
         return self.cfg.max_revisions
 
+    @staticmethod
+    def _memory_credits(result: AgentResult, signal: float) -> dict[str, float]:
+        """Per-memory reward weights for one run (P6 cite-level).
+
+        A declared citation earns the full signal. A grounded reuse the
+        model did not declare earns half: the verbatim span proves the
+        memory influenced the reply, which is weaker evidence than the model
+        saying so explicitly. Recalled-but-unevidenced memories earn
+        nothing -- absence of use is not evidence of harm, so they are not
+        punished either. Verifier-invalidated memories are excluded from
+        both channels.
+        """
+        credited: dict[str, float] = {}
+        for mid in result.cited_memory_ids:
+            if mid not in result.invalidated_memory_ids:
+                credited[mid] = signal
+        for mid in sorted(result.grounded_memory_ids):
+            if mid in result.invalidated_memory_ids or mid in credited:
+                continue
+            credited[mid] = 0.5 * signal
+        return credited
+
     async def _learn(
         self, goal: str, answer: str, result: AgentResult, verification: Any = None
     ) -> None:
@@ -518,22 +582,53 @@ class AgentEngine:
             return
         confidence = result.confidence or 0.5
         if result.memory_ids:
-            # P6 -- fine-grained credit assignment. Coarse reward (every
-            # recalled memory rewarded equally on success) is the open gap
-            # the roadmap names. We at least exclude the memories a verifier
-            # hard-failure just tombstoned: rewarding them would contradict
-            # the tombstone. The remaining coarse reward is the honest
-            # baseline the roadmap documents; finer attribution (which
-            # specific memory each Forge step cited) is tracked as P6 work.
-            rewarded = [
-                mid
-                for mid in dict.fromkeys(result.memory_ids)
-                if mid not in result.invalidated_memory_ids
-            ]
-            if rewarded:
-                signal = signal_from_outcome(success=result.ok, confidence=confidence)
+            signal = signal_from_outcome(success=result.ok, confidence=confidence)
+            if self.cfg.citation_protocol:
+                # P6 -- cite-level credit assignment. Only memories a Forge
+                # step declared (citation line) or demonstrably reused
+                # (verbatim span in the reply) receive reward weight; the
+                # rest were recalled but never evidenced, so they earn
+                # nothing this run -- not punished, just not credited.
+                # Verifier-invalidated memories are excluded from both
+                # channels: rewarding them would contradict the tombstone.
+                credited = self._memory_credits(result, signal)
+                applied = 0
+                if credited:
+                    with contextlib.suppress(Exception):
+                        applied = await self.memory.reward_attributed(credited.items())
+                # Emit even when nothing earned credit: "recalled, none
+                # evidenced" is exactly the data the P6 fine-grained-
+                # attribution metric needs, and ``applied`` reports how many
+                # rewards actually landed (0 if the store failed).
                 with contextlib.suppress(Exception):
-                    await self.memory.reward_many(rewarded, signal)
+                    await self.bus.publish(
+                        Event(
+                            type=EventType.MEMORY_CREDIT,
+                            run_id=result.run_id,
+                            data={
+                                "signal": round(signal, 3),
+                                "applied": applied,
+                                **citation_summary(
+                                    result.memory_ids,
+                                    result.cited_memory_ids,
+                                    result.grounded_memory_ids,
+                                    result.citation_protocol_followed,
+                                ),
+                            },
+                        )
+                    )
+            else:
+                # Ablation switch: the legacy coarse reward (every surviving
+                # recalled memory, equally) so the two policies can be
+                # A/B-measured honestly rather than asserted.
+                rewarded = [
+                    mid
+                    for mid in dict.fromkeys(result.memory_ids)
+                    if mid not in result.invalidated_memory_ids
+                ]
+                if rewarded:
+                    with contextlib.suppress(Exception):
+                        await self.memory.reward_many(rewarded, signal)
         if self.cfg.enable_memory_write and result.ok and confidence >= self.cfg.min_confidence:
             with contextlib.suppress(Exception):
                 await self.memory.remember(
