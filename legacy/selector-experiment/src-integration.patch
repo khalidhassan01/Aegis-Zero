@@ -1,0 +1,373 @@
+diff --git a/src/aegis_zero/app.py b/src/aegis_zero/app.py
+index 1810ee1..8c32f3b 100644
+--- a/src/aegis_zero/app.py
++++ b/src/aegis_zero/app.py
+@@ -88,8 +88,8 @@ def build_agent(
+     configure_logging(settings.log_level)
+ 
+     provider = build_provider(
+-        settings.provider,
+-        settings.models.fallback_chain,
++        settings,
++        fallback_models=settings.models.fallback_chain,
+         primary_attempts=settings.models.primary_fallback_attempts,
+     )
+     tools = registry or default_registry(enable_http=enable_http_tool)
+diff --git a/src/aegis_zero/cli.py b/src/aegis_zero/cli.py
+index adaeb3e..ec888cc 100644
+--- a/src/aegis_zero/cli.py
++++ b/src/aegis_zero/cli.py
+@@ -16,6 +16,7 @@ from .core.errors import AegisError
+ from .core.events import EventType
+ from .core.models import Budget
+ from .memory.harness import HarnessController, HarnessEntry
++from .selector import Category, SelectorProvider
+ from .tools.approval import AutoApprove, ConsoleGate, DenyAll
+ 
+ 
+@@ -217,6 +218,53 @@ def _entry_from_dict(d: dict[str, Any]) -> HarnessEntry:
+     return HarnessEntry(**{k: d[k] for k in HarnessEntry.__dataclass_fields__ if k in d})
+ 
+ 
++async def cmd_selector_status(args: argparse.Namespace) -> int:
++    """Pool health, catalog provenance, per-category ladders, evidence."""
++    settings = load_settings(args.config)
++    if args.no_refresh:
++        settings = settings.with_overrides(
++            selector=replace(settings.selector, refresh_on_start=False)
++        )
++    provider = SelectorProvider(settings)
++    try:
++        report = await provider.status()
++    finally:
++        await provider.aclose()
++    print(json.dumps(report, indent=2, ensure_ascii=False, default=list))
++    return 0
++
++
++async def cmd_selector_pick(args: argparse.Namespace) -> int:
++    """Print the best free model for a category (default: chat).
++
++    Plain output is scriptable: `aegis selector pick --category code`
++    prints exactly the model id. ``--json`` adds score, rationale, key
++    label, and the fallback ladder.
++    """
++    settings = load_settings(args.config)
++    if args.no_refresh:
++        settings = settings.with_overrides(
++            selector=replace(settings.selector, refresh_on_start=False)
++        )
++    provider = SelectorProvider(settings)
++    try:
++        pick = await provider.pick(args.category)
++    finally:
++        await provider.aclose()
++    if pick is None:
++        print(
++            f'error: no usable free model for category "{args.category}" '
++            "(empty pool, or every key cooling down)",
++            file=sys.stderr,
++        )
++        return 1
++    if args.json:
++        print(json.dumps(pick, indent=2, ensure_ascii=False))
++    else:
++        print(pick["model"])
++    return 0
++
++
+ def build_parser() -> argparse.ArgumentParser:
+     p = argparse.ArgumentParser(prog="aegis", description="Aegis Zero agentic runtime")
+     p.add_argument("--version", action="version", version=f"aegis-zero {__version__}")
+@@ -275,6 +323,32 @@ def build_parser() -> argparse.ArgumentParser:
+     rollback.add_argument("--path", required=True, help="harness_state.json path")
+     rollback.add_argument("--refinement", required=True, help="refinement id to revert")
+     rollback.set_defaults(fn=cmd_harness_rollback)
++
++    selector = sub.add_parser("selector", help="inspect and drive the automatic model selector")
++    selector_sub = selector.add_subparsers(dest="selector_command", required=True)
++    sel_status = selector_sub.add_parser(
++        "status", help="pool health, catalog, ladders, learning evidence"
++    )
++    sel_status.add_argument(
++        "--no-refresh",
++        action="store_true",
++        help="skip the live catalog fetch (use cache/seed)",
++    )
++    sel_status.set_defaults(fn=cmd_selector_status)
++    sel_pick = selector_sub.add_parser("pick", help="print the best free model for a category")
++    sel_pick.add_argument(
++        "--category",
++        choices=tuple(c.value for c in Category),
++        default="chat",
++        help="what kind of work the model must do",
++    )
++    sel_pick.add_argument(
++        "--no-refresh",
++        action="store_true",
++        help="skip the live catalog fetch (use cache/seed)",
++    )
++    sel_pick.add_argument("--json", action="store_true", help="full pick report")
++    sel_pick.set_defaults(fn=cmd_selector_pick)
+     return p
+ 
+ 
+diff --git a/src/aegis_zero/core/config.py b/src/aegis_zero/core/config.py
+index 1251572..e2a2ece 100644
+--- a/src/aegis_zero/core/config.py
++++ b/src/aegis_zero/core/config.py
+@@ -65,6 +65,45 @@ class ModelSettings:
+         return max(self.context_window(model) - self.generation_reserve, 512)
+ 
+ 
++@dataclass(frozen=True, slots=True)
++class SelectorSettings:
++    """Automatic model selector (``provider.kind: selector``).
++
++    Defaults keep every path inside the user's own config/state/cache
++    areas, so a stock install writes nothing outside them. Paths go
++    through ``expanduser`` at use sites, so ``~`` works in YAML.
++    """
++
++    #: Key pool file: one section per provider, plus custom endpoints.
++    keys_file: str = "~/.config/aegis-zero/keys.yaml"
++    #: Also route to pay-per-token providers (off: free tier only).
++    allow_paid: bool = False
++    #: Where per-(key, model) learning evidence persists across restarts.
++    state_path: str = "~/.local/state/aegis-zero/selector/learning.json"
++    #: Optional user benchmark overrides (same shape as the seed table).
++    benchmarks_file: str = "~/.config/aegis-zero/benchmarks.yaml"
++    #: Exact model ids tried first when healthy (routing still applies).
++    preferred: tuple[str, ...] = ()
++    #: Exact ids or prefixes never routed to (e.g. a provider you dislike).
++    excluded: tuple[str, ...] = ()
++    #: Candidate ladder depth per request (models, before key rotation).
++    max_candidates: int = 8
++    #: Total wait budget when everything is rate limited at once.
++    patience_s: float = 120.0
++    #: Per-key request spacing so bursts cannot self-inflict a 429.
++    min_request_gap_s: float = 1.0
++    #: Fetch the live model catalog on first use (needs network once).
++    refresh_on_start: bool = True
++    #: Disk cache of the last live catalog fetch.
++    cache_path: str = "~/.cache/aegis-zero/selector/catalog.json"
++    #: How long that cache stays fresh.
++    cache_ttl_hours: float = 24.0
++    #: Embedding fallback when the free pool has no embedder (it rarely
++    #: does): a local OpenAI-compatible endpoint.
++    embed_fallback_base_url: str = "http://127.0.0.1:8001/v1"
++    embed_fallback_model: str = "nomic-embed-text"
++
++
+ @dataclass(frozen=True, slots=True)
+ class MemorySettings:
+     backend: str = "memory"  # memory | qdrant
+@@ -88,6 +127,7 @@ class Settings:
+     models: ModelSettings = field(default_factory=ModelSettings)
+     memory: MemorySettings = field(default_factory=MemorySettings)
+     policy: PolicySettings = field(default_factory=PolicySettings)
++    selector: SelectorSettings = field(default_factory=SelectorSettings)
+     max_steps: int = 24
+     max_seconds: float = 600.0
+     max_tokens: int = 200_000
+@@ -104,6 +144,7 @@ _SECTIONS = {
+     "models": ModelSettings,
+     "memory": MemorySettings,
+     "policy": PolicySettings,
++    "selector": SelectorSettings,
+ }
+ 
+ 
+diff --git a/src/aegis_zero/core/errors.py b/src/aegis_zero/core/errors.py
+index cad7c44..ab31fc9 100644
+--- a/src/aegis_zero/core/errors.py
++++ b/src/aegis_zero/core/errors.py
+@@ -40,6 +40,14 @@ class ProviderRateLimited(ProviderError):
+     retryable = True
+ 
+ 
++class ProviderAuthError(ProviderError):
++    """The API key was rejected (401/403) or is out of credits (402).
++
++    Never retryable with the same key: a human must fix or top it up.
++    The selector quarantines the key and rotates to a sibling.
++    """
++
++
+ class ProviderUnavailable(ProviderError):
+     retryable = True
+ 
+@@ -48,6 +56,11 @@ class AllProvidersFailed(ProviderError):
+     """Every model in the fallback chain was exhausted."""
+ 
+ 
++class SelectorExhausted(AllProvidersFailed):
++    """The model selector's whole ladder (models x keys) plus its wait
++    budget was exhausted. Context carries the ladder and attempts."""
++
++
+ class ToolError(AegisError):
+     """A tool failed during execution."""
+ 
+diff --git a/src/aegis_zero/providers/__init__.py b/src/aegis_zero/providers/__init__.py
+index 50d612a..d77e0a2 100644
+--- a/src/aegis_zero/providers/__init__.py
++++ b/src/aegis_zero/providers/__init__.py
+@@ -2,7 +2,7 @@
+ 
+ from __future__ import annotations
+ 
+-from ..core.config import ProviderSettings
++from ..core.config import ProviderSettings, Settings
+ from ..core.errors import ConfigError
+ from .base import LLMProvider
+ from .echo import EchoProvider, scripted_tool_call
+@@ -21,26 +21,37 @@ __all__ = [
+ 
+ 
+ def build_provider(
+-    settings: ProviderSettings,
++    settings: Settings,
++    *,
+     fallback_models: tuple[str, ...] = (),
+     primary_attempts: int | None = None,
+ ) -> LLMProvider:
+-    """Construct the configured provider wrapped in resilience."""
+-    kind = settings.kind.lower()
++    """Construct the configured provider wrapped in resilience.
++
++    ``kind: selector`` returns the :class:`SelectorProvider` unwrapped:
++    its shield already owns retries, key rotation, and model fallback, so
++    wrapping it in ``ResilientProvider`` would retry the retry loop.
++    """
++    provider_settings: ProviderSettings = settings.provider
++    kind = provider_settings.kind.lower()
++    if kind == "selector":
++        from ..selector.provider import SelectorProvider
++
++        return SelectorProvider(settings)
+     if kind == "echo":
+         inner: LLMProvider = EchoProvider()
+     elif kind in ("openai", "openai_compat", "ollama", "vllm", "litellm"):
+         inner = OpenAICompatProvider(
+-            base_url=settings.base_url,
+-            api_key=settings.api_key,
+-            timeout=settings.timeout,
++            base_url=provider_settings.base_url,
++            api_key=provider_settings.api_key,
++            timeout=provider_settings.timeout,
+         )
+     else:
+-        raise ConfigError("unknown provider kind", context={"kind": settings.kind})
++        raise ConfigError("unknown provider kind", context={"kind": provider_settings.kind})
+ 
+     return ResilientProvider(
+         inner,
+-        retry=RetryPolicy(attempts=settings.max_retries),
++        retry=RetryPolicy(attempts=provider_settings.max_retries),
+         fallback_models=fallback_models,
+         primary_attempts=primary_attempts,
+     )
+diff --git a/src/aegis_zero/providers/openai_compat.py b/src/aegis_zero/providers/openai_compat.py
+index 4a01a01..973e4f7 100644
+--- a/src/aegis_zero/providers/openai_compat.py
++++ b/src/aegis_zero/providers/openai_compat.py
+@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator, Sequence
+ from typing import Any
+ 
+ from ..core.errors import (
++    ProviderAuthError,
+     ProviderError,
+     ProviderRateLimited,
+     ProviderTimeout,
+@@ -61,7 +62,20 @@ class OpenAICompatProvider(LLMProvider):
+             raise ProviderUnavailable("transport failure", context={"path": path}) from exc
+ 
+         if resp.status_code == 429:
+-            raise ProviderRateLimited("rate limited", context={"path": path})
++            raise ProviderRateLimited(
++                "rate limited",
++                context={"path": path, "retry_after": _retry_after_seconds(resp)},
++            )
++        if resp.status_code in (401, 403):
++            raise ProviderAuthError(
++                "authentication rejected",
++                context={"path": path, "status": resp.status_code},
++            )
++        if resp.status_code == 402:
++            raise ProviderAuthError(
++                "insufficient credits",
++                context={"path": path, "status": 402},
++            )
+         if resp.status_code >= 500:
+             raise ProviderUnavailable("upstream error", context={"status": resp.status_code})
+         if resp.status_code >= 400:
+@@ -139,6 +153,19 @@ class OpenAICompatProvider(LLMProvider):
+         async with client.stream(
+             "POST", f"{self.base_url}/chat/completions", json=payload, headers=self._headers()
+         ) as resp:
++            if resp.status_code == 429:
++                raise ProviderRateLimited(
++                    "rate limited",
++                    context={
++                        "path": "/chat/completions",
++                        "retry_after": _retry_after_seconds(resp),
++                    },
++                )
++            if resp.status_code in (401, 402, 403):
++                raise ProviderAuthError(
++                    "stream authentication rejected",
++                    context={"path": "/chat/completions", "status": resp.status_code},
++                )
+             if resp.status_code >= 400:
+                 raise ProviderError("stream failed", context={"status": resp.status_code})
+             async for line in resp.aiter_lines():
+@@ -168,6 +195,48 @@ class OpenAICompatProvider(LLMProvider):
+             self._client = None
+ 
+ 
++def _header(resp: Any, name: str) -> str:
++    """Read a response header without assuming a rich headers object."""
++    headers = getattr(resp, "headers", None)
++    if headers is None:
++        return ""
++    try:
++        value = headers.get(name)
++    except AttributeError:
++        return ""
++    return str(value) if value is not None else ""
++
++
++def _retry_after_seconds(resp: Any) -> float | None:
++    """Best-effort parse of rate-limit hints: Retry-After (seconds or
++    HTTP-date), then X-RateLimit-Reset (epoch or delay). None = unknown."""
++    import email.utils
++    import time as _time
++
++    def _seconds_or_date(raw: str) -> float | None:
++        raw = raw.strip()
++        if not raw:
++            return None
++        try:
++            return max(float(raw), 0.0)
++        except ValueError:
++            pass
++        try:
++            when = email.utils.parsedate_to_datetime(raw)
++            return max((when.timestamp() - _time.time()), 0.0)
++        except (ValueError, TypeError, OverflowError):
++            return None
++
++    for name in ("retry-after", "x-ratelimit-reset"):
++        hint = _seconds_or_date(_header(resp, name))
++        if hint is not None:
++            # X-RateLimit-Reset is often an epoch timestamp, not a delay.
++            if name == "x-ratelimit-reset" and hint > 1_000_000:
++                return max(hint - _time.time(), 0.0)
++            return hint
++    return None
++
++
+ def _parse_tool_calls(raw: Any) -> tuple[ToolCall, ...]:
+     if not raw:
+         return ()
