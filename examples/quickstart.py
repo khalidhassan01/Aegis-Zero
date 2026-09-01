@@ -1,4 +1,5 @@
 """Minimal usage: ask a question, print the answer."""
+
 import asyncio
 
 from aegis_zero import build_agent

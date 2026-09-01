@@ -1,4 +1,5 @@
 """Subscribe to the event bus to build a live UI or audit log."""
+
 import asyncio
 
 from aegis_zero import build_agent

@@ -1,4 +1,5 @@
 """Register your own tools. Schemas are derived from type hints."""
+
 import asyncio
 
 from aegis_zero import build_agent
@@ -22,7 +23,7 @@ def query_database(sql: str, limit: int = 100) -> list[dict]:
 
 async def main() -> None:
     async with build_agent(registry=registry, approval=AutoApprove()) as agent:
-        print(await (await agent.ask("What is the weather in Rabat?")).answer)
+        print((await agent.ask("What is the weather in Rabat?")).answer)
 
 
 if __name__ == "__main__":
