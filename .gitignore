@@ -137,6 +137,9 @@ build/
 *.egg-info/
 .venv/
 uv.lock
+# uv's cache: git skips it via CACHEDIR.TAG, but hatchling does not honor
+# that convention and would leak it into the sdist — ignore it explicitly
+.uvcache/
 .coverage
 coverage.xml
 .pytest_cache/
