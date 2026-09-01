@@ -56,9 +56,13 @@ git clone https://github.com/khalidhassan01/Aegis-Zero && cd Aegis-Zero
 pip install -e . && python examples/demo.py
 ```
 
-Prefer a terminal? `asciinema play docs/demo.cast`. Both assets are generated
-from the live transcript by `scripts/make_demo.py` and pinned by the test
-suite — **the demo cannot silently drift from the code.**
+Prefer a terminal? `asciinema play docs/demo.cast`. Prefer video? The same
+timeline is rendered to [`docs/demo.mp4`](docs/demo.mp4) (1080p, silent,
+34 s — for X, Reddit, Show HN) and [`docs/demo.gif`](docs/demo.gif) by
+`scripts/make_video.py`, ending on a card with the install command. All four
+assets are generated from the one live transcript and pinned by the test
+suite — **they can never disagree with each other or silently drift from
+the code.**
 
 ## Why Aegis Zero is different
 
