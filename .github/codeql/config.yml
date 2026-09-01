@@ -1,0 +1,13 @@
+# CodeQL analysis scope for Aegis Zero.
+#
+# `legacy/**` is the read-only archive of the superseded in-repo selector
+# experiment: kept for history, never shipped (the wheel packages only
+# src/aegis_zero) and never modified again. Dead code is out of security
+# scope by design, so it is excluded from analysis.
+#
+# This also settles the PR #1 CodeQL comment on its API-key fingerprint
+# helper (legacy/selector-experiment/src/types.py): the truncated SHA-256
+# there is a dedup/label id, not password storage — a slow KDF would be
+# the wrong tool — so the finding is scoped out rather than "fixed".
+paths-ignore:
+  - legacy/**

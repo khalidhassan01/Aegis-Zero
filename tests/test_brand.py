@@ -185,7 +185,7 @@ def test_face_survives_favicon_size() -> None:
         for x in range(max(0, eye_x - 3), eye_x + 4)
         for y in range(max(0, eye_y - 3), eye_y + 4)
     ]
-    darkest = min(region, key=lambda p: sum(p))
+    darkest = min(region, key=sum)
     assert sum(darkest) < sum(body) - 180, "the eyes must still read at 64px"
 
 
