@@ -8,6 +8,7 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/aegis-zero/"><img src="https://img.shields.io/pypi/v/aegis-zero.svg" alt="PyPI"></a>
   <a href="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml"><img src="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
@@ -35,6 +36,30 @@ in prose:
   <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%">
 </p>
 
+## Watch it work — 30 seconds, zero setup
+
+The animation below is not a mock-up: every line is rendered from a **real
+engine run** (`examples/demo.py`, driven by the same scripted-provider
+mechanism the test suite uses — no model server, no API key, no network).
+Watch the policy gate deny an SSRF probe, a credential read, and `rm -rf /`,
+sanitize a leaked bearer token, then hand the surviving run to the
+orchestrator:
+
+<p align="center">
+  <img src="docs/demo.svg" alt="Aegis Zero 30-second demo: policy-gate verdicts, then a deterministic engine run" width="720">
+</p>
+
+Reproduce it yourself — offline, deterministic, about two seconds:
+
+```bash
+git clone https://github.com/khalidhassan01/Aegis-Zero && cd Aegis-Zero
+pip install -e . && python examples/demo.py
+```
+
+Prefer a terminal? `asciinema play docs/demo.cast`. Both assets are generated
+from the live transcript by `scripts/make_demo.py` and pinned by the test
+suite — **the demo cannot silently drift from the code.**
+
 ## Why Aegis Zero is different
 
 This project treats its own claims as hypotheses to be falsified. The
@@ -55,7 +80,15 @@ hold up under measurement. What follows is what that discipline produced.
 ## Install
 
 ```bash
-pip install -e ".[dev]"          # from a clone
+pip install aegis-zero           # from PyPI
+```
+
+From a clone — docs, examples, and tests included:
+
+```bash
+git clone https://github.com/khalidhassan01/Aegis-Zero.git
+cd Aegis-Zero
+pip install -e ".[dev]"          # with the dev toolchain
 pip install -e ".[qdrant]"       # with the Qdrant memory backend
 ```
 
