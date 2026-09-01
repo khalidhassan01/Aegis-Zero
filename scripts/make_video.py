@@ -24,12 +24,11 @@ The timeline is NOT redefined here: line times come from
 ``make_demo.schedule()`` over the live ``examples/demo.py`` transcript, so
 cast, SVG and video can never disagree — the test suite asserts it.
 
-The end card composites ``Logo-Designs/aegis-zero-logo.png``, rasterized
-once from the committed SVG (its background is pure black, matching the
-card, so the plate composites seamlessly):
-
-    ffmpeg -i Logo-Designs/aegis-zero-logo.svg -vf scale=1280:-1 \
-        -frames:v 1 Logo-Designs/aegis-zero-logo.png
+The end card composites ``docs/brand/endcard-lockup.png`` — Zero, the
+mascot, stacked above the wordmark on a pure-black plate (the card's own
+background, so it merges seamlessly). The PNG is rendered from the
+committed SVG by ``scripts/make_brand.py`` and pinned by
+``tests/test_brand.py``; regenerate it there, never here.
 """
 
 from __future__ import annotations
@@ -110,9 +109,9 @@ OUTER_BG = "#05070b"
 CHROME_BG = "#0d1117"
 TITLE_BG = "#161b22"
 BORDER = "#30363d"
-BRAND_CYAN = "#00ffcc"  # Logo-Designs/BRANDING.md
+BRAND_CYAN = "#00ffcc"  # docs/brand/BRAND.md
 
-# End card (pure #000000: the logo PNG's own background, so it merges).
+# End card (pure #000000: the lockup PNG's own background, so it merges).
 ENDCARD_BG = "#000000"
 LOGO_H = 420  # display height of the logo art (after margin-cropping)
 CHIP_FONT = 30
@@ -132,7 +131,7 @@ SANS_CANDIDATES = [
 
 ASSETS = ("docs/demo.mp4", "docs/demo.gif", "docs/demo-poster.png")
 MANIFEST = "docs/demo.video.json"
-LOGO = "Logo-Designs/aegis-zero-logo.png"
+LOGO = "docs/brand/endcard-lockup.png"
 
 
 def _rgb(color: str, alpha: int = 255) -> tuple[int, int, int, int]:
