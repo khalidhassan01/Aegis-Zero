@@ -6,8 +6,11 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Continuation of the v2.0.0 rebuild. Three test-backed improvements landed on
-top of the audit fixes, each tied to the roadmap (P1/P6.5 already shipped):
+## [2.0.0] - 2026-09-01
+
+Complete architectural rebuild; v1 modules are preserved under `legacy/`.
+First public release on PyPI. Three test-backed improvements landed on top
+of the audit fixes, each tied to the roadmap (P1/P6.5 already shipped):
 
 ### Added
 
@@ -25,20 +28,6 @@ top of the audit fixes, each tied to the roadmap (P1/P6.5 already shipped):
   attempts. Wired through `ModelSettings.primary_fallback_attempts`.
 - 13 new regression tests (`test_context_windows.py`, `test_reliability.py`,
   `test_resilient_fallback.py`).
-
-### Fixed
-
-- Config coercion: `dict[str, int]` fields (e.g. `context_windows`) are now
-  parsed correctly instead of being mis-coerced as `int` by a greedy substring
-  match in `_resolve_type`.
-
-
-## [2.0.0] - 2026-08-10
-
-Complete architectural rebuild. v1 modules are preserved under `legacy/`.
-
-### Added
-
 - **Async runtime.** The entire execution path is `async`. Independent
   subtasks are resolved into dependency waves and run concurrently.
 - **Provider abstraction** (`providers/`). Any OpenAI-compatible endpoint —
@@ -70,7 +59,8 @@ Complete architectural rebuild. v1 modules are preserved under `legacy/`.
 - **CLI**: `aegis run | tools | config | health`.
 - **CI**: ruff, mypy, pytest on Python 3.11/3.12/3.13, a coverage floor,
   a distribution build, an installed-CLI smoke test, and CodeQL.
-- 179 tests at 86% coverage; four runnable examples.
+- 179 tests at 86% coverage at the time of the rebuild (325 today); four
+  runnable examples.
 
 ### Changed
 
@@ -84,6 +74,9 @@ Complete architectural rebuild. v1 modules are preserved under `legacy/`.
 
 ### Fixed
 
+- Config coercion: `dict[str, int]` fields (e.g. `context_windows`) are now
+  parsed correctly instead of being mis-coerced as `int` by a greedy substring
+  match in `_resolve_type`.
 - **Path containment bypass.** `/proc/self/environ` resolved to
   `/proc/<pid>/environ`, slipping past the prefix denylist. Both the pre- and
   post-resolution path are now checked.
