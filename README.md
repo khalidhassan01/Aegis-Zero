@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="140">
+</p>
+
+<p align="center">
   <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%">
 </p>
 
@@ -16,6 +20,11 @@
 </p>
 
 ---
+
+> 🛡️ **Meet Zero** — the project's mascot. A small round shield whose body
+> *is* the digit 0, with a calm face in the zero-ring and a gold spark it
+> only earns when something is verified. Zero trusts nobody; neither should
+> your agent. Its story and rules live in [docs/brand/BRAND.md](docs/brand/BRAND.md).
 
 Most agent frameworks give you a prompt loop and hope for the best. **Aegis Zero**
 is built around three commitments, each enforced in code rather than promised
@@ -359,7 +368,7 @@ We have **not** solved — and say so plainly:
 ## Development
 
 ```bash
-pytest --cov              # 310+ tests
+pytest --cov              # 340+ tests
 ruff check src tests      # lint
 mypy                      # type check
 ```
@@ -389,9 +398,13 @@ depend on each other now run concurrently.
 - [Architecture audit](docs/AUDIT.md) — defects reproduced before fixing
 - [Roadmap](docs/ROADMAP.md) — evidence-graded improvements, what we did and why
 - [Security model](docs/SECURITY_MODEL.md) — what is and isn't a boundary
+- [Brand & mascot](docs/brand/BRAND.md) — Zero, the kit, and how to use it
 - [Integration guide](docs/AEGIS_INTEGRATION_GUIDE.md)
 - [Research foundation](docs/AEGIS_ZERO_RESEARCH_FOUNDATION.md)
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+Built by [Khalid Hassan](https://github.com/khalidhassan01), with Zero —
+a small shield that says no — watching every tool call. 🛡️

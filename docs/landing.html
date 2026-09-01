@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aegis Zero — A state-of-the-art agentic runtime</title>
 <meta name="description" content="Async orchestration, policy-governed tools, reinforcement-weighted memory, and grounded verification. Nothing executes unreviewed.">
+<link rel="icon" type="image/png" sizes="32x32" href="brand/zero-avatar-32.png">
+<link rel="icon" type="image/png" sizes="128x128" href="brand/zero-avatar-128.png">
+<link rel="icon" sizes="16x16 32x32 48x48" href="brand/favicon.ico" type="image/x-icon">
+<meta property="og:title" content="Aegis Zero — a state-of-the-art agentic runtime">
+<meta property="og:description" content="Policy-governed tools. Memory that learns. Verification before trust. Nothing executes unreviewed.">
+<meta property="og:image" content="https://raw.githubusercontent.com/khalidhassan01/Aegis-Zero/HEAD/docs/brand/og-card.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/khalidhassan01/Aegis-Zero/HEAD/docs/brand/og-card.png">
 <style>
   :root{
     --bg:#020806; --bg2:#04110f; --ink:#e6fffb; --mut:#8aa39c;
@@ -65,17 +74,18 @@
   .btn-ghost{border-color:var(--line);color:var(--teal-dim)}
   .btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
 
-  /* shield emblem (animated, standalone page only) */
+  /* Zero, the mascot (animated, standalone page only) */
   .emblem{justify-self:center;filter:drop-shadow(0 0 30px rgba(0,255,204,.18))}
   .emblem svg{width:min(360px,80vw);height:auto}
-  .spin-cw{transform-origin:300px 320px;animation:spin 26s linear infinite}
-  .spin-ccw{transform-origin:300px 320px;animation:spin 18s linear infinite reverse}
-  .orb-a{transform-origin:300px 320px;animation:spin 9s linear infinite}
-  .orb-b{transform-origin:300px 320px;animation:spin 9s linear infinite reverse}
-  .pulse{animation:pulse 4s ease-in-out infinite}
+  .z-float{animation:zfloat 6s ease-in-out infinite}
+  .z-dots{transform-origin:256px 256px;animation:spin 60s linear infinite}
+  .z-eye{transform-box:fill-box;transform-origin:center;animation:blink 5.4s infinite}
+  .z-spark{animation:pulse 4s ease-in-out infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
-  @media (prefers-reduced-motion:reduce){.spin-cw,.spin-ccw,.orb-a,.orb-b,.pulse{animation:none}}
+  @keyframes zfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes blink{0%,93.5%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}96.5%{transform:scaleY(1)}}
+  @media (prefers-reduced-motion:reduce){.z-float,.z-dots,.z-eye,.z-spark{animation:none}}
 
   /* ---------- stats ---------- */
   .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
@@ -165,11 +175,15 @@
 <nav>
   <div class="wrap">
     <div class="brand">
-      <svg viewBox="0 0 600 340" aria-hidden="true">
-        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"
-          fill="none" stroke="#00ffcc" stroke-width="2.5" filter="drop-shadow(0 0 6px #00ffcc)"/>
-        <text x="300" y="186" text-anchor="middle" font-family="Georgia,serif" font-size="92" font-weight="900"
-          fill="none" stroke="#00ffcc" stroke-width="2.5">0</text>
+      <svg viewBox="0 0 512 512" aria-hidden="true">
+        <path d="M 116 236 A 140 140 0 0 1 396 236 C 396 300 372 352 328 388 C 306 404 282 414 256 420
+                 C 230 414 206 404 184 388 C 140 352 116 300 116 236 Z"
+          fill="#00e0b8" stroke="#00ffcc" stroke-width="28" stroke-linejoin="round"/>
+        <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-width="34"/>
+        <circle cx="224" cy="252" r="34" fill="#04241f"/>
+        <circle cx="288" cy="252" r="34" fill="#04241f"/>
+        <path d="M 234 314 Q 256 332 278 314" fill="none" stroke="#04241f" stroke-width="22" stroke-linecap="round"/>
+        <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
       </svg>
       AEGIS
     </div>
@@ -197,49 +211,42 @@
       </div>
     </div>
     <div class="emblem">
-      <svg viewBox="0 0 600 640" aria-hidden="true">
+      <svg viewBox="0 0 512 512" aria-hidden="true">
         <defs>
-          <linearGradient id="sf" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#00ffcc" stop-opacity=".16"/>
-            <stop offset="100%" stop-color="#00ffcc" stop-opacity=".02"/></linearGradient>
-          <linearGradient id="ss" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#00ffcc"/><stop offset="100%" stop-color="#00ffcc" stop-opacity=".35"/></linearGradient>
-          <clipPath id="sc">
-            <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z"/></clipPath>
+          <radialGradient id="zf" cx="50%" cy="44%" r="62%">
+            <stop offset="0%" stop-color="#0d3f36"/><stop offset="55%" stop-color="#062420"/>
+            <stop offset="100%" stop-color="#020e0c"/></radialGradient>
+          <linearGradient id="zb" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#33ffe3"/><stop offset="48%" stop-color="#00e0b8"/>
+            <stop offset="100%" stop-color="#00bd96"/></linearGradient>
         </defs>
-        <g class="spin-cw">
-          <circle cx="300" cy="419" r="196" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity=".10"/>
-          <circle cx="300" cy="419" r="150" fill="none" stroke="#00ffcc" stroke-width="1.4" stroke-opacity=".55"
-            stroke-dasharray="10 6"/>
-          <g stroke="#00ffcc" stroke-width="2" stroke-opacity=".85">
-            <line x1="300" y1="223" x2="300" y2="245"/>
-            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(90 300 419)"/>
-            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(180 300 419)"/>
-            <line x1="300" y1="223" x2="300" y2="245" transform="rotate(270 300 419)"/>
+        <g class="z-float">
+          <circle cx="256" cy="256" r="248" fill="url(#zf)"/>
+          <g class="z-dots">
+            <circle cx="256" cy="26" r="10" fill="#ffd700" opacity=".9"/>
+            <circle cx="57" cy="371" r="10" fill="#ffd700" opacity=".9"/>
+            <circle cx="455" cy="371" r="10" fill="#ffd700" opacity=".9"/>
           </g>
-        </g>
-        <g class="spin-ccw">
-          <circle cx="300" cy="419" r="112" fill="none" stroke="#ffd700" stroke-width="1" stroke-opacity=".28"
-            stroke-dasharray="3 22"/>
-        </g>
-        <g class="orb-a"><circle cx="300" cy="223" r="4" fill="#00ffcc" transform="rotate(45 300 419)"/></g>
-        <g class="orb-b"><circle cx="300" cy="223" r="3" fill="#ffd700" transform="rotate(225 300 419)"/></g>
-        <g class="pulse">
-          <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z" fill="url(#sf)"/>
-          <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width=".5" stroke-opacity=".16">
-            <line x1="170" y1="330" x2="430" y2="330"/><line x1="170" y1="380" x2="430" y2="380"/>
-            <line x1="170" y1="430" x2="430" y2="430"/><line x1="170" y1="480" x2="430" y2="480"/>
-            <line x1="170" y1="530" x2="430" y2="530"/>
-            <line x1="215" y1="250" x2="215" y2="588"/><line x1="260" y1="250" x2="260" y2="588"/>
-            <line x1="300" y1="250" x2="300" y2="588"/><line x1="340" y1="250" x2="340" y2="588"/>
-            <line x1="385" y1="250" x2="385" y2="588"/>
+          <path d="M 116 236 A 140 140 0 0 1 396 236 C 396 300 372 352 328 388
+                   C 306 404 282 414 256 420 C 230 414 206 404 184 388 C 140 352 116 300 116 236 Z"
+            fill="url(#zb)" stroke="#00ffcc" stroke-width="9" stroke-linejoin="round"/>
+          <path d="M 174 154 A 116 116 0 0 1 256 120" fill="none" stroke="#fff"
+            stroke-opacity=".28" stroke-width="11" stroke-linecap="round"/>
+          <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity=".92" stroke-width="17"/>
+          <g class="z-eye">
+            <circle cx="224" cy="252" r="24" fill="#04241f"/>
+            <circle cx="217" cy="244" r="9" fill="#fff"/>
           </g>
-          <path d="M300 250 L430 268 L430 412 C430 506 300 588 300 588 C300 588 170 506 170 412 L170 268 Z"
-            fill="none" stroke="url(#ss)" stroke-width="3"/>
-          <line x1="214" y1="290" x2="386" y2="290" stroke="#ffd700" stroke-width="2" stroke-opacity=".85"/>
-          <text x="300" y="452" text-anchor="middle" font-family="Georgia,serif" font-size="150" font-weight="900"
-            fill="none" stroke="#00ffcc" stroke-width="3" opacity=".95">0</text>
-          <circle cx="300" cy="586" r="5" fill="#ffd700"/>
+          <g class="z-eye">
+            <circle cx="288" cy="252" r="24" fill="#04241f"/>
+            <circle cx="281" cy="244" r="9" fill="#fff"/>
+          </g>
+          <path d="M 240 286 Q 256 300 272 286" fill="none" stroke="#04241f"
+            stroke-width="7" stroke-linecap="round"/>
+          <g class="z-spark">
+            <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
+          </g>
+          <circle cx="256" cy="420" r="6.5" fill="#ffd700"/>
         </g>
       </svg>
     </div>
@@ -249,7 +256,7 @@
 <div class="stats">
   <div class="wrap">
     <div class="stat"><div class="n">3.11+</div><div class="l">Python</div></div>
-    <div class="stat"><div class="n">290+</div><div class="l">Tests</div></div>
+    <div class="stat"><div class="n">340+</div><div class="l">Tests</div></div>
     <div class="stat"><div class="n">2</div><div class="l">Deps · httpx · yaml</div></div>
     <div class="stat"><div class="n">P1–P6.5</div><div class="l">Roadmap</div></div>
   </div>
@@ -407,12 +414,17 @@ asyncio.<span class="f">run</span>(main())</pre>
 <footer>
   <div class="wrap">
     <div class="brand">
-      <svg viewBox="0 0 600 340" aria-hidden="true" style="width:20px;height:20px">
-        <path d="M300 30 L390 58 L390 160 C390 220 300 270 300 270 C300 270 210 220 210 160 L210 58 Z"
-          fill="none" stroke="#00ffcc" stroke-width="3"/>
+      <svg viewBox="0 0 512 512" aria-hidden="true" style="width:20px;height:20px">
+        <path d="M 116 236 A 140 140 0 0 1 396 236 C 396 300 372 352 328 388 C 306 404 282 414 256 420
+                 C 230 414 206 404 184 388 C 140 352 116 300 116 236 Z"
+          fill="#00e0b8" stroke="#00ffcc" stroke-width="28" stroke-linejoin="round"/>
+        <circle cx="224" cy="252" r="34" fill="#04241f"/>
+        <circle cx="288" cy="252" r="34" fill="#04241f"/>
+        <path d="M 234 314 Q 256 332 278 314" fill="none" stroke="#04241f" stroke-width="22" stroke-linecap="round"/>
       </svg> AEGIS ZERO
     </div>
-    <div>MIT licensed · Evidence-graded · <a href="https://github.com/khalidhassan01/Aegis-Zero">GitHub</a></div>
+    <div>MIT licensed · Evidence-graded · <a href="https://github.com/khalidhassan01/Aegis-Zero">GitHub</a>
+      · guarded by <a href="brand/BRAND.md">Zero</a>, the mascot that says no</div>
   </div>
 </footer>
 <script>

@@ -1,0 +1,63 @@
+{
+  "description": "Aegis Zero brand kit \u2014 pinned raster renderings of the SVG masters in docs/brand/. Regenerate with scripts/make_brand.py; never edit the PNGs by hand.",
+  "tools": {
+    "rsvg-convert": "rsvg-convert version 2.62.3\n\nlibraries used:\n  cairo 1.18.4\n  pango 1.58.2\n  harfbuzz 14.4.0\n  fontconfig 2.18.3",
+    "pillow": "Pillow 12.3.0"
+  },
+  "files": {
+    "docs/brand/zero-avatar-512.png": {
+      "bytes": 70706,
+      "sha256": "13b176327fc6f66b77a3a127e5dd23f2d90c8d265d12f8b6700ead935f930a70",
+      "width": 512,
+      "height": 512
+    },
+    "docs/brand/zero-avatar-256.png": {
+      "bytes": 39542,
+      "sha256": "feefc84b076bae9e416217d60de7bd52732f4691fad4d8177e5fb58c5794fcf6",
+      "width": 256,
+      "height": 256
+    },
+    "docs/brand/zero-avatar-128.png": {
+      "bytes": 16418,
+      "sha256": "c237ea699ed4c00b704c4f48872013e9139a00b63879e660ff1b9650c7b8d1cb",
+      "width": 128,
+      "height": 128
+    },
+    "docs/brand/zero-avatar-64.png": {
+      "bytes": 6276,
+      "sha256": "af22ebf596aa493827c23c4c89b06e9237ae698bb3c86e6e1354bfe726389131",
+      "width": 64,
+      "height": 64
+    },
+    "docs/brand/zero-avatar-32.png": {
+      "bytes": 2324,
+      "sha256": "6fbc8d97cd3eb2a9f39a433ba6a71d672a5b04dbf187bd6bb198a9c7a9844fdf",
+      "width": 32,
+      "height": 32
+    },
+    "docs/brand/favicon.ico": {
+      "bytes": 7307,
+      "sha256": "19f5ffb3bfea2f2c203df268bd50c6e5c079037ae968f048f54afbca40282706",
+      "width": 48,
+      "height": 48
+    },
+    "docs/brand/aegis-zero-lockup.png": {
+      "bytes": 49983,
+      "sha256": "f1495f480d1d9160547e41e66a2b6775013e354815d47292fea3345d5282f509",
+      "width": 780,
+      "height": 360
+    },
+    "docs/brand/og-card.png": {
+      "bytes": 132508,
+      "sha256": "d4602415a7208a59e87d2c20a6e02245eb398d51ed298cc26a17468540f7e73e",
+      "width": 1200,
+      "height": 630
+    },
+    "docs/brand/endcard-lockup.png": {
+      "bytes": 53047,
+      "sha256": "9f342e4723175d052a10fc2db2a62d9476f5b9cf81144f71d9e99f101d527549",
+      "width": 1200,
+      "height": 600
+    }
+  }
+}

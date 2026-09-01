@@ -113,8 +113,10 @@ node_modules/
 *.csv
 *.json
 *.xml
-# …except the demo video manifest, a shipped and test-pinned asset
+# …except the demo video manifest and the brand kit manifest,
+# shipped and test-pinned assets
 !docs/demo.video.json
+!docs/brand/brand.assets.json
 
 # Temporary files
 *.tmp

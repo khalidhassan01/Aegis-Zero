@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Zero — the Aegis Zero mascot. Master avatar mark.
+
+     One mark, three meanings:
+       * a shield  — the aegis: nothing executes unreviewed
+       * a zero    — the round body + boss-ring read as the digit 0
+       * a face    — grounded verification: awake, calm, vigilant
+
+     Brand palette: #00ffcc teal · #ffd700 gold · #04110f deep field
+     (see docs/brand/BRAND.md). Text-free by design: it must read at
+     favicon size and in any language. The face follows the kawaii
+     canon — eyes at ~1/3 of face width, set below the midline, close
+     together, with a small calm smile — because a guardian you can't
+     look at is a guardian you don't trust. Renders are pinned by
+     tests/test_brand.py — regenerate via scripts/make_brand.py, never
+     edit the PNGs by hand.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="field" cx="50%" cy="44%" r="62%">
+      <stop offset="0%" stop-color="#0d3f36"/>
+      <stop offset="55%" stop-color="#062420"/>
+      <stop offset="100%" stop-color="#020e0c"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#33ffe3"/>
+      <stop offset="48%" stop-color="#00e0b8"/>
+      <stop offset="100%" stop-color="#00bd96"/>
+    </linearGradient>
+    <filter id="aura" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="sparkle" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- deep field; a full circle so the mark survives any round crop -->
+  <circle cx="256" cy="256" r="248" fill="url(#field)"/>
+  <!-- orbit heritage: the v1 emblem's rings, distilled to three gold
+       points — they resolve at favicon size where a dashed ring moires -->
+  <circle cx="256" cy="26" r="10" fill="#ffd700" opacity="0.9"/>
+  <circle cx="57" cy="371" r="10" fill="#ffd700" opacity="0.9"/>
+  <circle cx="455" cy="371" r="10" fill="#ffd700" opacity="0.9"/>
+
+  <!-- the shield-zero body: a circle that resolves into a soft point -->
+  <g filter="url(#aura)">
+    <path id="shield" d="M 116 236
+             A 140 140 0 0 1 396 236
+             C 396 300 372 352 328 388
+             C 306 404 282 414 256 420
+             C 230 414 206 404 184 388
+             C 140 352 116 300 116 236 Z"
+          fill="url(#body)" stroke="#00ffcc" stroke-width="9" stroke-linejoin="round"/>
+  </g>
+  <!-- rim light, concentric with the body's own arc -->
+  <path d="M 174 154 A 116 116 0 0 1 256 120" fill="none" stroke="#ffffff"
+        stroke-opacity="0.28" stroke-width="11" stroke-linecap="round"/>
+
+  <!-- the zero: a shield boss that is also the digit 0 -->
+  <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity="0.92" stroke-width="17"/>
+
+  <!-- the face: grounded verification looks back at you -->
+  <circle cx="224" cy="252" r="24" fill="#04241f"/>
+  <circle cx="288" cy="252" r="24" fill="#04241f"/>
+  <circle cx="217" cy="244" r="9" fill="#ffffff"/>
+  <circle cx="281" cy="244" r="9" fill="#ffffff"/>
+  <circle cx="232" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
+  <circle cx="296" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
+  <path d="M 240 286 Q 256 300 272 286" fill="none" stroke="#04241f"
+        stroke-width="7" stroke-linecap="round"/>
+
+  <!-- the verified spark: every answer earns its gold -->
+  <g filter="url(#sparkle)">
+    <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
+  </g>
+  <!-- tip light, inherited from the v1 emblem -->
+  <circle cx="256" cy="420" r="6.5" fill="#ffd700"/>
+</svg>

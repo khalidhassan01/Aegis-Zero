@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Aegis Zero — video end-card lockup (stacked, pure #000000 background).
+
+     Composited by scripts/make_video.py: the card background is pure black,
+     so this plate merges seamlessly; the script crops to the art's bounding
+     box and sizes it by height. The mascot is the avatar mark without its
+     circular field — at end-card size the mark is large, so the orbit dots
+     are omitted for clarity and nothing may cross the wordmark below.
+     Regenerate the PNG via scripts/make_brand.py.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600"
+     font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#33ffe3"/>
+      <stop offset="48%" stop-color="#00e0b8"/>
+      <stop offset="100%" stop-color="#00bd96"/>
+    </linearGradient>
+    <filter id="aura" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="sparkle" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="600" fill="#000000"/>
+
+  <!-- Zero, the shield-zero sprite -->
+  <g transform="translate(344,10)">
+    <g filter="url(#aura)">
+      <path d="M 116 236
+               A 140 140 0 0 1 396 236
+               C 396 300 372 352 328 388
+               C 306 404 282 414 256 420
+               C 230 414 206 404 184 388
+               C 140 352 116 300 116 236 Z"
+            fill="url(#body)" stroke="#00ffcc" stroke-width="9" stroke-linejoin="round"/>
+    </g>
+    <path d="M 174 154 A 116 116 0 0 1 256 120" fill="none" stroke="#ffffff"
+          stroke-opacity="0.28" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity="0.92" stroke-width="17"/>
+    <circle cx="224" cy="252" r="24" fill="#04241f"/>
+    <circle cx="288" cy="252" r="24" fill="#04241f"/>
+    <circle cx="217" cy="244" r="9" fill="#ffffff"/>
+    <circle cx="281" cy="244" r="9" fill="#ffffff"/>
+    <circle cx="232" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
+    <circle cx="296" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
+    <path d="M 240 286 Q 256 300 272 286" fill="none" stroke="#04241f"
+          stroke-width="7" stroke-linecap="round"/>
+    <g filter="url(#sparkle)">
+      <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
+    </g>
+    <circle cx="256" cy="420" r="6.5" fill="#ffd700"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="600" y="512" text-anchor="middle" font-size="104" font-weight="900"
+        fill="#ffffff" letter-spacing="20">AEGIS</text>
+  <line x1="470" y1="534" x2="730" y2="534" stroke="#00ffcc" stroke-width="1.4" stroke-opacity="0.6"/>
+  <text x="600" y="566" text-anchor="middle" font-family="'Courier New', monospace"
+        font-size="26" fill="#00ffcc" letter-spacing="16">Z E R O</text>
+</svg>
