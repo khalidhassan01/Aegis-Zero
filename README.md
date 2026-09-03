@@ -1,17 +1,17 @@
 <p align="center">
-  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="140" style="border-radius: 50%; box-shadow: 0 8px 32px rgba(0,255,204,0.15);">
+  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="150" style="border-radius: 50%; box-shadow: 0 12px 40px rgba(0,255,204,0.25), 0 0 80px rgba(0,255,204,0.1);">
 </p>
 
 <p align="center">
-  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 12px;">
+  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
 </p>
 
 <p align="center">
-  <b style="font-size: 1.3em; color: #ffffff;">A state-of-the-art agentic runtime.</b><br>
-  <span style="color: #94a3b8;">Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.</span>
+  <strong style="font-size: 1.4em; color: #ffffff; font-weight: 700;">A state-of-the-art agentic runtime.</strong><br>
+  <span style="color: #94a3b8; font-size: 0.95em;">Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.</span>
 </p>
 
-<div align="center">
+<div align="center" style="margin: 24px 0;">
 
 [![PyPI Version](https://img.shields.io/pypi/v/aegis-zero.svg)](https://pypi.org/project/aegis-zero/)
 [![CI](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg)](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml)
@@ -44,7 +44,7 @@ in prose:
    is known not to work (Huang et al., ICLR 2024).
 
 <p align="center">
-  <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%" style="border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.3);">
+  <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
 </p>
 
 ## Watch it work — 30 seconds, zero setup
@@ -57,7 +57,7 @@ sanitize a leaked bearer token, then hand the surviving run to the
 orchestrator:
 
 <p align="center">
-  <img src="docs/demo.svg" alt="Aegis Zero 30-second demo: policy-gate verdicts, then a deterministic engine run" width="720" style="border-radius: 8px;">
+  <img src="docs/demo.svg" alt="Aegis Zero 30-second demo: policy-gate verdicts, then a deterministic engine run" width="720" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.35);">
 </p>
 
 Reproduce it yourself — offline, deterministic, about two seconds:

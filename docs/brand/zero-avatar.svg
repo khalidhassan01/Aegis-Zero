@@ -4,7 +4,7 @@
      One mark, three meanings:
        * a shield  — the aegis: nothing executes unreviewed
        * a zero    — the round body + boss-ring read as the digit 0
-       * a face    — grounded verification: awake, calm, vigilant
+       * a face    — grounded verification: looks back at you, calm, vigilant
 
      Brand palette: #00ffcc teal · #ffd700 gold · #04110f deep field
      (see docs/brand/BRAND.md). Text-free by design: it must read at
@@ -17,33 +17,84 @@
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="field" cx="50%" cy="44%" r="62%">
-      <stop offset="0%" stop-color="#0d3f36"/>
-      <stop offset="55%" stop-color="#062420"/>
-      <stop offset="100%" stop-color="#020e0c"/>
+    <!-- Deep field: multi-stop radial for rich depth -->
+    <radialGradient id="field" cx="50%" cy="44%" r="65%">
+      <stop offset="0%" stop-color="#0f4f47"/>
+      <stop offset="35%" stop-color="#062c26"/>
+      <stop offset="65%" stop-color="#031a16"/>
+      <stop offset="100%" stop-color="#010a08"/>
     </radialGradient>
+    <!-- Background ambient glow -->
+    <radialGradient id="ambientGlow" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#00ffcc" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Shield body: luminous multi-stop gradient -->
     <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#33ffe3"/>
-      <stop offset="48%" stop-color="#00e0b8"/>
-      <stop offset="100%" stop-color="#00bd96"/>
+      <stop offset="0%" stop-color="#5ffff2"/>
+      <stop offset="25%" stop-color="#33ffe3"/>
+      <stop offset="55%" stop-color="#00e0b8"/>
+      <stop offset="100%" stop-color="#00c4a0"/>
     </linearGradient>
-    <filter id="aura" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="9" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <!-- Shield inner highlight -->
+    <linearGradient id="shieldHighlight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Outer aura glow filter -->
+    <filter id="aura" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 0
+                0 1 0 0 0.9
+                0 0 0 0 0.85
+                0 0 0 0.6 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
-    <filter id="sparkle" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="3" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <!-- Sparkle glow filter -->
+    <filter id="sparkle" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 1
+                0 0 0 0 0.85
+                0 0 0 0 0
+                0 0 0 0.9 0" result="goldGlow"/>
+      <feMerge>
+        <feMergeNode in="goldGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- Gold orbit glow -->
+    <filter id="orbitGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0 0 0 0 1
+                0 0 0 0 0.84
+                0 0 0 0 0
+                0 0 0 0.7 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
 
   <!-- deep field; a full circle so the mark survives any round crop -->
   <circle cx="256" cy="256" r="248" fill="url(#field)"/>
+  <!-- ambient glow overlay -->
+  <circle cx="256" cy="256" r="248" fill="url(#ambientGlow)"/>
+
   <!-- orbit heritage: the v1 emblem's rings, distilled to three gold
        points — they resolve at favicon size where a dashed ring moires -->
-  <circle cx="256" cy="26" r="10" fill="#ffd700" opacity="0.9"/>
-  <circle cx="57" cy="371" r="10" fill="#ffd700" opacity="0.9"/>
-  <circle cx="455" cy="371" r="10" fill="#ffd700" opacity="0.9"/>
+  <g filter="url(#orbitGlow)">
+    <circle cx="256" cy="26" r="10" fill="#ffd700" opacity="0.95"/>
+    <circle cx="57" cy="371" r="10" fill="#ffd700" opacity="0.95"/>
+    <circle cx="455" cy="371" r="10" fill="#ffd700" opacity="0.95"/>
+  </g>
 
   <!-- the shield-zero body: a circle that resolves into a soft point -->
   <g filter="url(#aura)">
@@ -55,27 +106,46 @@
              C 140 352 116 300 116 236 Z"
           fill="url(#body)" stroke="#00ffcc" stroke-width="9" stroke-linejoin="round"/>
   </g>
+  <!-- inner highlight on shield for depth -->
+  <path d="M 140 240
+           A 116 116 0 0 1 372 240
+           C 372 292 352 338 316 370
+           C 296 384 276 392 256 396
+           C 236 392 216 384 196 370
+           C 160 338 140 292 140 240 Z"
+        fill="url(#shieldHighlight)" opacity="0.4"/>
   <!-- rim light, concentric with the body's own arc -->
   <path d="M 174 154 A 116 116 0 0 1 256 120" fill="none" stroke="#ffffff"
-        stroke-opacity="0.28" stroke-width="11" stroke-linecap="round"/>
+        stroke-opacity="0.38" stroke-width="13" stroke-linecap="round"/>
+  <!-- secondary rim light for extra depth -->
+  <path d="M 190 166 A 100 100 0 0 1 256 138" fill="none" stroke="#ffffff"
+        stroke-opacity="0.18" stroke-width="8" stroke-linecap="round"/>
 
   <!-- the zero: a shield boss that is also the digit 0 -->
-  <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity="0.92" stroke-width="17"/>
+  <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity="0.95" stroke-width="18"/>
+  <!-- inner ring glow for the zero -->
+  <circle cx="256" cy="238" r="84" fill="none" stroke="#00ffcc" stroke-opacity="0.15" stroke-width="3"/>
 
   <!-- the face: grounded verification looks back at you -->
-  <circle cx="224" cy="252" r="24" fill="#04241f"/>
-  <circle cx="288" cy="252" r="24" fill="#04241f"/>
-  <circle cx="217" cy="244" r="9" fill="#ffffff"/>
-  <circle cx="281" cy="244" r="9" fill="#ffffff"/>
-  <circle cx="232" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
-  <circle cx="296" cy="262" r="4" fill="#ffffff" opacity="0.85"/>
-  <path d="M 240 286 Q 256 300 272 286" fill="none" stroke="#04241f"
-        stroke-width="7" stroke-linecap="round"/>
+  <circle cx="224" cy="252" r="25" fill="#04241f"/>
+  <circle cx="288" cy="252" r="25" fill="#04241f"/>
+  <circle cx="217" cy="244" r="10" fill="#ffffff"/>
+  <circle cx="281" cy="244" r="10" fill="#ffffff"/>
+  <circle cx="233" cy="263" r="4.5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="297" cy="263" r="4.5" fill="#ffffff" opacity="0.9"/>
+  <path d="M 240 287 Q 256 302 272 287" fill="none" stroke="#04241f"
+        stroke-width="8" stroke-linecap="round"/>
 
-  <!-- the verified spark: every answer earns its gold -->
+  <!-- the verified spark: every answer earns its gold — enhanced with glow -->
   <g filter="url(#sparkle)">
     <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
   </g>
+  <!-- extra sparkle rays for prominence -->
+  <g opacity="0.5" filter="url(#sparkle)">
+    <line x1="404" y1="76" x2="404" y2="84" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
+    <line x1="432" y1="110" x2="440" y2="110" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
+    <line x1="368" y1="110" x2="376" y2="110" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
+  </g>
   <!-- tip light, inherited from the v1 emblem -->
-  <circle cx="256" cy="420" r="6.5" fill="#ffd700"/>
+  <circle cx="256" cy="420" r="7" fill="#ffd700"/>
 </svg>
