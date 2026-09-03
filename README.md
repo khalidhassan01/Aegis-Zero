@@ -1,23 +1,25 @@
 <p align="center">
-  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="140">
+  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="140" style="border-radius: 50%; box-shadow: 0 8px 32px rgba(0,255,204,0.15);">
 </p>
 
 <p align="center">
-  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%">
+  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 12px;">
 </p>
 
 <p align="center">
-  <b>A state-of-the-art agentic runtime.</b><br>
-  Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.
+  <b style="font-size: 1.3em; color: #ffffff;">A state-of-the-art agentic runtime.</b><br>
+  <span style="color: #94a3b8;">Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.</span>
 </p>
 
-<p align="center">
-  <a href="https://pypi.org/project/aegis-zero/"><img src="https://img.shields.io/pypi/v/aegis-zero.svg" alt="PyPI"></a>
-  <a href="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml"><img src="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
-  <img src="https://img.shields.io/badge/dependencies-httpx%20%7C%20PyYAML-8a2be2" alt="Dependencies">
-</p>
+<div align="center">
+
+[![PyPI Version](https://img.shields.io/pypi/v/aegis-zero.svg)](https://pypi.org/project/aegis-zero/)
+[![CI](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg)](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Dependencies](https://img.shields.io/badge/dependencies-httpx%20%7C%20PyYAML-8a2be2)](https://pypi.org/project/aegis-zero/)
+
+</div>
 
 ---
 
@@ -42,7 +44,7 @@ in prose:
    is known not to work (Huang et al., ICLR 2024).
 
 <p align="center">
-  <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%">
+  <img src="docs/architecture.svg" alt="Aegis Zero runtime topology" width="100%" style="border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.3);">
 </p>
 
 ## Watch it work — 30 seconds, zero setup
@@ -55,7 +57,7 @@ sanitize a leaked bearer token, then hand the surviving run to the
 orchestrator:
 
 <p align="center">
-  <img src="docs/demo.svg" alt="Aegis Zero 30-second demo: policy-gate verdicts, then a deterministic engine run" width="720">
+  <img src="docs/demo.svg" alt="Aegis Zero 30-second demo: policy-gate verdicts, then a deterministic engine run" width="720" style="border-radius: 8px;">
 </p>
 
 Reproduce it yourself — offline, deterministic, about two seconds:
@@ -92,9 +94,15 @@ hold up under measurement. What follows is what that discipline produced.
 
 ## Install
 
+The first PyPI release is prepared (`dist/` builds are verified, upload is
+token-gated via [`scripts/publish-pypi.sh`](scripts/publish-pypi.sh)). Until
+it lands on the index:
+
 ```bash
-pip install aegis-zero           # from PyPI
+pip install git+https://github.com/khalidhassan01/Aegis-Zero.git
 ```
+
+Once published, `pip install aegis-zero` works from PyPI.
 
 From a clone — docs, examples, and tests included:
 
@@ -145,11 +153,11 @@ aegis health                              # check provider and memory
                         │    Scout    │  reconnaissance (complex goals only)
                         └──────┬──────┘
                                │
-              ┌────────────────┼────────────────┐   parallel dependency waves
-        ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
-        │   Forge   │    │   Forge   │    │   Forge   │  bounded tool loops
-        └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
-              └────────────────┼────────────────┘
+               ┌────────────────┼────────────────┐   parallel dependency waves
+         ┌─────▼─────┐    ┌─────▼─────┐    ┌─────▼─────┐
+         │   Forge   │    │   Forge   │    │   Forge   │  bounded tool loops
+         └─────┬─────┘    └─────┬─────┘    └─────┬─────┘
+               └────────────────┼────────────────┘
                         ┌──────▼──────┐
                         │ Synthesizer │  merge, resolve conflicts
                         └──────┬──────┘
@@ -274,15 +282,15 @@ longer forced to share one global number.
 ### Reliability is measured, not claimed
 
 An agent that passes once can still be unreliable. `reliability()` runs a goal
-`n` times and reports `pass@k` — the probability it succeeds `k` times in a row
-— with a 95% Wilson interval and the mean tokens/seconds/revisions per run, so
-an "improvement" that is really just more compute is visible:
+`n` times and reports `pass^k` — the probability it succeeds `k` times in a
+row — with a 95% Wilson interval and the mean tokens/seconds/revisions per
+run, so an "improvement" that is really just more compute is visible:
 
 ```python
 report = await agent.reliability("Deploy the service", n=5, k=3)
 print(report.summary())
-# {'n': 5, 'k': 3, 'pass@1': 1.0, 'pass@3': 1.0,
-#  'pass@k_lower': 0.23, 'pass@k_upper': 1.0, ...}
+# {'n': 5, 'k': 3, 'pass@1': 1.0, 'pass^3': 1.0,
+#  'pass^k_lower': 0.1808, 'pass^k_upper': 1.0, ...}
 ```
 
 ### Observability
