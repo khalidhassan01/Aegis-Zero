@@ -1,17 +1,13 @@
 <p align="center">
-  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="150" style="border-radius: 50%; box-shadow: 0 12px 40px rgba(0,255,204,0.25), 0 0 80px rgba(0,255,204,0.1);">
+  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(0,255,204,0.15);">
 </p>
 
-<p align="center">
-  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-</p>
-
-<p align="center">
-  <strong style="font-size: 1.4em; color: #ffffff; font-weight: 700;">A state-of-the-art agentic runtime.</strong><br>
+<p align="center" style="margin: 28px 0;">
+  <strong style="font-size: 1.3em; color: #ffffff; font-weight: 700;">A state-of-the-art agentic runtime.</strong><br>
   <span style="color: #94a3b8; font-size: 0.95em;">Async orchestration · policy-governed tools · reinforcement-weighted memory · grounded verification.</span>
 </p>
 
-<div align="center" style="margin: 24px 0;">
+<div align="center" style="margin: 20px 0;">
 
 [![PyPI Version](https://img.shields.io/pypi/v/aegis-zero.svg)](https://pypi.org/project/aegis-zero/)
 [![CI](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg)](https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml)
@@ -23,10 +19,10 @@
 
 ---
 
-> 🛡️ **Meet Zero** — the project's mascot. A small round shield whose body
-> *is* the digit 0, with a calm face in the zero-ring and a gold spark it
-> only earns when something is verified. Zero trusts nobody; neither should
-> your agent. Its story and rules live in [docs/brand/BRAND.md](docs/brand/BRAND.md).
+> 🛡️ **The Aegis Zero emblem** — a rotating-ring shield containing the digit 0.
+> The design embodies the project's core principles: layered security (the rings),
+> vigilance (the orbiting markers), and the zero-trust model (the 0 at its center).
+> Full brand guidelines in [docs/brand/BRAND.md](docs/brand/BRAND.md).
 
 Most agent frameworks give you a prompt loop and hope for the best. **Aegis Zero**
 is built around three commitments, each enforced in code rather than promised

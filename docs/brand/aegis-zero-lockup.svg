@@ -1,156 +1,135 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Aegis Zero — horizontal lockup: Zero beside the wordmark.
-
-     For README side-bars, talk slides, and anywhere the mark and name must
-     travel together. Dark plate so it presents on light and dark surfaces.
-     Rendered to aegis-zero-lockup.png by scripts/make_brand.py (pinned by tests).
+<!-- Aegis Zero — Horizontal Lockup
+     Logo mark beside the wordmark for sidebar and presentation use.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 360" width="780" height="360"
-     font-family="Georgia, 'Times New Roman', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" width="600" height="200">
   <defs>
-    <!-- Deep field: multi-stop radial for rich depth -->
-    <radialGradient id="field" cx="50%" cy="44%" r="65%">
-      <stop offset="0%" stop-color="#0f4f47"/>
-      <stop offset="35%" stop-color="#062c26"/>
-      <stop offset="65%" stop-color="#031a16"/>
-      <stop offset="100%" stop-color="#010a08"/>
-    </radialGradient>
-    <!-- Background ambient glow -->
-    <radialGradient id="ambientGlow" cx="50%" cy="35%" r="55%">
-      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.10"/>
-      <stop offset="50%" stop-color="#00ffcc" stop-opacity="0.03"/>
-      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0"/>
-    </radialGradient>
-    <!-- Shield body: luminous multi-stop gradient -->
-    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#5ffff2"/>
-      <stop offset="25%" stop-color="#33ffe3"/>
-      <stop offset="55%" stop-color="#00e0b8"/>
+    <!-- Background -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#04110f"/>
+      <stop offset="100%" stop-color="#010806"/>
+    </linearGradient>
+    <!-- Shield fill gradient -->
+    <linearGradient id="shieldFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#00ffcc" stop-opacity="0.02"/>
+    </linearGradient>
+    <!-- Shield stroke gradient -->
+    <linearGradient id="shieldStroke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00ffcc"/>
+      <stop offset="50%" stop-color="#00ffcc"/>
       <stop offset="100%" stop-color="#00c4a0"/>
     </linearGradient>
-    <!-- Shield inner highlight -->
-    <linearGradient id="shieldHighlight" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-    <!-- Outer aura glow filter -->
-    <filter id="aura" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
+    <!-- Cyan glow filter -->
+    <filter id="cg" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Gold glow filter -->
+    <filter id="gg" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Shield aura -->
+    <filter id="shieldAura" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
       <feColorMatrix in="blur" type="matrix"
         values="0 0 0 0 0
                 0 1 0 0 0.9
                 0 0 0 0 0.85
-                0 0 0 0.55 0" result="glow"/>
+                0 0 0 0.45 0" result="glow"/>
       <feMerge>
         <feMergeNode in="glow"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
-    <!-- Sparkle glow filter -->
-    <filter id="sparkle" x="-120%" y="-120%" width="340%" height="340%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 1
-                0 0 0 0 0.85
-                0 0 0 0 0
-                0 0 0 0.85 0" result="goldGlow"/>
-      <feMerge>
-        <feMergeNode in="goldGlow"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <!-- Gold orbit glow -->
-    <filter id="orbitGlow" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="2.5" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 1
-                0 0 0 0 0.84
-                0 0 0 0 0
-                0 0 0 0.65 0" result="glow"/>
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <!-- Border glow -->
-    <filter id="borderGlow" x="-10%" y="-10%" width="120%" height="120%">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feColorMatrix in="blur" type="matrix"
-        values="0 0 0 0 0
-                0 1 0 0 0.9
-                0 0 0 0 0.85
-                0 0 0 0.4 0" result="glow"/>
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <!-- Clip path for shield -->
+    <clipPath id="sc">
+      <path d="M50 20 L100 32 L100 90 C100 120 50 145 50 145 C50 145 0 120 0 90 L0 32 Z"/>
+    </clipPath>
   </defs>
 
-  <rect width="780" height="360" rx="28" fill="#020e0c"/>
-  <rect x="0.5" y="0.5" width="779" height="359" rx="27.5"
-        fill="none" stroke="#00ffcc" stroke-opacity="0.18" filter="url(#borderGlow)"/>
+  <!-- Background -->
+  <rect width="600" height="200" rx="16" fill="url(#bg)"/>
+  <rect width="600" height="200" rx="16" fill="none" stroke="#00ffcc" stroke-opacity="0.12"/>
 
-  <!-- Zero, left -->
-  <g transform="translate(21,22) scale(0.62)">
-    <circle cx="256" cy="256" r="248" fill="url(#field)"/>
-    <circle cx="256" cy="256" r="248" fill="url(#ambientGlow)"/>
-    <g filter="url(#orbitGlow)">
-      <circle cx="256" cy="26" r="10" fill="#ffd700" opacity="0.95"/>
-      <circle cx="57" cy="371" r="10" fill="#ffd700" opacity="0.95"/>
-      <circle cx="455" cy="371" r="10" fill="#ffd700" opacity="0.95"/>
+  <!-- === Logo Mark (left) === -->
+  <g transform="translate(30, 18)">
+    <!-- Outer ring -->
+    <circle cx="50" cy="82" r="70" fill="none" stroke="#00ffcc" stroke-width="0.8" stroke-opacity="0.15"/>
+    <circle cx="50" cy="82" r="70" fill="none" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4 2"/>
+
+    <!-- Tick marks -->
+    <g stroke="#00ffcc" stroke-opacity="0.35" stroke-width="0.8">
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(0,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(30,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(60,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(90,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(120,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(150,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(180,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(210,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(240,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(270,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(300,50,82)"/>
+      <line x1="50" y1="5" x2="50" y2="14" transform="rotate(330,50,82)"/>
     </g>
-    <g filter="url(#aura)">
-      <path d="M 116 236
-               A 140 140 0 0 1 396 236
-               C 396 300 372 352 328 388
-               C 306 404 282 414 256 420
-               C 230 414 206 404 184 388
-               C 140 352 116 300 116 236 Z"
-             fill="url(#body)" stroke="#00ffcc" stroke-width="9" stroke-linejoin="round"/>
+
+    <!-- Gold ring -->
+    <circle cx="50" cy="82" r="55" fill="none" stroke="#ffd700" stroke-width="0.6" stroke-opacity="0.25"/>
+    <circle cx="50" cy="82" r="55" fill="none" stroke="#ffd700" stroke-width="0.8" stroke-opacity="0.4" stroke-dasharray="2 10"/>
+
+    <!-- Orbiting dots -->
+    <circle cx="50" cy="12" r="3" fill="#00ffcc" filter="url(#cg)" transform="rotate(45,50,82)"/>
+    <circle cx="50" cy="12" r="2.5" fill="#ffd700" filter="url(#gg)" transform="rotate(225,50,82)"/>
+
+    <!-- Shield -->
+    <g filter="url(#shieldAura)">
+      <path d="M50 20 L100 32 L100 90 C100 120 50 145 50 145 C50 145 0 120 0 90 L0 32 Z" fill="url(#shieldFill)"/>
     </g>
-    <!-- inner highlight on shield for depth -->
-    <path d="M 140 240
-             A 116 116 0 0 1 372 240
-             C 372 292 352 338 316 370
-             C 296 384 276 392 256 396
-             C 236 392 216 384 196 370
-             C 160 338 140 292 140 240 Z"
-          fill="url(#shieldHighlight)" opacity="0.4"/>
-    <!-- rim light -->
-    <path d="M 174 154 A 116 116 0 0 1 256 120" fill="none" stroke="#ffffff"
-          stroke-opacity="0.38" stroke-width="13" stroke-linecap="round"/>
-    <!-- secondary rim light -->
-    <path d="M 190 166 A 100 100 0 0 1 256 138" fill="none" stroke="#ffffff"
-          stroke-opacity="0.18" stroke-width="8" stroke-linecap="round"/>
-    <!-- the zero ring -->
-    <circle cx="256" cy="238" r="84" fill="none" stroke="#053b33" stroke-opacity="0.95" stroke-width="18"/>
-    <circle cx="256" cy="238" r="84" fill="none" stroke="#00ffcc" stroke-opacity="0.15" stroke-width="3"/>
-    <!-- the face -->
-    <circle cx="224" cy="252" r="25" fill="#04241f"/>
-    <circle cx="288" cy="252" r="25" fill="#04241f"/>
-    <circle cx="217" cy="244" r="10" fill="#ffffff"/>
-    <circle cx="281" cy="244" r="10" fill="#ffffff"/>
-    <circle cx="233" cy="263" r="4.5" fill="#ffffff" opacity="0.9"/>
-    <circle cx="297" cy="263" r="4.5" fill="#ffffff" opacity="0.9"/>
-    <path d="M 240 287 Q 256 302 272 287" fill="none" stroke="#04241f"
-          stroke-width="8" stroke-linecap="round"/>
-    <!-- the verified spark with enhanced glow -->
-    <g filter="url(#sparkle)">
-      <path d="M 404 88 Q 408 104 424 110 Q 408 116 404 132 Q 400 116 384 110 Q 400 104 404 88 Z" fill="#ffd700"/>
+
+    <!-- Grid lines -->
+    <g clip-path="url(#sc)" stroke="#00ffcc" stroke-width="0.3" stroke-opacity="0.15">
+      <line x1="0" y1="50" x2="100" y2="50"/>
+      <line x1="0" y1="70" x2="100" y2="70"/>
+      <line x1="0" y1="90" x2="100" y2="90"/>
+      <line x1="0" y1="110" x2="100" y2="110"/>
+      <line x1="25" y1="20" x2="25" y2="145"/>
+      <line x1="50" y1="20" x2="50" y2="145"/>
+      <line x1="75" y1="20" x2="75" y2="145"/>
     </g>
-    <!-- extra sparkle rays -->
-    <g opacity="0.5" filter="url(#sparkle)">
-      <line x1="404" y1="76" x2="404" y2="84" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-      <line x1="432" y1="110" x2="440" y2="110" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-      <line x1="368" y1="110" x2="376" y2="110" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-    </g>
-    <!-- tip light -->
-    <circle cx="256" cy="420" r="7" fill="#ffd700"/>
+
+    <!-- Shield stroke -->
+    <path d="M50 20 L100 32 L100 90 C100 120 50 145 50 145 C50 145 0 120 0 90 L0 32 Z" fill="none" stroke="url(#shieldStroke)" stroke-width="1.8" filter="url(#cg)"/>
+
+    <!-- Inner stroke -->
+    <path d="M50 30 L95 40 L95 90 C95 115 50 138 50 138 C50 138 5 115 5 90 L5 40 Z" fill="none" stroke="#00ffcc" stroke-width="0.5" stroke-opacity="0.3"/>
+
+    <!-- Gold bar -->
+    <line x1="15" y1="40" x2="85" y2="40" stroke="#ffd700" stroke-width="1" stroke-opacity="0.8" filter="url(#gg)"/>
+
+    <!-- Corner marks -->
+    <line x1="0" y1="52" x2="10" y2="52" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.8"/>
+    <line x1="0" y1="32" x2="0" y2="55" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.8"/>
+    <line x1="90" y1="52" x2="100" y2="52" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.8"/>
+    <line x1="100" y1="32" x2="100" y2="55" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.8"/>
+
+    <!-- Bottom tip -->
+    <circle cx="50" cy="143" r="2" fill="#ffd700" filter="url(#gg)"/>
+
+    <!-- Zero digit -->
+    <text x="50" y="92" text-anchor="middle" font-family="Georgia,serif" font-size="45" font-weight="900" fill="none" stroke="#00ffcc" stroke-width="1.5" filter="url(#cg)" opacity="0.95">0</text>
   </g>
 
-  <!-- wordmark, right -->
-  <text x="430" y="196" font-size="88" font-weight="900" fill="#ffffff" letter-spacing="13">AEGIS</text>
-  <line x1="432" y1="220" x2="706" y2="220" stroke="#00ffcc" stroke-width="1.5" stroke-opacity="0.6"/>
-  <text x="434" y="252" font-family="'Courier New', monospace" font-size="21" fill="#00ffcc" letter-spacing="11">Z E R O</text>
+  <!-- === Wordmark (right) === -->
+  <g transform="translate(180, 0)">
+    <!-- AEGIS -->
+    <text x="0" y="108" font-family="Georgia, serif" font-size="58" font-weight="900" fill="#ffffff" letter-spacing="8">AEGIS</text>
+
+    <!-- Divider -->
+    <line x1="2" y1="124" x2="280" y2="124" stroke="#00ffcc" stroke-width="1" stroke-opacity="0.5"/>
+
+    <!-- ZERO -->
+    <text x="4" y="152" font-family="'Courier New', monospace" font-size="18" fill="#00ffcc" letter-spacing="10">Z E R O</text>
+  </g>
 </svg>
