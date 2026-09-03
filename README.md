@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/aegis-hero.svg" alt="Aegis Zero — a state-of-the-art agentic runtime" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(0,255,204,0.15);">
+  <img src="docs/assets/aegis-zero-logo-interactive.svg" alt="Aegis Zero — Rotating-ring shield with the digit 0 at its center" width="100%" style="border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid rgba(0,255,204,0.15);">
 </p>
 
 <p align="center" style="margin: 28px 0;">
