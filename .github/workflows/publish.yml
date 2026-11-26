@@ -42,7 +42,7 @@ jobs:
       - name: Check metadata
         run: uvx twine check dist/*
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -55,7 +55,7 @@ jobs:
     permissions:
       id-token: write # required to mint the PyPI OIDC token
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
