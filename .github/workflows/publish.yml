@@ -1,0 +1,66 @@
+# Publish aegis-zero to PyPI with tokenless OIDC trusted publishing.
+#
+# One-time setup (Khalid): on pypi.org/manage/account/publishing/ add a
+# "pending" trusted publisher for this project (or create the project via
+# the pending publisher the first time):
+#   PyPI project name : aegis-zero
+#   Owner             : khalidhassan01
+#   Repository        : Aegis-Zero
+#   Workflow filename : publish.yml
+#   Environment name   : pypi
+#
+# Also create a GitHub environment named `pypi` (Settings → Environments) and
+# require approval there if you want a final human gate before release.
+#
+# This workflow never holds a PyPI token: PyPI mints a short-lived OIDC token
+# for exactly this job. It runs only when a GitHub Release is published (or
+# manually dispatched), so the decision to ship stays with the maintainer.
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v9
+        with:
+          enable-cache: true
+
+      - name: Build wheel and sdist (uv)
+        run: uv build
+
+      - name: Check metadata
+        run: uvx twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Trusted publishing (OIDC)
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # required to mint the PyPI OIDC token
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
