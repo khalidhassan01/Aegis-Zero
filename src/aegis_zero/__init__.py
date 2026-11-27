@@ -13,7 +13,7 @@ asyncio.run(main())
 
 from __future__ import annotations
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 from .app import Aegis, build_agent
 from .core.config import Settings, load_settings

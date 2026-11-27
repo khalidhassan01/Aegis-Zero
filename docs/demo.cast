@@ -1,5 +1,5 @@
 {"version": 2, "width": 80, "height": 24, "duration": 29.7, "timestamp": 0, "env": {"SHELL": "/bin/sh", "TERM": "xterm-256color"}}
-[0.4, "o", "Aegis Zero v2.0.0 · offline demo · no model server, no network\n"]
+[0.4, "o", "Aegis Zero v2.1.0 · offline demo · no model server, no network\n"]
 [1.5, "o", "\n"]
 [1.9, "o", "python examples/demo.py\n"]
 [3.7, "o", "\n"]

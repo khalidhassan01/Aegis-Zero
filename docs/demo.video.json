@@ -48,16 +48,16 @@
   },
   "files": {
     "docs/demo.mp4": {
-      "bytes": 835792,
-      "sha256": "cc3983de05bd19164556335f1ae6971bd57cbe07e9030577b738e2ca27e1b3eb"
+      "bytes": 835055,
+      "sha256": "39f49177760850618754daa019f64daf966cf51d0a16e2ffd91de9c3018cc84b"
     },
     "docs/demo.gif": {
-      "bytes": 1564766,
-      "sha256": "3a4461356f5c655cb96d20dd5b2d450b1d3be938778c69a4959fd39c5bcccd70"
+      "bytes": 1576170,
+      "sha256": "e2d64daaec3d5c71b4c6317085a228c6e7296a85498cf6d2b0f32829b0466d19"
     },
     "docs/demo-poster.png": {
-      "bytes": 123480,
-      "sha256": "0fd9f406e88801e4ca86c503c5b64339aefa16cbfab3e75ce221d821ae400585"
+      "bytes": 123597,
+      "sha256": "ed97d21f3f340a1756f11555bd3e0069988d74fefc96097434c7ec627f0cf804"
     }
   }
 }

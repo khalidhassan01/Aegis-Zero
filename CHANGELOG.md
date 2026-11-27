@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.1.0] - 2026-11-27
 
 ### Added
 
@@ -24,6 +24,9 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **v2.1.0.** Version bump (pyproject, `__version__`) with the generated
+  demo assets re-rendered from the one live transcript — cast, svg,
+  video, poster — exactly as the pinned-asset discipline requires.
 - **Zero now carries the interactive mark.** The avatar, favicon, lockups,
   OG card, and demo-video end card now show the still form of
   `docs/assets/aegis-zero-logo-interactive.svg` — the dashed verdict ring,

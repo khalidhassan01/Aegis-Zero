@@ -30,7 +30,7 @@ deterministic engine run answers 42.">
   <circle cx="66" cy="24.5" r="5.5" fill="#27c93f"/>
   <text x="380.0" y="29" fill="#8b949e" font-size="12" text-anchor="middle"
         font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">aegis-zero — offline demo</text>
-    <text class="ln" x="30" y="76.0" fill="#8b949e" style="animation-delay:0.40s">Aegis Zero v2.0.0 · offline demo · no model server, no network</text>
+    <text class="ln" x="30" y="76.0" fill="#8b949e" style="animation-delay:0.40s">Aegis Zero v2.1.0 · offline demo · no model server, no network</text>
     <text class="ln" x="30" y="116.0" fill="#e6edf3" style="animation-delay:1.90s"><tspan fill="#3fb950">$</tspan> python examples/demo.py</text>
     <text class="ln" x="30" y="156.0" fill="#58a6ff" style="animation-delay:4.10s">── policy gate ── every tool call is judged before it runs</text>
     <text class="ln" x="30" y="176.0" fill="#c9d1d9" style="animation-delay:5.50s">http_fetch   http://169.254.169.254/latest/meta-data</text>
