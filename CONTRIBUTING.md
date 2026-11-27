@@ -342,9 +342,10 @@ All pull requests will be reviewed by maintainers. Please be patient and respons
 ## 📚 **Additional Resources**
 
 - [README.md](README.md) - Project overview
-- [AEGIS_ZERO_DEVELOPER_BRIEF.html](AEGIS_ZERO_DEVELOPER_BRIEF.html) - Developer guide
-- [AEGIS_INTEGRATION_GUIDE.md](AEGIS_INTEGRATION_GUIDE.md) - Integration instructions
-- [Logo-Designs/BRANDING.md](Logo-Designs/BRANDING.md) - Branding guidelines
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the runtime fits together
+- [docs/AEGIS_INTEGRATION_GUIDE.md](docs/AEGIS_INTEGRATION_GUIDE.md) - Integration instructions
+- [docs/ROADMAP.md](docs/ROADMAP.md) - Research grounding and what is proven
+- [docs/brand/BRAND.md](docs/brand/BRAND.md) - Branding guidelines
 
 ---
 

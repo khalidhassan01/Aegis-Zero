@@ -8,7 +8,6 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/aegis-zero/"><img src="https://img.shields.io/pypi/v/aegis-zero.svg" alt="PyPI"></a>
   <a href="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml"><img src="https://github.com/khalidhassan01/Aegis-Zero/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
@@ -69,6 +68,38 @@ assets are generated from the one live transcript and pinned by the test
 suite — **they can never disagree with each other or silently drift from
 the code.**
 
+## Smart services: from inbox to provisioned access
+
+The demo above shows the runtime refusing bad ideas. This one shows it
+doing the work SaaS operations teams actually buy: a customer's onboarding
+request arrives as free text — buried in it, two things a naive automation
+would wave through (a temporary admin account "to make onboarding easier",
+and an audit-log opt-out "just for testing") — and the agent turns it into
+typed, policy-judged actions:
+
+- **Structured extraction** into a typed record: person, zones, time
+  profile, special requests (`parse_onboarding_email`)
+- **Zero-touch automation** for low-risk actions: office access and the
+  flextime enrollment execute on the spot (`provision_standard_access`,
+  `apply_time_profile`)
+- **Human sign-off where it matters**: restricted zones and privilege
+  escalation route to a service-desk gate that rules with reasons
+  (`provision_restricted_access`, `create_temporary_admin`)
+- **Non-negotiables stay non-negotiable**: `disable_audit_log` is denied
+  outright by policy configuration — it never even reaches the queue
+
+```bash
+python examples/smart_services.py    # offline, deterministic, ~1 s
+```
+
+Every verdict comes from the real policy engine and the real approval
+routing; only the model is scripted (`EchoProvider`, the same mechanism
+the test suite uses) so it runs with no server, no key, no network. The
+flow's outcomes are pinned by `tests/test_smart_services.py` — and writing
+it surfaced a real verifier bug: tools returning structured dicts crashed
+the numeric consistency check. Fixed, with regression tests
+(`tests/test_verifier.py`).
+
 ## Why Aegis Zero is different
 
 This project treats its own claims as hypotheses to be falsified. The
@@ -89,8 +120,12 @@ hold up under measurement. What follows is what that discipline produced.
 ## Install
 
 ```bash
-pip install aegis-zero           # from PyPI
+pip install "aegis-zero @ git+https://github.com/khalidhassan01/Aegis-Zero.git"
 ```
+
+Not yet on PyPI: the release pipeline is already wired for tokenless
+trusted publishing ([`.github/workflows/publish.yml`](.github/workflows/publish.yml),
+OIDC — no token ever stored) and goes live with the first tagged release.
 
 From a clone — docs, examples, and tests included:
 

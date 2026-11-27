@@ -6,6 +6,22 @@ versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Smart-services showcase** (`examples/smart_services.py`): one
+  free-text onboarding email in — including a buried temporary-admin
+  request and an audit-log opt-out — typed record, policy-judged
+  provisioning, service-desk sign-off for the sensitive parts, and a
+  hard policy deny for audit-log tampering out. Runs offline through the
+  real engine, real policy rules, and real approval routing; only the
+  model is scripted. Outcomes pinned by `tests/test_smart_services.py`
+  and covered by the offline-examples smoke gate.
+- **Honest install story.** The README no longer advertises a PyPI
+  package that does not exist yet: install is from git, the dead badge is
+  gone, and the publish path (tokenless OIDC trusted publishing, already
+  wired in `.github/workflows/publish.yml`) is stated as pending the
+  first tagged release.
+
 ### Changed
 
 - **Zero now carries the interactive mark.** The avatar, favicon, lockups,
@@ -23,10 +39,33 @@ versioning follows [Semantic Versioning](https://semver.org/).
   end card. README, `docs/landing.html`, `BRAND.md`, the generator,
   and the brand tests follow suit.
 
+### Removed
+
+- **Tracked clutter a first-time visitor should never see:**
+  `docs/README-1.md` (a stale duplicate kept "moved" since 2.0.0 — now
+  actually gone), `docs/aegis.conf.yaml.txt` (a sample config that
+  duplicates the one shipped at the repo root), and the entire
+  `Logo-Designs/` folder (v1 drafts superseded by `docs/brand/`).
+  `CONTRIBUTING.md`'s resource list now points only at files that
+  exist — the dead developer-brief link included.
+
+### Fixed
+
+- **Verifier crashed on structured tool outputs.** `verify_tool_consistency`
+  assumed every tool output was a string; a tool returning a dict (normal,
+  encouraged — typed receipts are the point) took down the whole
+  verification pass with a `TypeError`. Non-string outputs are now coerced
+  before numeric extraction. Found by the new smart-services example;
+  regression tests added to `tests/test_verifier.py`.
+- **CI badge red on every recent main push.** The uv toolchain
+  modernization had failed every run at job setup since 2026-11-26 (all
+  matrix jobs, seconds after creation). Restored the last-green workflow
+  (setup-python + pip, matrix 3.11–3.13); main is green again.
+
 ## [2.0.0] - 2026-09-01
 
 Complete architectural rebuild; v1 modules are preserved under `legacy/`.
-First public release on PyPI. Three test-backed improvements landed on top
+First public release (GitHub tag `v2.0.0`). Three test-backed improvements landed on top
 of the audit fixes, each tied to the roadmap (P1/P6.5 already shipped):
 
 ### Added
