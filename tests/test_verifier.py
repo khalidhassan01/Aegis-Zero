@@ -80,6 +80,22 @@ def test_no_tool_output_is_neutral():
     assert verify_tool_consistency("answer 42", []).passed is True
 
 
+def test_structured_dict_output_does_not_crash():
+    """Regression: tools returning dicts (normal, encouraged) used to crash
+    the numeric consistency check with a TypeError — found by
+    examples/smart_services.py, whose tools return typed receipts."""
+    res = [ToolResult(tool="apply_time_profile", ok=True, output={"days": 14})]
+    r = verify_tool_consistency("valid until 14 days", res)
+    assert r.passed is True
+
+
+def test_structured_dict_output_mismatch_flagged_soft():
+    res = [ToolResult(tool="calculate", ok=True, output={"value": 1048576})]
+    r = verify_tool_consistency("result is 12345", res)
+    assert r.passed is False
+    assert r.hard is False
+
+
 # ------------------------------------------------------------ battery
 
 

@@ -1,8 +1,9 @@
 """Smoke-test the examples that promise offline, deterministic runs.
 
-``examples/demo.py`` and ``examples/offline_testing.py`` are the two examples
-the README's no-setup story relies on (no model server, no API key, no
-network). They must keep exiting 0 with their promised output markers.
+``examples/demo.py``, ``examples/offline_testing.py``, and
+``examples/smart_services.py`` are the three examples the README's
+no-setup story relies on (no model server, no API key, no network).
+They must keep exiting 0 with their promised output markers.
 The live-endpoint examples (``quickstart.py``, ``streaming_events.py``,
 ``custom_tools.py``) target a real OpenAI-compatible server; they degrade
 gracefully without one and are intentionally not run here.
@@ -19,6 +20,7 @@ REPO = Path(__file__).resolve().parents[1]
 OFFLINE_EXAMPLES = {
     "demo.py": "real engine output",
     "offline_testing.py": "deterministic run passed",
+    "smart_services.py": "real engine output",
 }
 
 

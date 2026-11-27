@@ -129,7 +129,11 @@ def verify_tool_consistency(answer: str, tool_results: list) -> CheckResult:
     """
     tool_nums = set()
     for res in tool_results:
-        text = getattr(res, "output", None) or getattr(res, "content", "") or ""
+        raw = getattr(res, "output", None) or getattr(res, "content", "") or ""
+        # Tool outputs are typed ``Any``; structured dicts/lists are normal
+        # (and encouraged). Coerce before regex extraction — str(dict) keeps
+        # the numerals, so nothing is lost for this soft consistency check.
+        text = raw if isinstance(raw, str) else str(raw)
         for n in _nums(text):
             f = _to_float(n)
             if f is not None:
