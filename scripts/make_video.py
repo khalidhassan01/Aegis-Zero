@@ -25,7 +25,7 @@ The timeline is NOT redefined here: line times come from
 cast, SVG and video can never disagree — the test suite asserts it.
 
 The end card composites ``docs/brand/endcard-lockup.png`` — Zero, the
-mascot, stacked above the wordmark on a pure-black plate (the card's own
+mark, stacked above the wordmark on a pure-black plate (the card's own
 background, so it merges seamlessly). The PNG is rendered from the
 committed SVG by ``scripts/make_brand.py`` and pinned by
 ``tests/test_brand.py``; regenerate it there, never here.

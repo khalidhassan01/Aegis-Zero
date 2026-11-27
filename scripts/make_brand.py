@@ -1,6 +1,6 @@
 """Render the Aegis Zero brand kit from the committed SVG masters.
 
-The mascot (**Zero**) and the lockups are authored as SVG in ``docs/brand/``;
+The mark (**Zero**) and the lockups are authored as SVG in ``docs/brand/``;
 this script pins their shipped raster renderings:
 
 * ``zero-avatar-{512,256,128,64,32}.png`` — the avatar mark at every

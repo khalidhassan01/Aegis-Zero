@@ -43,17 +43,17 @@
     "sans": "NotoSans-Regular.ttf"
   },
   "tools": {
-    "ffmpeg": "n9.0.1",
-    "pillow": "12.3.0"
+    "ffmpeg": "n9.1",
+    "pillow": "13.0.0"
   },
   "files": {
     "docs/demo.mp4": {
-      "bytes": 876240,
-      "sha256": "7716dbf84cf3d05fa48e5b26ce35acdf778aed8cecfd86c3cac9d4777a9656b4"
+      "bytes": 835792,
+      "sha256": "cc3983de05bd19164556335f1ae6971bd57cbe07e9030577b738e2ca27e1b3eb"
     },
     "docs/demo.gif": {
-      "bytes": 1720916,
-      "sha256": "e1809e04172fde3b55d29180119df4981129429c7c953717e4ee847b1212f47d"
+      "bytes": 1564766,
+      "sha256": "3a4461356f5c655cb96d20dd5b2d450b1d3be938778c69a4959fd39c5bcccd70"
     },
     "docs/demo-poster.png": {
       "bytes": 123480,

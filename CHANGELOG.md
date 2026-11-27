@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Zero now carries the interactive mark.** The avatar, favicon, lockups,
+  OG card, and demo-video end card now show the still form of
+  `docs/assets/aegis-zero-logo-interactive.svg` — the dashed verdict ring,
+  the gold counter-ring, the sentinel dots, the shield, and the glowing
+  zero — replacing the v1 shield-face mascot in the same generated,
+  manifest-pinned pipeline (`python scripts/make_brand.py`, regenerate —
+  never hand-edit). The demo video was re-rendered from the new end card.
+
 ## [2.0.0] - 2026-09-01
 
 Complete architectural rebuild; v1 modules are preserved under `legacy/`.

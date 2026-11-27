@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mascot: a small round shield with a calm face" width="140">
+  <img src="docs/brand/zero-avatar-512.png" alt="Zero — the Aegis Zero mark: a ringed shield with the digit 0 at its center" width="140">
 </p>
 
 <p align="center">
@@ -21,10 +21,10 @@
 
 ---
 
-> 🛡️ **Meet Zero** — the project's mascot. A small round shield whose body
-> *is* the digit 0, with a calm face in the zero-ring and a gold spark it
-> only earns when something is verified. Zero trusts nobody; neither should
-> your agent. Its story and rules live in [docs/brand/BRAND.md](docs/brand/BRAND.md).
+> 🛡️ **Meet Zero** — the project's mark: a shield behind rotating rings with
+> a glowing 0 at its heart and gold it only earns when something is
+> verified. Zero trusts nobody; neither should your agent. Its story and
+> rules live in [docs/brand/BRAND.md](docs/brand/BRAND.md).
 
 Most agent frameworks give you a prompt loop and hope for the best. **Aegis Zero**
 is built around three commitments, each enforced in code rather than promised
@@ -398,7 +398,7 @@ depend on each other now run concurrently.
 - [Architecture audit](docs/AUDIT.md) — defects reproduced before fixing
 - [Roadmap](docs/ROADMAP.md) — evidence-graded improvements, what we did and why
 - [Security model](docs/SECURITY_MODEL.md) — what is and isn't a boundary
-- [Brand & mascot](docs/brand/BRAND.md) — Zero, the kit, and how to use it
+- [Brand & mark](docs/brand/BRAND.md) — Zero, the kit, and how to use it
 - [Integration guide](docs/AEGIS_INTEGRATION_GUIDE.md)
 - [Research foundation](docs/AEGIS_ZERO_RESEARCH_FOUNDATION.md)
 

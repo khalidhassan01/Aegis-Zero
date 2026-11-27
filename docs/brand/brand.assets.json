@@ -1,61 +1,61 @@
 {
   "description": "Aegis Zero brand kit \u2014 pinned raster renderings of the SVG masters in docs/brand/. Regenerate with scripts/make_brand.py; never edit the PNGs by hand.",
   "tools": {
-    "rsvg-convert": "rsvg-convert version 2.62.3\n\nlibraries used:\n  cairo 1.18.4\n  pango 1.58.2\n  harfbuzz 14.4.0\n  fontconfig 2.18.3",
-    "pillow": "Pillow 12.3.0"
+    "rsvg-convert": "rsvg-convert version 2.63.4\n\nlibraries used:\n  cairo 1.18.6\n  pango 1.58.2\n  harfbuzz 15.2.0\n  fontconfig 2.18.4",
+    "pillow": "Pillow 13.0.0"
   },
   "files": {
     "docs/brand/zero-avatar-512.png": {
-      "bytes": 70706,
-      "sha256": "13b176327fc6f66b77a3a127e5dd23f2d90c8d265d12f8b6700ead935f930a70",
+      "bytes": 93190,
+      "sha256": "565c4aae524ae5d212e8c4600ee53953bcbecb5e0d6e35cdfe64d529c1cb95af",
       "width": 512,
       "height": 512
     },
     "docs/brand/zero-avatar-256.png": {
-      "bytes": 39542,
-      "sha256": "feefc84b076bae9e416217d60de7bd52732f4691fad4d8177e5fb58c5794fcf6",
+      "bytes": 45603,
+      "sha256": "b0eb8de7cd427c3248b821d52be6350b507754b87dbc649428814d24e201fc6b",
       "width": 256,
       "height": 256
     },
     "docs/brand/zero-avatar-128.png": {
-      "bytes": 16418,
-      "sha256": "c237ea699ed4c00b704c4f48872013e9139a00b63879e660ff1b9650c7b8d1cb",
+      "bytes": 17304,
+      "sha256": "b056a9d1bd32ae38ae4f45c0f1ff7f0d5257ba30dc58acc46a345c39b34cac62",
       "width": 128,
       "height": 128
     },
     "docs/brand/zero-avatar-64.png": {
-      "bytes": 6276,
-      "sha256": "af22ebf596aa493827c23c4c89b06e9237ae698bb3c86e6e1354bfe726389131",
+      "bytes": 6219,
+      "sha256": "65dca917c432c0adbcc5c4acc625fff09979f1e3e6fd397932893883ecbf7beb",
       "width": 64,
       "height": 64
     },
     "docs/brand/zero-avatar-32.png": {
-      "bytes": 2324,
-      "sha256": "6fbc8d97cd3eb2a9f39a433ba6a71d672a5b04dbf187bd6bb198a9c7a9844fdf",
+      "bytes": 2069,
+      "sha256": "f3e4b5207742d3153c4da9215ba317877f8bbcda0a57621f043cccf3eeb9cb8b",
       "width": 32,
       "height": 32
     },
     "docs/brand/favicon.ico": {
-      "bytes": 7307,
-      "sha256": "19f5ffb3bfea2f2c203df268bd50c6e5c079037ae968f048f54afbca40282706",
+      "bytes": 6847,
+      "sha256": "5ddd9eae31f1fceb6b7c80cb502497eebe30fc28c75ea64e5ead0294dc913f1b",
       "width": 48,
       "height": 48
     },
     "docs/brand/aegis-zero-lockup.png": {
-      "bytes": 49983,
-      "sha256": "f1495f480d1d9160547e41e66a2b6775013e354815d47292fea3345d5282f509",
+      "bytes": 59616,
+      "sha256": "cd2b6a15f3a0048b3393a49707bed492290342b8cbf4a57a0eb82ca8d8c1260a",
       "width": 780,
       "height": 360
     },
     "docs/brand/og-card.png": {
-      "bytes": 132508,
-      "sha256": "d4602415a7208a59e87d2c20a6e02245eb398d51ed298cc26a17468540f7e73e",
+      "bytes": 155787,
+      "sha256": "3f46193ae049f0c1140de0b98daa2b5302a388dfe4315c22296a9b0b7abea429",
       "width": 1200,
       "height": 630
     },
     "docs/brand/endcard-lockup.png": {
-      "bytes": 53047,
-      "sha256": "9f342e4723175d052a10fc2db2a62d9476f5b9cf81144f71d9e99f101d527549",
+      "bytes": 57700,
+      "sha256": "038c2930b29375bb4375ef4012913106632cc955a32d415aa7aa68153f4e68c1",
       "width": 1200,
       "height": 600
     }
