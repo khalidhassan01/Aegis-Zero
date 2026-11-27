@@ -100,6 +100,40 @@ it surfaced a real verifier bug: tools returning structured dicts crashed
 the numeric consistency check. Fixed, with regression tests
 (`tests/test_verifier.py`).
 
+## MCP tools: the industry tool protocol, gated like first-party tools
+
+Model Context Protocol (MCP) is how the industry connects external tool
+servers to LLM frameworks, and every major framework can consume one.
+None of them decide *whether the model may run an imported tool* — that
+lives in docs paragraphs ("trust your servers, require approval for
+sensitive operations"). Aegis Zero makes it a property of the engine: the
+MCP bridge imports a server's tools through the official FastMCP client
+(the same foundation LangChain's `MCPAdapter` builds on) and installs a
+`PolicyRule` for each tool at import time.
+
+- **Gated by construction** — an imported tool without a `risk_map`
+  entry lands at the human-approval tier before its first call ever
+  runs; a vouched read-only tool still gets its arguments sanitized
+- **The server's schema is honored** — imported tools carry the
+  server's own JSON schema, so bad calls fail validation locally,
+  not at the remote end
+- **Untrusted output is screened** — imported output that reads like
+  instructions ("ignore previous instructions and…") is delivered
+  quarantined, labeled as data; the screening idea is inherited from
+  v1's `TrustedMCPAdapter`
+
+```bash
+pip install "aegis-zero[mcp] @ git+https://github.com/khalidhassan01/Aegis-Zero.git"
+python examples/mcp_tools.py    # offline, deterministic, ~2 s
+```
+
+The example connects to an in-process works-directory server — three
+vouched lookups run automatically, the zone grant waits for service-desk
+sign-off, and one directory note that tries to escalate access mid-text
+is quarantined by the output screen. Real FastMCP client, real policy
+engine, real approval routing; only the model is scripted. Pinned by
+`tests/test_mcp_bridge.py`.
+
 ## Why Aegis Zero is different
 
 This project treats its own claims as hypotheses to be falsified. The
@@ -111,6 +145,7 @@ hold up under measurement. What follows is what that discipline produced.
 | | Aegis Zero | Typical agent loop |
 |---|---|---|
 | Tool execution | policy-gated: allow / sanitize / approve / deny | a single `try/except` |
+| External tools (MCP) | policy rule installed per imported tool | "trust your servers" advice |
 | Context budget | enforced per *model* (P5) | one global constant |
 | Self-correction | verifier-forced revisions, not introspection | "review your own answer" |
 | Resilience | retries + fail-fast model degradation | hope the API stays up |

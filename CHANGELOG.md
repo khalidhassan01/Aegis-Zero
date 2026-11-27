@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **MCP bridge** (`aegis_zero.tools.mcp_bridge`, optional `[mcp]` extra):
+  import a Model Context Protocol server's tools into the same governed
+  runtime as first-party tools. Built on the official FastMCP client —
+  the foundation LangChain's `MCPAdapter` also builds on — rather than a
+  proprietary transport (don't reinvent the wheel). What the bridge adds
+  on top: a `PolicyRule` is installed for every imported tool at import
+  time, so an unverified external tool is human-approved *by
+  construction* where mainstream frameworks leave "trust your servers"
+  as docs advice; the server's own JSON schema is imported so bad calls
+  fail validation locally; and imported output is screened for
+  instruction-like text and quarantined as data — a lineage inherited
+  from v1's `TrustedMCPAdapter` (`legacy/trusted_mcp.py`), which was
+  the best idea of the 1.x line. Offline deterministic showcase in
+  `examples/mcp_tools.py` (in-process FastMCP server: vouched lookups
+  auto-run, the zone grant waits for a human, a poisoned note that
+  says "ignore previous instructions" is quarantined), pinned by
+  `tests/test_mcp_bridge.py` and the offline-examples smoke gate.
+
 ## [2.1.0] - 2026-11-27
 
 ### Added
