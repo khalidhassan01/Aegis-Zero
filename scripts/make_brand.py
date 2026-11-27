@@ -3,10 +3,10 @@
 The mark (**Zero**) and the lockups are authored as SVG in ``docs/brand/``;
 this script pins their shipped raster renderings:
 
-* ``zero-avatar-{512,256,128,64,32}.png`` — the avatar mark at every
-  social/favicon size. 512 is rendered directly; smaller sizes are
-  LANCZOS downscales of it, so every size tells the same story.
-* ``favicon.ico``                       — 16/32/48 packed from the avatar.
+* ``favicon.ico``                       — 16/32/48 packed from a straight
+  512 render of the mark master ``zero-avatar.svg`` (rendered in memory —
+  the avatar PNG family no longer ships; the repo's face is the
+  interactive hero, ``docs/assets/aegis-zero-logo-interactive.svg``).
 * ``aegis-zero-lockup.png``             — Zero beside the wordmark.
 * ``og-card.png``                       — 1200x630 Open Graph / X preview.
 * ``endcard-lockup.png``                — stacked lockup on pure black, the
@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import shutil
 import subprocess
@@ -44,12 +45,10 @@ RSVG = shutil.which("rsvg-convert")
 
 MANIFEST = BRAND / "brand.assets.json"
 
-AVATAR_SIZES = (512, 256, 128, 64, 32)
 FAVICON_SIZES = (16, 32, 48)
 
 # svg -> (png, render width, render height)
 RENDERS: dict[str, tuple[str, int, int]] = {
-    "zero-avatar.svg": ("zero-avatar-512.png", 512, 512),
     "aegis-zero-lockup.svg": ("aegis-zero-lockup.png", 780, 360),
     "og-card.svg": ("og-card.png", 1200, 630),
     "endcard-lockup.svg": ("endcard-lockup.png", 1200, 600),
@@ -65,14 +64,19 @@ def _digest(path: Path) -> dict[str, object]:
     return entry
 
 
-def _render(svg: Path, png: Path, width: int, height: int) -> None:
+def _render_bytes(svg: Path, width: int, height: int) -> bytes:
     if RSVG is None:
         raise RuntimeError("rsvg-convert not found — install librsvg to render the brand kit")
-    png.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        [RSVG, "-w", str(width), "-h", str(height), str(svg), "-o", str(png)],
+    return subprocess.run(
+        [RSVG, "-w", str(width), "-h", str(height), str(svg)],
+        capture_output=True,
         check=True,
-    )
+    ).stdout
+
+
+def _render(svg: Path, png: Path, width: int, height: int) -> None:
+    png.parent.mkdir(parents=True, exist_ok=True)
+    png.write_bytes(_render_bytes(svg, width, height))
 
 
 def _versions() -> dict[str, str]:
@@ -89,36 +93,21 @@ def _versions() -> dict[str, str]:
 
 def build() -> None:
     if Image is None:
-        raise RuntimeError("Pillow is required to build the brand kit (downsizes + favicon)")
+        raise RuntimeError("Pillow is required to build the brand kit (favicon packing)")
 
     for svg_name, (png_name, w, h) in RENDERS.items():
         _render(BRAND / svg_name, BRAND / png_name, w, h)
         print(f"rendered {png_name}")
 
-    # every avatar size tells the same story: one render, faithful downscales
-    with Image.open(BRAND / "zero-avatar-512.png") as master:
-        for size in AVATAR_SIZES:
-            if size == 512:
-                continue
-            with master.resize((size, size), Image.LANCZOS) as small:
-                small.save(BRAND / f"zero-avatar-{size}.png")
-            print(f"rendered zero-avatar-{size}.png")
-
-    with Image.open(BRAND / "zero-avatar-512.png") as master:
-        master.save(
-            BRAND / "favicon.ico",
-            sizes=[(s, s) for s in FAVICON_SIZES],
-        )
+    # the only avatar-size raster the repo ships is the tab icon itself:
+    # a straight 512 render of the mark master, kept in memory
+    png = _render_bytes(BRAND / "zero-avatar.svg", 512, 512)
+    with Image.open(io.BytesIO(png)) as master:
+        master.save(BRAND / "favicon.ico", sizes=[(s, s) for s in FAVICON_SIZES])
     print("rendered favicon.ico")
 
     files: dict[str, dict[str, object]] = {}
-    for name in (
-        *(f"zero-avatar-{s}.png" for s in AVATAR_SIZES),
-        "favicon.ico",
-        "aegis-zero-lockup.png",
-        "og-card.png",
-        "endcard-lockup.png",
-    ):
+    for name in ("favicon.ico", "aegis-zero-lockup.png", "og-card.png", "endcard-lockup.png"):
         files[f"docs/brand/{name}"] = _digest(BRAND / name)
 
     manifest = {

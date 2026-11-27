@@ -15,6 +15,13 @@ versioning follows [Semantic Versioning](https://semver.org/).
   zero — replacing the v1 shield-face mascot in the same generated,
   manifest-pinned pipeline (`python scripts/make_brand.py`, regenerate —
   never hand-edit). The demo video was re-rendered from the new end card.
+- **One logo — the interactive one.** The still-avatar PNG family
+  (`zero-avatar-{512,256,128,64,32}.png`) no longer ships; the repo's
+  face is `docs/assets/aegis-zero-logo-interactive.svg` alone.
+  `zero-avatar.svg` stays as the mark master — the in-memory source of
+  `favicon.ico` and the geometry anchor for the lockups, OG card, and
+  end card. README, `docs/landing.html`, `BRAND.md`, the generator,
+  and the brand tests follow suit.
 
 ## [2.0.0] - 2026-09-01
 

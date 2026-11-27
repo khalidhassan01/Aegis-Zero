@@ -5,36 +5,6 @@
     "pillow": "Pillow 13.0.0"
   },
   "files": {
-    "docs/brand/zero-avatar-512.png": {
-      "bytes": 93190,
-      "sha256": "565c4aae524ae5d212e8c4600ee53953bcbecb5e0d6e35cdfe64d529c1cb95af",
-      "width": 512,
-      "height": 512
-    },
-    "docs/brand/zero-avatar-256.png": {
-      "bytes": 45603,
-      "sha256": "b0eb8de7cd427c3248b821d52be6350b507754b87dbc649428814d24e201fc6b",
-      "width": 256,
-      "height": 256
-    },
-    "docs/brand/zero-avatar-128.png": {
-      "bytes": 17304,
-      "sha256": "b056a9d1bd32ae38ae4f45c0f1ff7f0d5257ba30dc58acc46a345c39b34cac62",
-      "width": 128,
-      "height": 128
-    },
-    "docs/brand/zero-avatar-64.png": {
-      "bytes": 6219,
-      "sha256": "65dca917c432c0adbcc5c4acc625fff09979f1e3e6fd397932893883ecbf7beb",
-      "width": 64,
-      "height": 64
-    },
-    "docs/brand/zero-avatar-32.png": {
-      "bytes": 2069,
-      "sha256": "f3e4b5207742d3153c4da9215ba317877f8bbcda0a57621f043cccf3eeb9cb8b",
-      "width": 32,
-      "height": 32
-    },
     "docs/brand/favicon.ico": {
       "bytes": 6847,
       "sha256": "5ddd9eae31f1fceb6b7c80cb502497eebe30fc28c75ea64e5ead0294dc913f1b",

@@ -5,10 +5,11 @@ committed SVG masters; ``docs/brand/brand.assets.json`` pins them
 byte-for-byte (``--check`` verifies them). Like the demo assets, the
 rasters can never silently drift from what was reviewed.
 
-Zero is the still form of the interactive hero logo
-(``docs/assets/aegis-zero-logo-interactive.svg``): the dashed verdict
-ring, the gold counter-ring, the two sentinel dots, the shield, and the
-glowing zero at its heart.
+The repo's face is the **interactive hero**
+(``docs/assets/aegis-zero-logo-interactive.svg``). The still form
+(``zero-avatar.svg``, the hero caught mid-orbit) survives only where
+animation is impossible — packed into ``favicon.ico`` and composited
+into the lockups, the OG card, and the demo-video end card.
 
 Two tiers, mirroring ``test_demo_video.py``:
 
@@ -18,10 +19,11 @@ Two tiers, mirroring ``test_demo_video.py``:
   script's ``--check`` mode passes against the shipped state.
 * **When Pillow is installed**: pixel probes assert the art actually
   paints what ``docs/brand/BRAND.md`` says it paints — the verdict
-  ring's ticks, the gold counter-ring, the sentinels, the glass
-  shield, the glowing zero, the gold verified tip — and that the
-  mark survives round crops and favicon size. A renderer upgrade
-  that changes rasterisation fails here on purpose: regenerate with
+  ring's tick, the sentinel dots, the glass shield, the glowing
+  zero, the gold verified tip — on the favicon's packed frames and
+  the lockup/card scenes, and that the mark stays inside its round
+  plate and still reads at 16px. A renderer upgrade that changes
+  rasterisation fails here on purpose: regenerate with
   ``python scripts/make_brand.py``.
 """
 
@@ -101,7 +103,7 @@ def test_mark_geometry_is_identical_across_masters() -> None:
 
 def test_manifest_pins_shipped_binaries_byte_for_byte() -> None:
     files = _manifest()["files"]
-    assert len(files) == 9, "avatar sizes x5 + favicon + three lockups/cards"
+    assert len(files) == 4, "favicon + three lockups/cards"
     for rel, pinned in files.items():
         path = REPO / rel
         assert path.is_file(), rel
@@ -111,14 +113,13 @@ def test_manifest_pins_shipped_binaries_byte_for_byte() -> None:
         assert pinned["width"] * pinned["height"] > 0, rel
 
 
-def test_avatar_is_pinned_at_every_social_size() -> None:
+def test_manifest_pins_dimensions_of_every_binary() -> None:
     files = _manifest()["files"]
-    for size in (512, 256, 128, 64, 32):
-        assert f"docs/brand/zero-avatar-{size}.png" in files
-    assert files["docs/brand/zero-avatar-512.png"]["width"] == 512
     assert files["docs/brand/favicon.ico"]["width"] == 48  # largest packed size
+    assert files["docs/brand/aegis-zero-lockup.png"]["width"] == 780
     assert files["docs/brand/og-card.png"]["width"] == 1200
     assert files["docs/brand/og-card.png"]["height"] == 630
+    assert files["docs/brand/endcard-lockup.png"]["height"] == 600
 
 
 def test_check_mode_passes_against_the_shipped_state(
@@ -132,67 +133,89 @@ def test_check_mode_passes_against_the_shipped_state(
 requires_pil = pytest.mark.skipif(make_brand.Image is None, reason="Pillow not installed")
 
 
-@requires_pil
-def test_avatar_paints_the_ring_shield_zero_story() -> None:
+def _favicon_frame(size: int):
+    """Load one packed frame of the tab icon as RGBA (16/32/48).
+    Picking a frame via the ``size`` attribute is Pillow's documented
+    way to read a specific ICO entry."""
     from PIL import Image
 
-    with Image.open(BRAND / "zero-avatar-512.png") as im:
-        rgb = im.convert("RGBA")
+    im = Image.open(BRAND / "favicon.ico")
+    im.size = (size, size)
+    im.load()
+    return im.convert("RGBA")
 
-    def px(x: int, y: int) -> tuple[int, int, int, int]:
-        return rgb.getpixel((x, y))
 
-    r, g, b, a = px(256, 38)  # the top major tick of the verdict ring
-    assert a == 255 and g > 190 and b > 150 and r < 60
-    r, g, b, _ = px(256, 204)  # the glowing zero, top of the ring
-    assert g > 190 and b > 150 and r < 60
-    r, g, b, _ = px(404, 108)  # the cyan sentinel, caught mid-flight
-    assert r < 60 and g > 200 and b > 150
-    r, g, b, _ = px(108, 404)  # the gold sentinel, running the other way
-    assert r > 230 and 170 < g < 235 and b < 60
-    r, g, b, _ = px(256, 427)  # the verified tip
-    assert r > 230 and 170 < g < 235 and b < 60
-    r, g, b, _ = px(256, 123)  # the gold shoulder line across the shield
-    assert r > 120 and g > 100 and b < 60
-    r, g, b, a = px(256, 180)  # the shield glass, faintly teal
-    assert a == 255 and 25 < g < 90 and r < 60
-    r, g, b, a = px(256, 20)  # the deep field, inside the plate
-    assert a == 255 and r < 30 and g < 60
+def _brightest(rgba, box: tuple[int, int, int, int]) -> tuple[float, ...]:
+    """Brightest pixel in a region. Thin strokes are sub-pixel at favicon
+    scale, so probes target a region's peak, not an exact point."""
+    x0, y0, x1, y1 = box
+    best: tuple[float, ...] = (0.0, 0.0, 0.0, 0.0)
+    for x in range(x0, x1):
+        for y in range(y0, y1):
+            p = rgba.getpixel((x, y))
+            assert isinstance(p, tuple)
+            if sum(p[:3]) > sum(best[:3]):
+                best = p
+    return best
 
 
 @requires_pil
-def test_avatar_survives_round_crops() -> None:
-    from PIL import Image
+def test_favicon_paints_the_ring_shield_zero_story() -> None:
+    """The 48px tab icon still tells the whole story. Coordinates are the
+    512-based art scaled by 3/32: field (256,20), tick (256,38), zero
+    (256,204), sentinels (404,108)/(108,404), tip (256,427), glass
+    (256,180)."""
+    rgb = _favicon_frame(48)
 
-    with Image.open(BRAND / "zero-avatar-512.png") as im:
-        rgba = im.convert("RGBA")
-    assert rgba.getpixel((0, 0))[3] == 0, "corners must be transparent"
+    def px(x: int, y: int) -> tuple[float, ...]:
+        p = rgb.getpixel((x, y))
+        assert isinstance(p, tuple)
+        return p
+
+    field = px(24, 2)  # the deep field, inside the plate
+    assert field[3] > 200 and field[0] < 40 and field[1] < 80
+    tick = _brightest(rgb, (22, 2, 27, 7))  # the verdict ring's top major tick
+    assert sum(tick) > 160 and tick[1] > 50 and tick[0] < 40
+    zero = _brightest(rgb, (22, 17, 27, 22))  # the glowing zero, top of the ring
+    assert sum(zero) > 250 and zero[1] > 120 and zero[0] < 60
+    cyan = _brightest(rgb, (36, 8, 41, 13))  # the cyan sentinel, caught mid-flight
+    assert sum(cyan) > 250 and cyan[1] > 100 and cyan[0] < 60
+    gold = _brightest(rgb, (8, 36, 13, 41))  # the gold sentinel, running the other way
+    assert sum(gold) > 200 and gold[0] > 80 and gold[2] < 80
+    tip = _brightest(rgb, (22, 38, 27, 43))  # the verified tip, gold and earned
+    assert sum(tip) > 180 and tip[0] > 80 and tip[2] < 80
+    line = _brightest(rgb, (22, 10, 27, 15))  # the gold shoulder line across the shield
+    assert sum(line) > 90
+    glass = px(24, 17)  # the shield glass, faintly teal
+    assert glass[3] == 255 and 10 < glass[1] < 90 and glass[0] < 40
+
+
+@requires_pil
+def test_favicon_stays_inside_its_round_plate() -> None:
+    rgba = _favicon_frame(48)
+    for x, y in ((0, 0), (47, 0), (0, 47), (47, 47)):
+        p = rgba.getpixel((x, y))
+        assert isinstance(p, tuple) and p[3] == 0, "corners must be transparent"
     worst = 0.0
-    for y in range(0, 512, 2):  # stride 2: fast, still exhaustive enough
-        for x in range(0, 512, 2):
-            if rgba.getpixel((x, y))[3] > 8:
-                worst = max(worst, math.hypot(x - 256, y - 256))
-    assert worst < 251, f"art escapes the round crop (max radius {worst:.1f})"
+    for y in range(48):
+        for x in range(48):
+            p = rgba.getpixel((x, y))
+            assert isinstance(p, tuple)
+            if p[3] > 8:
+                worst = max(worst, math.hypot(x - 23.5, y - 23.5))
+    assert worst < 23.9, f"art escapes the round crop (max radius {worst:.1f})"
 
 
 @requires_pil
-def test_zero_survives_favicon_size() -> None:
-    from PIL import Image
-
-    with Image.open(BRAND / "zero-avatar-64.png") as im:
-        rgb = im.convert("RGB")
-    glass = rgb.getpixel((32, 32))
-    assert sum(glass) < 200, "the shield glass must stay dark at 64px"
-    zero_x, zero_y = 32, round(204 * 64 / 512)  # top of the glowing zero
-    region = [
-        rgb.getpixel((x, y))
-        for x in range(zero_x - 5, zero_x + 6)
-        for y in range(zero_y - 4, zero_y + 5)
-    ]
-    brightest = max(region, key=sum)
-    assert sum(brightest) > sum(glass) + 180, "the zero must still read at 64px"
-    tick = rgb.getpixel((32, 5))  # the verdict ring's top major tick
-    assert sum(tick) > sum(glass) + 180, "the ring must still read at 64px"
+def test_zero_still_reads_at_16px() -> None:
+    rgba = _favicon_frame(16)
+    zero = _brightest(rgba, (7, 5, 10, 8))
+    assert sum(zero) > 180, "the zero must still read at 16px"
+    tick = _brightest(rgba, (7, 0, 10, 3))
+    assert sum(tick) > 90, "the verdict ring must still read at 16px"
+    for x, y in ((0, 0), (15, 0), (0, 15), (15, 15)):
+        p = rgba.getpixel((x, y))
+        assert isinstance(p, tuple) and p[3] == 0
 
 
 @requires_pil

@@ -4,12 +4,13 @@
 > heart and gold it only earns when something is *verified*. Zero trusts
 > nobody. Neither should your agent.
 
-Zero is the face of Aegis Zero — the avatar you see on the GitHub org, the
-favicon in your tab, the sticker on a laptop, and the end card of the demo
-video. It is the **still form of the interactive hero logo**
-([`docs/assets/aegis-zero-logo-interactive.svg`](../assets/aegis-zero-logo-interactive.svg)):
-the same rings, the same shield, the same digit — caught mid-orbit instead
-of spinning. Like a good security guard, Zero is friendly, wide awake, and
+Zero is the face of Aegis Zero — the interactive hero at the top of the
+README ([`docs/assets/aegis-zero-logo-interactive.svg`](../assets/aegis-zero-logo-interactive.svg)),
+the favicon in your tab, and the end card of the demo video. The hero **is**
+the logo. The still form (`zero-avatar.svg` — the same rings, the same
+shield, the same digit, caught mid-orbit instead of spinning) survives only
+where animation is impossible: the favicon, the lockups, the OG card, the
+end card. Like a good security guard, Zero is friendly, wide awake, and
 completely unimpressed by your excuses.
 
 ## Why this mark
@@ -55,7 +56,7 @@ Taglines that ship with the mark:
 |---|---|---|
 | Aegis teal | `#00ffcc` | primary — rings, shield outline, the glowing zero |
 | Gold | `#ffd700` | earned things only: counter-ring, sentinel, verified tip |
-| Deep field | `#0a0a0a → #000000` | the avatar plate (round-crop safe) |
+| Deep field | `#0a0a0a → #000000` | the mark's plate (round-crop safe) |
 | Shield glass | `#00ffcc` @ 12% → 2% | the shield fill over the measurement grid |
 
 Typography is unchanged from the v1 wordmark: **AEGIS** in Georgia 900 with
@@ -72,8 +73,7 @@ regenerate, and commit the pair together.
 
 | File | Use |
 |---|---|
-| `zero-avatar.svg` | master avatar mark (still form of the interactive hero) |
-| `zero-avatar-{512,256,128,64,32}.png` | GitHub/X/Discord avatars, favicons, stickers |
+| `zero-avatar.svg` | the mark master — still form of the hero; source of `favicon.ico` |
 | `favicon.ico` | browser tab (16/32/48 packed) |
 | `aegis-zero-lockup.svg/.png` | Zero beside the wordmark — slides, side-bars |
 | `og-card.svg/.png` | 1200×630 Open Graph / X preview card |
@@ -82,7 +82,7 @@ regenerate, and commit the pair together.
 ## Usage rules
 
 - **Clear space:** keep a margin of at least ¼ of the mark's diameter free
-  around the avatar.
+  around the mark.
 - **Minimum size:** 24px digital. Below that, use the favicon and accept
   that Zero becomes a glowing ring and a bright zero — which still works.
 - **Round crops are safe by construction:** all art lives inside the
